@@ -1,13 +1,21 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { loginAdmin } from '../services/authService';
 
 export default function AdminLogin() {
   const navigate = useNavigate();
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [error, setError] = useState('');
 
   const handleLogin = (e) => {
     e.preventDefault();
-    // Simulate login success and redirect to dashboard
-    navigate('/admin/dashboard');
+    setError('');
+    if (loginAdmin(email, password)) {
+      navigate('/admin/dashboard');
+    } else {
+      setError('Invalid admin credentials');
+    }
   };
 
   return (
@@ -35,6 +43,11 @@ export default function AdminLogin() {
         {/* Glass Login Card */}
         <div className="glass-panel p-10 rounded-xl border border-white/10 shadow-2xl bg-surface-container-low/50 backdrop-blur-3xl">
           <form className="space-y-6" onSubmit={handleLogin}>
+            {error && (
+              <div className="bg-red-500/20 border border-red-500/30 text-red-400 px-4 py-3 rounded-lg text-sm text-center font-body">
+                {error}
+              </div>
+            )}
             {/* Identity Field */}
             <div className="space-y-2">
               <label className="font-label text-[10px] uppercase tracking-widest text-secondary font-semibold ml-1" htmlFor="username">Email / Username</label>
@@ -42,7 +55,7 @@ export default function AdminLogin() {
                 <div className="absolute left-4 top-1/2 -translate-y-1/2 text-on-surface-variant group-focus-within:text-secondary transition-colors">
                   <span className="material-symbols-outlined text-sm">person</span>
                 </div>
-                <input className="w-full bg-black/40 border-none focus:ring-0 focus:border-l-2 focus:border-secondary transition-all rounded-sm py-4 pl-12 pr-4 text-on-surface placeholder:text-outline-variant font-body text-sm outline-none" id="username" placeholder="Enter your credentials" type="text" defaultValue="admin@velvetpearl.com" required/>
+                <input className="w-full bg-black/40 border-none focus:ring-0 focus:border-l-2 focus:border-secondary transition-all rounded-sm py-4 pl-12 pr-4 text-on-surface placeholder:text-outline-variant font-body text-sm outline-none" id="username" placeholder="Enter your credentials" type="text" value={email} onChange={(e) => setEmail(e.target.value)} required/>
               </div>
             </div>
 
@@ -50,13 +63,13 @@ export default function AdminLogin() {
             <div className="space-y-2">
               <div className="flex justify-between items-center ml-1">
                 <label className="font-label text-[10px] uppercase tracking-widest text-secondary font-semibold" htmlFor="password">Password</label>
-                <a className="font-label text-[10px] uppercase tracking-widest text-primary-fixed-dim hover:text-white transition-colors" href="#">Forgot password?</a>
+                <a className="font-label text-[10px] uppercase tracking-widest text-primary-fixed-dim hover:text-white transition-colors" href="#">Forgot password? coming soon</a>
               </div>
               <div className="relative group">
                 <div className="absolute left-4 top-1/2 -translate-y-1/2 text-on-surface-variant group-focus-within:text-secondary transition-colors">
                   <span className="material-symbols-outlined text-sm">lock</span>
                 </div>
-                <input className="w-full bg-black/40 border-none focus:ring-0 focus:border-l-2 focus:border-secondary transition-all rounded-sm py-4 pl-12 pr-12 text-on-surface placeholder:text-outline-variant font-body text-sm outline-none" id="password" placeholder="••••••••" type="password" defaultValue="password123" required/>
+                <input className="w-full bg-black/40 border-none focus:ring-0 focus:border-l-2 focus:border-secondary transition-all rounded-sm py-4 pl-12 pr-12 text-on-surface placeholder:text-outline-variant font-body text-sm outline-none" id="password" placeholder="••••••••" type="password" value={password} onChange={(e) => setPassword(e.target.value)} required/>
                 <button className="absolute right-4 top-1/2 -translate-y-1/2 text-on-surface-variant hover:text-on-surface transition-colors focus:outline-none" type="button">
                   <span className="material-symbols-outlined text-sm">visibility</span>
                 </button>
@@ -74,7 +87,7 @@ export default function AdminLogin() {
           {/* Help Link */}
           <div className="mt-8 pt-8 border-t border-white/5 text-center">
             <a className="inline-flex items-center gap-2 group" href="#">
-              <span className="font-body text-sm text-on-surface-variant group-hover:text-on-surface transition-colors">Contact support for admin issues.</span>
+              <span className="font-body text-sm text-on-surface-variant group-hover:text-on-surface transition-colors">Contact support for admin issues. coming soon</span>
               <span className="material-symbols-outlined text-xs text-secondary group-hover:translate-x-1 transition-transform">arrow_forward</span>
             </a>
           </div>

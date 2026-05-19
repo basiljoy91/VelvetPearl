@@ -2,12 +2,18 @@ import React, { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { initialBookings, initialFleet, initialDrivers, initialMessages } from '../data/mockData';
 import AdminForms from '../components/admin/AdminForms';
+import { logoutAdmin } from '../services/authService';
 
 export default function AdminDashboard() {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('dashboard');
   const [searchQuery, setSearchQuery] = useState('');
   const [isEntryModalOpen, setIsEntryModalOpen] = useState(false);
+  
+  const handleLogout = () => {
+    logoutAdmin();
+    navigate('/admin');
+  };
   
   // Data States
   const [bookings, setBookings] = useState(initialBookings);
@@ -84,7 +90,7 @@ export default function AdminDashboard() {
         </nav>
 
         <div className="p-6 mt-auto border-t border-white/5">
-          <div className="flex items-center gap-3 p-3 bg-white/5 rounded-2xl border border-white/10 cursor-pointer hover:bg-white/10 transition" onClick={() => navigate('/admin')}>
+          <div className="flex items-center gap-3 p-3 bg-white/5 rounded-2xl border border-white/10 cursor-pointer hover:bg-white/10 transition" onClick={handleLogout}>
             <div className="w-10 h-10 rounded-lg bg-[#EFBF04]/20 flex items-center justify-center">
               <span className="material-symbols-outlined text-[#EFBF04]">person</span>
             </div>
