@@ -1,9 +1,27 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { Navigate } from 'react-router-dom';
-import { isAuthenticated } from '../services/authService';
+import { isAuthenticated, verifyToken } from '../services/authService';
 
 export default function ProtectedRoute({ children }) {
-  if (!isAuthenticated()) {
+  const [isValid, setIsValid] = useState(null);
+
+  useEffect(() => {
+    const checkAuth = async () => {
+      if (!isAuthenticated()) {
+        setIsValid(false);
+        return;
+      }
+      const valid = await verifyToken();
+      setIsValid(valid);
+    };
+    checkAuth();
+  }, []);
+
+  if (isValid === null) {
+    return <div className="h-screen w-full bg-background flex items-center justify-center text-[#EFBF04]">Verifying Session...</div>;
+  }
+
+  if (!isValid) {
     return <Navigate to="/admin" replace />;
   }
   return children;

@@ -12,7 +12,17 @@ export default function AdminForms({ type, isOpen, onClose, onSubmit }) {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    onSubmit({ ...formData, id: `VP-${Math.floor(Math.random() * 9000) + 1000}` });
+    
+    let defaultValues = {};
+    if (type === 'bookings') {
+      defaultValues = { status: 'Pending', amount: 'TBD' };
+    } else if (type === 'fleet') {
+      defaultValues = { status: 'Available', lastService: new Date().toLocaleDateString('en-US', { month: 'long', day: '2-digit', year: 'numeric' }) };
+    } else if (type === 'drivers') {
+      defaultValues = { status: 'Active', rating: '5.0' };
+    }
+
+    onSubmit({ ...formData, ...defaultValues, id: `VP-${Math.floor(Math.random() * 9000) + 1000}` });
     onClose();
   };
 
@@ -35,13 +45,22 @@ export default function AdminForms({ type, isOpen, onClose, onSubmit }) {
                 <input name="customer" onChange={handleChange} className="w-full bg-white/5 border border-white/10 rounded-lg p-3 text-white outline-none focus:border-[#EFBF04]/40" required />
               </div>
               <div className="space-y-2">
+                <label className="text-[10px] uppercase tracking-widest text-[#EFBF04] font-bold">Phone Number</label>
+                <input name="phone" onChange={handleChange} className="w-full bg-white/5 border border-white/10 rounded-lg p-3 text-white outline-none focus:border-[#EFBF04]/40" required />
+              </div>
+              <div className="space-y-2">
                 <label className="text-[10px] uppercase tracking-widest text-[#EFBF04] font-bold">Service Type</label>
                 <select name="service" onChange={handleChange} className="w-full bg-white/5 border border-white/10 rounded-lg p-3 text-white outline-none focus:border-[#EFBF04]/40 appearance-none">
-                  <option value="Cab">Cab Booking</option>
-                  <option value="Room">Room Booking</option>
-                  <option value="Tour">Tour Booking</option>
-                  <option value="Event">Event Planning</option>
+                  <option value="" disabled selected className="bg-[#0F0F0F]">Select Service</option>
+                  <option value="Cab" className="bg-[#0F0F0F]">Cab Booking</option>
+                  <option value="Room" className="bg-[#0F0F0F]">Room Booking</option>
+                  <option value="Tour" className="bg-[#0F0F0F]">Tour Booking</option>
+                  <option value="Event" className="bg-[#0F0F0F]">Event Planning</option>
                 </select>
+              </div>
+              <div className="space-y-2">
+                <label className="text-[10px] uppercase tracking-widest text-[#EFBF04] font-bold">Details</label>
+                <input name="details" onChange={handleChange} placeholder="e.g. VIP MPV, 4 Nights" className="w-full bg-white/5 border border-white/10 rounded-lg p-3 text-white outline-none focus:border-[#EFBF04]/40" required />
               </div>
               <div className="space-y-2">
                 <label className="text-[10px] uppercase tracking-widest text-[#EFBF04] font-bold">Schedule Date</label>
@@ -60,6 +79,15 @@ export default function AdminForms({ type, isOpen, onClose, onSubmit }) {
                 <label className="text-[10px] uppercase tracking-widest text-[#EFBF04] font-bold">Plate Number</label>
                 <input name="plate" onChange={handleChange} className="w-full bg-white/5 border border-white/10 rounded-lg p-3 text-white outline-none focus:border-[#EFBF04]/40" required />
               </div>
+              <div className="space-y-2">
+                <label className="text-[10px] uppercase tracking-widest text-[#EFBF04] font-bold">Vehicle Type</label>
+                <select name="type" onChange={handleChange} className="w-full bg-white/5 border border-white/10 rounded-lg p-3 text-white outline-none focus:border-[#EFBF04]/40 appearance-none">
+                  <option value="" disabled selected className="bg-[#0F0F0F]">Select Type</option>
+                  <option value="VIP MPV" className="bg-[#0F0F0F]">VIP MPV</option>
+                  <option value="Luxury Van" className="bg-[#0F0F0F]">Luxury Van</option>
+                  <option value="Executive Sedan" className="bg-[#0F0F0F]">Executive Sedan</option>
+                </select>
+              </div>
             </>
           )}
 
@@ -72,6 +100,10 @@ export default function AdminForms({ type, isOpen, onClose, onSubmit }) {
               <div className="space-y-2">
                 <label className="text-[10px] uppercase tracking-widest text-[#EFBF04] font-bold">Phone Number</label>
                 <input name="phone" onChange={handleChange} className="w-full bg-white/5 border border-white/10 rounded-lg p-3 text-white outline-none focus:border-[#EFBF04]/40" required />
+              </div>
+              <div className="space-y-2">
+                <label className="text-[10px] uppercase tracking-widest text-[#EFBF04] font-bold">Experience</label>
+                <input name="experience" onChange={handleChange} placeholder="e.g. 5 Years" className="w-full bg-white/5 border border-white/10 rounded-lg p-3 text-white outline-none focus:border-[#EFBF04]/40" required />
               </div>
             </>
           )}

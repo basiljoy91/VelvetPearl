@@ -1,10 +1,33 @@
 import React, { useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
+import { addBooking } from '../services/dataService';
 
 export default function RoomBooking() {
   const { state } = useLocation();
   const navigate = useNavigate();
   const [isBooked, setIsBooked] = useState(false);
+
+  const handleBookingSubmit = (e) => {
+    e.preventDefault();
+    const formData = new FormData(e.target);
+    const customer = formData.get('customer') || 'Guest';
+    const phone = formData.get('phone') || 'N/A';
+    const hotel = formData.get('hotel') || 'Velvet Pearl';
+    const checkin = formData.get('checkin') || '';
+    const checkout = formData.get('checkout') || '';
+    const roomType = formData.get('roomType') || 'Standard';
+    const guests = formData.get('guests') || '1';
+
+    addBooking({
+      customer,
+      phone,
+      service: `Room: ${hotel}`,
+      details: `${roomType} (${guests} Guests)`,
+      schedule: `${checkin} to ${checkout}`
+    });
+
+    setIsBooked(true);
+  };
 
   return (
     <main className="pt-20 min-h-screen">
@@ -61,16 +84,16 @@ export default function RoomBooking() {
                 </button>
               </div>
             ) : (
-              <form className="space-y-8" onSubmit={(e) => { e.preventDefault(); setIsBooked(true); }}>
+              <form className="space-y-8" onSubmit={handleBookingSubmit}>
                 {/* Name & Contact */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                   <div className="space-y-2">
                     <label className="font-label text-[10px] uppercase tracking-[0.1em] text-on-surface-variant ml-1">Full Name</label>
-                    <input defaultValue={state?.name || ''} className="w-full bg-black/40 border-0 border-l-2 border-transparent focus:border-secondary transition-all px-4 py-3 text-on-surface outline-none text-sm rounded-sm" placeholder="Alexander Vestige" type="text" required/>
+                    <input name="customer" defaultValue={state?.name || ''} className="w-full bg-black/40 border-0 border-l-2 border-transparent focus:border-secondary transition-all px-4 py-3 text-on-surface outline-none text-sm rounded-sm" placeholder="Alexander Vestige" type="text" required/>
                   </div>
                   <div className="space-y-2">
                     <label className="font-label text-[10px] uppercase tracking-[0.1em] text-on-surface-variant ml-1">Email Address</label>
-                    <input defaultValue={state?.email || ''} className="w-full bg-black/40 border-0 border-l-2 border-transparent focus:border-secondary transition-all px-4 py-3 text-on-surface outline-none text-sm rounded-sm" placeholder="concierge@example.com" type="email" required/>
+                    <input name="email" defaultValue={state?.email || ''} className="w-full bg-black/40 border-0 border-l-2 border-transparent focus:border-secondary transition-all px-4 py-3 text-on-surface outline-none text-sm rounded-sm" placeholder="concierge@example.com" type="email" required/>
                   </div>
                 </div>
                 {/* Phone & Country */}
@@ -81,43 +104,43 @@ export default function RoomBooking() {
                   </div>
                   <div className="space-y-2 md:col-span-2">
                     <label className="font-label text-[10px] uppercase tracking-[0.1em] text-on-surface-variant ml-1">Contact Phone</label>
-                    <input defaultValue={state?.phone || ''} className="w-full bg-black/40 border-0 border-l-2 border-transparent focus:border-secondary transition-all px-4 py-3 text-on-surface outline-none text-sm rounded-sm" placeholder="99431 39353" type="tel" required/>
+                    <input name="phone" defaultValue={state?.phone || ''} className="w-full bg-black/40 border-0 border-l-2 border-transparent focus:border-secondary transition-all px-4 py-3 text-on-surface outline-none text-sm rounded-sm" placeholder="99431 39353" type="tel" required/>
                   </div>
                 </div>
                 <div className="space-y-2">
                   <label className="font-label text-[10px] uppercase tracking-[0.1em] text-on-surface-variant ml-1">Country</label>
-                  <input defaultValue={state?.country || ''} className="w-full bg-black/40 border-0 border-l-2 border-transparent focus:border-secondary transition-all px-4 py-3 text-on-surface outline-none text-sm rounded-sm" placeholder="United Kingdom" type="text" required/>
+                  <input name="country" defaultValue={state?.country || ''} className="w-full bg-black/40 border-0 border-l-2 border-transparent focus:border-secondary transition-all px-4 py-3 text-on-surface outline-none text-sm rounded-sm" placeholder="United Kingdom" type="text" required/>
                 </div>
                 {/* Dates & Logistics */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                   <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-2">
                       <label className="font-label text-[10px] uppercase tracking-[0.1em] text-on-surface-variant ml-1">Check-In</label>
-                      <input className="w-full bg-black/40 border-0 border-l-2 border-transparent focus:border-secondary transition-all px-4 py-3 text-on-surface text-sm rounded-sm outline-none" type="date" required/>
+                      <input name="checkin" className="w-full bg-black/40 border-0 border-l-2 border-transparent focus:border-secondary transition-all px-4 py-3 text-on-surface text-sm rounded-sm outline-none" type="date" required/>
                     </div>
                     <div className="space-y-2">
                       <label className="font-label text-[10px] uppercase tracking-[0.1em] text-on-surface-variant ml-1">Check-Out</label>
-                      <input className="w-full bg-black/40 border-0 border-l-2 border-transparent focus:border-secondary transition-all px-4 py-3 text-on-surface text-sm rounded-sm outline-none" type="date" required/>
+                      <input name="checkout" className="w-full bg-black/40 border-0 border-l-2 border-transparent focus:border-secondary transition-all px-4 py-3 text-on-surface text-sm rounded-sm outline-none" type="date" required/>
                     </div>
                   </div>
                   <div className="space-y-2">
                     <label className="font-label text-[10px] uppercase tracking-[0.1em] text-on-surface-variant ml-1">Room Type</label>
-                    <select className="w-full bg-black/40 border-0 border-l-2 border-transparent focus:border-secondary transition-all px-4 py-3 text-on-surface text-sm rounded-sm outline-none appearance-none" required>
+                    <select name="roomType" className="w-full bg-black/40 border-0 border-l-2 border-transparent focus:border-secondary transition-all px-4 py-3 text-on-surface text-sm rounded-sm outline-none appearance-none" required>
                       <option value="">Select Tier</option>
-                      <option>Single</option>
-                      <option>Double</option>
-                      <option>Suite</option>
+                      <option value="Single">Single</option>
+                      <option value="Double">Double</option>
+                      <option value="Suite">Suite</option>
                     </select>
                   </div>
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                   <div className="space-y-2">
                     <label className="font-label text-[10px] uppercase tracking-[0.1em] text-on-surface-variant ml-1">Number of Guests</label>
-                    <input className="w-full bg-black/40 border-0 border-l-2 border-transparent focus:border-secondary transition-all px-4 py-3 text-on-surface outline-none text-sm rounded-sm" min="1" placeholder="2" type="number" required/>
+                    <input name="guests" className="w-full bg-black/40 border-0 border-l-2 border-transparent focus:border-secondary transition-all px-4 py-3 text-on-surface outline-none text-sm rounded-sm" min="1" placeholder="2" type="number" required/>
                   </div>
                   <div className="space-y-2">
                     <label className="font-label text-[10px] uppercase tracking-[0.1em] text-on-surface-variant ml-1">Preferred Hotel / Area</label>
-                    <input className="w-full bg-black/40 border-0 border-l-2 border-transparent focus:border-secondary transition-all px-4 py-3 text-on-surface outline-none text-sm rounded-sm" placeholder="ITC Grand Chola / Chennai" type="text" required/>
+                    <input name="hotel" className="w-full bg-black/40 border-0 border-l-2 border-transparent focus:border-secondary transition-all px-4 py-3 text-on-surface outline-none text-sm rounded-sm" placeholder="ITC Grand Chola / Chennai" type="text" required/>
                   </div>
                 </div>
                 <div className="pt-6">

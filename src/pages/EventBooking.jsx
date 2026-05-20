@@ -1,10 +1,32 @@
 import React, { useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
+import { addBooking } from '../services/dataService';
 
 export default function EventBooking() {
   const { state } = useLocation();
   const navigate = useNavigate();
   const [isBooked, setIsBooked] = useState(false);
+
+  const handleBookingSubmit = (e) => {
+    e.preventDefault();
+    const formData = new FormData(e.target);
+    const customer = formData.get('customer') || 'Guest';
+    const phone = formData.get('phone') || 'N/A';
+    const eventType = formData.get('eventType') || 'Event';
+    const location = formData.get('location') || 'Unknown Venue';
+    const date = formData.get('date') || '';
+    const guests = formData.get('guests') || '1';
+
+    addBooking({
+      customer,
+      phone,
+      service: `Event: ${eventType}`,
+      details: `${location} (${guests} Guests)`,
+      schedule: date
+    });
+
+    setIsBooked(true);
+  };
 
   return (
     <main className="pt-20 pb-24 min-h-screen">
@@ -69,7 +91,7 @@ export default function EventBooking() {
               </button>
             </div>
           ) : (
-            <form className="space-y-8" onSubmit={(e) => { e.preventDefault(); setIsBooked(true); }}>
+            <form className="space-y-8" onSubmit={handleBookingSubmit}>
               {/* Section: Personal Info */}
               <div>
                 <h2 className="font-headline text-xl font-bold mb-6 text-secondary flex items-center gap-3">
@@ -79,11 +101,11 @@ export default function EventBooking() {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div className="space-y-2">
                     <label className="font-label text-[10px] uppercase tracking-widest text-on-surface-variant ml-1">Full Name</label>
-                    <input defaultValue={state?.name || ''} className="w-full bg-black/40 border-none rounded-sm px-4 py-3 text-on-surface focus:ring-0 focus:border-l-2 focus:border-secondary transition-all outline-none" placeholder="Enter name" type="text" required/>
+                    <input name="customer" defaultValue={state?.name || ''} className="w-full bg-black/40 border-none rounded-sm px-4 py-3 text-on-surface focus:ring-0 focus:border-l-2 focus:border-secondary transition-all outline-none" placeholder="Enter name" type="text" required/>
                   </div>
                   <div className="space-y-2">
                     <label className="font-label text-[10px] uppercase tracking-widest text-on-surface-variant ml-1">Email</label>
-                    <input defaultValue={state?.email || ''} className="w-full bg-black/40 border-none rounded-sm px-4 py-3 text-on-surface focus:ring-0 focus:border-l-2 focus:border-secondary transition-all outline-none" placeholder="email@example.com" type="email" required/>
+                    <input name="email" defaultValue={state?.email || ''} className="w-full bg-black/40 border-none rounded-sm px-4 py-3 text-on-surface focus:ring-0 focus:border-l-2 focus:border-secondary transition-all outline-none" placeholder="email@example.com" type="email" required/>
                   </div>
                   <div className="flex gap-4">
                     <div className="w-1/3 space-y-2">
@@ -92,12 +114,12 @@ export default function EventBooking() {
                     </div>
                     <div className="w-2/3 space-y-2">
                       <label className="font-label text-[10px] uppercase tracking-widest text-on-surface-variant ml-1">Contact Phone</label>
-                      <input defaultValue={state?.phone || ''} className="w-full bg-black/40 border-none rounded-sm px-4 py-3 text-on-surface focus:ring-0 focus:border-l-2 focus:border-secondary transition-all outline-none" placeholder="99999 99999" type="tel" required/>
+                      <input name="phone" defaultValue={state?.phone || ''} className="w-full bg-black/40 border-none rounded-sm px-4 py-3 text-on-surface focus:ring-0 focus:border-l-2 focus:border-secondary transition-all outline-none" placeholder="99999 99999" type="tel" required/>
                     </div>
                   </div>
                   <div className="space-y-2">
                     <label className="font-label text-[10px] uppercase tracking-widest text-on-surface-variant ml-1">Country</label>
-                    <input defaultValue={state?.country || ''} className="w-full bg-black/40 border-none rounded-sm px-4 py-3 text-on-surface focus:ring-0 focus:border-l-2 focus:border-secondary transition-all outline-none" placeholder="United Kingdom" type="text" required/>
+                    <input name="country" defaultValue={state?.country || ''} className="w-full bg-black/40 border-none rounded-sm px-4 py-3 text-on-surface focus:ring-0 focus:border-l-2 focus:border-secondary transition-all outline-none" placeholder="United Kingdom" type="text" required/>
                   </div>
                 </div>
               </div>
@@ -111,24 +133,24 @@ export default function EventBooking() {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div className="space-y-2">
                     <label className="font-label text-[10px] uppercase tracking-widest text-on-surface-variant ml-1">Event Type</label>
-                    <select className="w-full bg-black/40 border-none rounded-sm px-4 py-3 text-on-surface focus:ring-0 focus:border-l-2 focus:border-secondary transition-all outline-none appearance-none" required>
-                      <option>Wedding</option>
-                      <option>Conference</option>
-                      <option>Party</option>
-                      <option>Other</option>
+                    <select name="eventType" className="w-full bg-black/40 border-none rounded-sm px-4 py-3 text-on-surface focus:ring-0 focus:border-l-2 focus:border-secondary transition-all outline-none appearance-none" required>
+                      <option value="Wedding">Wedding</option>
+                      <option value="Conference">Conference</option>
+                      <option value="Party">Party</option>
+                      <option value="Other">Other</option>
                     </select>
                   </div>
                   <div className="space-y-2">
                     <label className="font-label text-[10px] uppercase tracking-widest text-on-surface-variant ml-1">Event Date</label>
-                    <input className="w-full bg-black/40 border-none rounded-sm px-4 py-3 text-on-surface focus:ring-0 focus:border-l-2 focus:border-secondary transition-all outline-none" type="date" required/>
+                    <input name="date" className="w-full bg-black/40 border-none rounded-sm px-4 py-3 text-on-surface focus:ring-0 focus:border-l-2 focus:border-secondary transition-all outline-none" type="date" required/>
                   </div>
                   <div className="space-y-2">
                     <label className="font-label text-[10px] uppercase tracking-widest text-on-surface-variant ml-1">Venue Location</label>
-                    <input className="w-full bg-black/40 border-none rounded-sm px-4 py-3 text-on-surface focus:ring-0 focus:border-l-2 focus:border-secondary transition-all outline-none" placeholder="Preferred City/Area" type="text" required/>
+                    <input name="location" className="w-full bg-black/40 border-none rounded-sm px-4 py-3 text-on-surface focus:ring-0 focus:border-l-2 focus:border-secondary transition-all outline-none" placeholder="Preferred City/Area" type="text" required/>
                   </div>
                   <div className="space-y-2">
                     <label className="font-label text-[10px] uppercase tracking-widest text-on-surface-variant ml-1">Estimated Guests</label>
-                    <input className="w-full bg-black/40 border-none rounded-sm px-4 py-3 text-on-surface focus:ring-0 focus:border-l-2 focus:border-secondary transition-all outline-none" min="1" placeholder="No. of attendees" type="number" required/>
+                    <input name="guests" className="w-full bg-black/40 border-none rounded-sm px-4 py-3 text-on-surface focus:ring-0 focus:border-l-2 focus:border-secondary transition-all outline-none" min="1" placeholder="No. of attendees" type="number" required/>
                   </div>
                 </div>
               </div>
