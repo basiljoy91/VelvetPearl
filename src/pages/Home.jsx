@@ -19,13 +19,16 @@ export default function Home() {
   const handleHeroBook = () => {
     navigate('/book/cab');
   };
+  const handleExplore = () => {
+    navigate('/services');
+  };
 
   return (
     <main className="pt-20">
       <section className="relative min-h-[921px] flex items-center px-8 overflow-hidden">
         <div className="absolute inset-0 z-0">
           <div className="absolute inset-0 bg-gradient-to-r from-background via-background/80 to-transparent z-10"></div>
-          <img className="w-full h-full object-cover" data-alt="Luxury sedan driving on a scenic South Indian coastal road" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCQ85db9nJGv2vTyFqfH46Vv596_GKcDdoRSoOKpOrMOHn4PQEjTTw47L5-EZMEFpl3w4Ln18d2wUZuQDWabAt2hlqzsRoAcC3NOKEQGvqMn5GjPnE0W_nRD5Hied4Xc-oEDlNAKQ7gdjpmRIeOT8N5sYSsjFZ1uKSTr-ZGwEDX6RjrRGjNz7GEF3ONqlrjhouVk9enVFc0maKbROjO_-oKgR3J0knqoJbvb4mWh3S0AxyLBOjsbXwY0cl_qyK0oV0Hexmuto_lEZHY" />
+          <img className="w-full h-full object-cover" alt="Luxury sedan driving on a scenic South Indian coastal road" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCQ85db9nJGv2vTyFqfH46Vv596_GKcDdoRSoOKpOrMOHn4PQEjTTw47L5-EZMEFpl3w4Ln18d2wUZuQDWabAt2hlqzsRoAcC3NOKEQGvqMn5GjPnE0W_nRD5Hied4Xc-oEDlNAKQ7gdjpmRIeOT8N5sYSsjFZ1uKSTr-ZGwEDX6RjrRGjNz7GEF3ONqlrjhouVk9enVFc0maKbROjO_-oKgR3J0knqoJbvb4mWh3S0AxyLBOjsbXwY0cl_qyK0oV0Hexmuto_lEZHY" />
           <div className="absolute top-1/2 left-1/4 -translate-y-1/2 w-[600px] h-[600px] bg-primary-container/10 blur-[120px] rounded-full"></div>
         </div>
         <div className="relative z-20 max-w-7xl mx-auto w-full grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
@@ -46,7 +49,7 @@ export default function Home() {
                 <span className="material-symbols-outlined" style={{ fontVariationSettings: "'FILL' 0" }}>local_taxi</span>
                 Book a Cab
               </button>
-              <button className="border border-secondary text-secondary px-8 py-4 rounded-md font-bold font-jakarta text-sm uppercase tracking-widest hover:bg-secondary/10 transition-all">
+              <button className="border border-secondary text-secondary px-8 py-4 rounded-md font-bold font-jakarta text-sm uppercase tracking-widest hover:bg-secondary/10 transition-all" onClick={handleExplore}>
                 Explore Services
               </button>
             </div>
@@ -68,41 +71,96 @@ export default function Home() {
               </div>
             </div>
             <form className="grid grid-cols-1 md:grid-cols-2 gap-6" onSubmit={handleQuickBook}>
-              <div className="col-span-1">
-                <label className="block text-[10px] uppercase tracking-[0.2em] text-on-surface-variant mb-2 font-bold">Full Name <span className="text-secondary">*</span></label>
-                <input className="w-full bg-white/5 border border-white/10 focus:border-secondary focus:ring-0 text-on-surface p-3 transition-all rounded-sm text-sm outline-none" placeholder="John Doe" required type="text" value={formData.name} onChange={(e) => setFormData({ ...formData, name: e.target.value })} />
-                <p className="text-[10px] text-on-surface-variant/60 mt-1">Please enter your legal name</p>
+
+              {/* Full Name */}
+              <div>
+                <label className="block text-[10px] uppercase tracking-[0.2em] text-on-surface-variant mb-2 font-bold">
+                  Full Name <span className="text-secondary">*</span>
+                </label>
+                <input
+                  className="w-full bg-white/5 border border-white/10 focus:border-secondary text-white p-3 rounded-sm text-sm outline-none"
+                  placeholder="John Doe"
+                  required
+                  value={formData.name}
+                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                />
               </div>
-              <div className="col-span-1">
-                <label className="block text-[10px] uppercase tracking-[0.2em] text-on-surface-variant mb-2 font-bold">Email Address <span className="text-secondary">*</span></label>
-                <input className="w-full bg-white/5 border border-white/10 focus:border-secondary focus:ring-0 text-on-surface p-3 transition-all rounded-sm text-sm outline-none" placeholder="john@example.com" required type="email" value={formData.email} onChange={(e) => setFormData({ ...formData, email: e.target.value })} />
+
+              {/* Email */}
+              <div>
+                <label className="block text-[10px] uppercase tracking-[0.2em] text-on-surface-variant mb-2 font-bold">
+                  Email Address <span className="text-secondary">*</span>
+                </label>
+                <input
+                  className="w-full bg-white/5 border border-white/10 focus:border-secondary text-white p-3 rounded-sm text-sm outline-none"
+                  placeholder="john@example.com"
+                  required
+                  type="email"
+                  value={formData.email}
+                  onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                />
               </div>
-              <div className="col-span-1">
-                <label className="block text-[10px] uppercase tracking-[0.2em] text-on-surface-variant mb-2 font-bold">Country <span className="text-secondary">*</span></label>
-                <input className="w-full bg-white/5 border border-white/10 focus:border-secondary focus:ring-0 text-on-surface p-3 transition-all rounded-sm text-sm outline-none" placeholder="India" required type="text" value={formData.country} onChange={(e) => setFormData({ ...formData, country: e.target.value })} />
+
+              {/* Country */}
+              <div>
+                <label className="block text-[10px] uppercase tracking-[0.2em] text-on-surface-variant mb-2 font-bold">
+                  Country <span className="text-secondary">*</span>
+                </label>
+                <input
+                  className="w-full bg-white/5 border border-white/10 focus:border-secondary text-white p-3 rounded-sm text-sm outline-none"
+                  placeholder="India"
+                  required
+                  value={formData.country}
+                  onChange={(e) => setFormData({ ...formData, country: e.target.value })}
+                />
               </div>
-              <div className="col-span-1">
-                <label className="block text-[10px] uppercase tracking-[0.2em] text-on-surface-variant mb-2 font-bold">Phone Number <span className="text-secondary">*</span></label>
+
+              {/* Phone (FULL WIDTH FIX) */}
+              <div className="md:col-span-2">
+                <label className="block text-[10px] uppercase tracking-[0.2em] text-on-surface-variant mb-2 font-bold">
+                  Phone Number <span className="text-secondary">*</span>
+                </label>
+
                 <div className="flex gap-2">
-                  <input className="w-16 bg-white/5 border border-white/10 focus:border-secondary focus:ring-0 text-on-surface p-3 rounded-sm text-center text-sm outline-none" placeholder="91" required type="number" value={formData.code} onChange={(e) => setFormData({ ...formData, code: e.target.value })} />
-                  <input className="flex-1 bg-white/5 border border-white/10 focus:border-secondary focus:ring-0 text-on-surface p-3 transition-all rounded-sm text-sm outline-none" placeholder="10-digit number" required type="tel" value={formData.phone} onChange={(e) => setFormData({ ...formData, phone: e.target.value })} />
+                  <input
+                    className="w-20 bg-white/5 border border-white/10 focus:border-secondary text-white p-3 rounded-sm text-center text-sm outline-none"
+                    value={formData.code}
+                    onChange={(e) => setFormData({ ...formData, code: e.target.value })}
+                  />
+                  <input
+                    className="flex-1 bg-white/5 border border-white/10 focus:border-secondary text-white p-3 rounded-sm text-sm outline-none"
+                    placeholder="10-digit number"
+                    required
+                    value={formData.phone}
+                    onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                  />
                 </div>
               </div>
-              <div className="col-span-2">
-                <label className="block text-[10px] uppercase tracking-[0.2em] text-on-surface-variant mb-2 font-bold">Select Service <span className="text-secondary">*</span></label>
-                <div className="relative">
-                  <select className="w-full bg-[#1c1b1c] border border-white/10 focus:border-secondary focus:ring-0 text-white p-3 rounded-sm text-sm appearance-none outline-none" required value={formData.service} onChange={(e) => setFormData({ ...formData, service: e.target.value })}>
-                    <option value="cab">Cab Services (Premium Sedans & SUVs)</option>
-                    <option value="tour">Tailored Tours & Itineraries</option>
-                    <option value="room">Luxury Room Bookings</option>
-                    <option value="event">Corporate Event Planning</option>
-                  </select>
-                  <span className="absolute right-3 top-3 material-symbols-outlined text-secondary pointer-events-none" style={{ fontVariationSettings: "'FILL' 0" }}>expand_more</span>
-                </div>
+
+              {/* Service FIXED */}
+              <div className="md:col-span-2">
+                <label className="block text-[10px] uppercase tracking-[0.2em] text-on-surface-variant mb-2 font-bold">
+                  Select Service <span className="text-secondary">*</span>
+                </label>
+
+                <select
+                  className="w-full bg-white/5 border border-white/10 focus:border-secondary text-white p-3 rounded-sm text-sm outline-none"
+                  value={formData.service}
+                  onChange={(e) => setFormData({ ...formData, service: e.target.value })}
+                >
+                  <option value="cab">Cab Services (Premium Sedans & SUVs)</option>
+                  <option value="tour">Tailored Tours & Itineraries</option>
+                  <option value="room">Luxury Room Bookings</option>
+                  <option value="event">Corporate Event Planning</option>
+                </select>
               </div>
-              <button className="col-span-2 bg-primary-container text-white font-bold py-4 rounded-md uppercase tracking-widest text-xs hover:brightness-110 transition-all flex items-center justify-center gap-2 group/btn" type="submit">
+
+              {/* Button */}
+              <button
+                type="submit"
+                className="md:col-span-2 bg-primary-container text-white font-bold py-4 rounded-md uppercase tracking-widest text-xs hover:brightness-110 transition-all"
+              >
                 Continue to Details
-                <span className="material-symbols-outlined text-sm group-hover/btn:translate-x-1 transition-transform" style={{ fontVariationSettings: "'FILL' 0" }}>arrow_forward</span>
               </button>
             </form>
           </div>
@@ -123,7 +181,7 @@ export default function Home() {
           <div className="grid grid-cols-1 md:grid-cols-12 gap-6 h-auto md:h-[600px]">
             {/* Primary: Cab Services */}
             <div className="md:col-span-7 bg-primary-container relative rounded-xl overflow-hidden group cursor-pointer">
-              <img className="absolute inset-0 w-full h-full object-cover opacity-50 mix-blend-overlay group-hover:scale-110 transition-transform duration-700" data-alt="Chauffeur opening door of a luxury black car" src="https://lh3.googleusercontent.com/aida-public/AB6AXuD4WHaVJDBNpcyIZB9wgg1xBUVJV4b55JI7-pV4DAGxpnf77guWHlhg6xTjJbXkqy3VLVxaHzbKyGql7wCqAm2XQwmSoaALi9H396TdikmsTM-eGzI6ZKfauzofmJikvZMJIzE08xMmZDjxVfwPMY3TXZKEWAbTk46MZEC1KvC0kQ-BTsPesD8VkEZH4VPx923F3ZmubOXVDY0bZ5T7ltFMpXbvN7dBRZB6ERK4m3DhSASDaySCebfOnsV5sAnbBYPmQdO-0n3wiYO-" />
+              <img className="absolute inset-0 w-full h-full object-cover opacity-50 mix-blend-overlay group-hover:scale-110 transition-transform duration-700" alt="Chauffeur opening door of a luxury black car" src="https://lh3.googleusercontent.com/aida-public/AB6AXuD4WHaVJDBNpcyIZB9wgg1xBUVJV4b55JI7-pV4DAGxpnf77guWHlhg6xTjJbXkqy3VLVxaHzbKyGql7wCqAm2XQwmSoaALi9H396TdikmsTM-eGzI6ZKfauzofmJikvZMJIzE08xMmZDjxVfwPMY3TXZKEWAbTk46MZEC1KvC0kQ-BTsPesD8VkEZH4VPx923F3ZmubOXVDY0bZ5T7ltFMpXbvN7dBRZB6ERK4m3DhSASDaySCebfOnsV5sAnbBYPmQdO-0n3wiYO-" />
               <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent"></div>
               <div className="absolute bottom-0 left-0 p-10">
                 <span className="material-symbols-outlined text-5xl mb-4 text-white" style={{ fontVariationSettings: "'FILL' 1" }}>local_taxi</span>
@@ -167,8 +225,9 @@ export default function Home() {
           <div className="flex flex-col md:flex-row justify-between items-baseline mb-8">
             <h2 className="font-headline text-4xl font-bold text-white tracking-tight">Popular Routes</h2>
           </div>
-          <div className="overflow-hidden rounded-xl border border-outline-variant/10">
-            <table className="w-full text-left border-collapse">
+
+          <div className="overflow-x-auto rounded-xl border border-outline-variant/10">
+            <table className="min-w-[900px] w-full text-left border-collapse">
               <thead>
                 <tr className="bg-surface-container-low border-b border-outline-variant/20">
                   <th className="px-8 py-6 font-label text-[10px] uppercase tracking-[0.2em] text-outline font-bold">Route & Distance</th>
@@ -194,11 +253,15 @@ export default function Home() {
                   <td className="px-8 py-8">
                     <div className="flex items-center gap-2 text-on-surface">
                       <span className="material-symbols-outlined text-sm opacity-60" style={{ fontVariationSettings: "'FILL' 0" }}>schedule</span>
-                      <span className="font-body font-medium">3h 15m</span>
+                      <span className="font-body font-medium whitespace-nowrap">
+                        3h 15m
+                      </span>
                     </div>
                   </td>
                   <td className="px-8 py-8">
-                    <span className="bg-surface-container-highest text-[10px] font-label font-bold uppercase tracking-widest px-3 py-1 rounded border border-outline-variant/30">Executive Sedan</span>
+                    <span className="bg-surface-container-highest text-[10px] font-label font-bold uppercase tracking-widest px-3 py-1 rounded border border-outline-variant/30 whitespace-nowrap inline-block">
+                      Executive Sedan
+                    </span>
                   </td>
                   <td className="px-8 py-8">
                     <p className="text-2xl font-headline font-bold text-white">₹4,500</p>
@@ -222,11 +285,15 @@ export default function Home() {
                   <td className="px-8 py-8">
                     <div className="flex items-center gap-2 text-on-surface">
                       <span className="material-symbols-outlined text-sm opacity-60" style={{ fontVariationSettings: "'FILL' 0" }}>schedule</span>
-                      <span className="font-body font-medium">2h 45m</span>
+                      <span className="font-body font-medium whitespace-nowrap">
+                        3h 15m
+                      </span>
                     </div>
                   </td>
                   <td className="px-8 py-8">
-                    <span className="bg-surface-container-highest text-[10px] font-label font-bold uppercase tracking-widest px-3 py-1 rounded border border-outline-variant/30">Premium SUV</span>
+                    <span className="bg-surface-container-highest text-[10px] font-label font-bold uppercase tracking-widest px-3 py-1 rounded border border-outline-variant/30 whitespace-nowrap inline-block">
+                      Premium SUV
+                    </span>
                   </td>
                   <td className="px-8 py-8">
                     <p className="text-2xl font-headline font-bold text-white">₹3,200</p>

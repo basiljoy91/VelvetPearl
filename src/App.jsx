@@ -11,10 +11,13 @@ import RoutesPage from './pages/Routes';
 import Contact from './pages/Contact';
 import AdminLogin from './pages/AdminLogin';
 import AdminDashboard from './pages/AdminDashboard';
+import ScrollToTop from './components/ScrollToTop';
 
 function App() {
   return (
     <Router>
+      <ScrollToTop />
+
       <Routes>
         <Route path="/" element={<MainLayout />}>
           <Route index element={<Home />} />
@@ -27,6 +30,7 @@ function App() {
           <Route path="book/room" element={<RoomBooking />} />
           <Route path="book/event" element={<EventBooking />} />
         </Route>
+
         <Route path="/admin" element={<AdminLogin />} />
         <Route path="/admin/dashboard" element={<AdminDashboard />} />
       </Routes>
