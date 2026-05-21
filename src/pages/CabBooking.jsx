@@ -6,9 +6,14 @@ export default function CabBooking() {
   const { state } = useLocation();
   const navigate = useNavigate();
   const [isBooked, setIsBooked] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState(null);
 
-  const handleBookingSubmit = (e) => {
+  const handleBookingSubmit = async (e) => {
     e.preventDefault();
+    setIsLoading(true);
+    setError(null);
+
     const formData = new FormData(e.target);
     const customer = formData.get('customer') || 'Guest';
     const phone = formData.get('phone') || 'N/A';
@@ -18,15 +23,20 @@ export default function CabBooking() {
     const date = formData.get('date') || '';
     const time = formData.get('time') || '';
 
-    addBooking({
-      customer,
-      phone,
-      service: `Cab: ${pickup} ➔ ${dropoff}`,
-      details: vehicle,
-      schedule: `${date} - ${time}`
-    });
-
-    setIsBooked(true);
+    try {
+      await addBooking({
+        customer,
+        phone,
+        service: `Cab: ${pickup} ➔ ${dropoff}`,
+        details: vehicle,
+        schedule: `${date} - ${time}`
+      });
+      setIsBooked(true);
+    } catch (err) {
+      setError(err.message || 'Failed to submit booking. Please try again.');
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -91,6 +101,11 @@ export default function CabBooking() {
               </div>
             ) : (
                 <form className="space-y-8" onSubmit={handleBookingSubmit}>
+                  {error && (
+                    <div className="bg-red-500/20 border border-red-500/30 text-red-400 px-4 py-3 rounded-lg text-sm text-center font-body">
+                      {error}
+                    </div>
+                  )}
                   <div className="space-y-6">
                     <h3 className="text-xs font-bold text-secondary uppercase tracking-widest">01. Guest Identification</h3>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -172,9 +187,9 @@ export default function CabBooking() {
                       </label>
                     </div>
                   </div>
-                  <button className="w-full bg-primary-container text-white font-headline font-bold py-5 rounded-sm uppercase tracking-[0.2em] shadow-lg shadow-primary-container/20 active:scale-[0.98] transition-all flex items-center justify-center gap-3 border-none" type="submit">
-                    Confirm Cab Booking
-                    <span className="material-symbols-outlined text-sm">arrow_forward</span>
+                  <button disabled={isLoading} className="w-full bg-primary-container text-white font-headline font-bold py-5 rounded-sm uppercase tracking-[0.2em] shadow-lg shadow-primary-container/20 hover:brightness-110 active:scale-[0.98] transition-all flex items-center justify-center gap-3 border-none disabled:opacity-50 disabled:cursor-not-allowed" type="submit">
+                    {isLoading ? 'Processing...' : 'Confirm Cab Booking'}
+                    {!isLoading && <span className="material-symbols-outlined text-sm">arrow_forward</span>}
                   </button>
                 </form>
             )}

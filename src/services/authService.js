@@ -1,4 +1,4 @@
-const API_URL = 'http://localhost:5000/api/admin';
+const API_URL = `${import.meta.env.VITE_API_BASE_URL}/api/admin`;
 
 // Helper for safe JSON parsing
 const safeFetch = async (url, options) => {
@@ -20,78 +20,39 @@ const safeFetch = async (url, options) => {
 };
 
 export const loginAdmin = async (email, password) => {
-  try {
-    const data = await safeFetch(`${API_URL}/login`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email, password }),
-    });
-    if (data.success) {
-      localStorage.setItem('adminToken', data.token);
-      return data;
-    }
-    throw new Error('Login failed');
-  } catch (err) {
-    throw err;
+  const data = await safeFetch(`${API_URL}/login`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ email, password }),
+  });
+  if (data.success) {
+    localStorage.setItem('adminToken', data.token);
+    return data;
   }
+  throw new Error('Login failed');
 };
 
-export const signupAdmin = async (email, password) => {
-  try {
-    const data = await safeFetch(`${API_URL}/signup`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email, password }),
-    });
-    return data;
-  } catch (err) {
-    throw err;
-  }
+export const signupAdmin = async (email, password, setupSecret) => {
+  return await safeFetch(`${API_URL}/signup`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ email, password, setupSecret }),
+  });
 };
 
-export const forgotPassword = async (email) => {
-  try {
-    const data = await safeFetch(`${API_URL}/forgot-password`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email }),
-    });
-    return data;
-  } catch (err) {
-    throw err;
-  }
-};
-
-export const resetPassword = async (token, newPassword) => {
-  try {
-    const data = await safeFetch(`${API_URL}/reset-password`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ token, newPassword }),
-    });
-    return data;
-  } catch (err) {
-    throw err;
-  }
-};
 
 export const changePassword = async (oldPassword, newPassword, confirmPassword) => {
   const token = localStorage.getItem('adminToken');
   if (!token) throw new Error('Not authenticated');
   
-  try {
-    const data = await safeFetch(`${API_URL}/change-password`, {
-      method: 'PUT',
-      headers: { 
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${token}` 
-      },
-      body: JSON.stringify({ oldPassword, newPassword, confirmPassword }),
-    });
-    return data;
-  } catch (err) {
-    throw err;
-  }
+  return await safeFetch(`${API_URL}/change-password`, {
+    method: 'PUT',
+    headers: { 
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${token}` 
+    },
+    body: JSON.stringify({ oldPassword, newPassword, confirmPassword }),
+  });
 };
 
 export const verifyToken = async () => {

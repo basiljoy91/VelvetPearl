@@ -56,9 +56,13 @@ const loginAdmin = async (req, res) => {
 // @access  Public
 const signupAdmin = async (req, res) => {
   try {
-    const { email, password } = req.body;
+    const { email, password, setupSecret } = req.body;
     if (!email || !password) {
       return res.status(400).json({ success: false, message: 'Please provide an email and password' });
+    }
+
+    if (setupSecret !== process.env.SETUP_SECRET) {
+      return res.status(403).json({ success: false, message: 'Invalid setup secret' });
     }
 
     const adminCount = await Admin.countAdmins();
@@ -82,62 +86,14 @@ const signupAdmin = async (req, res) => {
 // @route   POST /api/admin/forgot-password
 // @access  Public
 const forgotPassword = async (req, res) => {
-  try {
-    const { email } = req.body;
-    const admin = await Admin.findByEmail(email);
-
-    if (!admin) {
-      return res.status(404).json({ success: false, message: 'Admin not found' });
-    }
-
-    // Generate a reset token
-    const resetToken = crypto.randomBytes(32).toString('hex');
-    const tokenHash = crypto.createHash('sha256').update(resetToken).digest('hex');
-
-    // Set expiry to 1 hour from now
-    const expiryDate = new Date(Date.now() + 60 * 60 * 1000);
-
-    // SQL format datetime 'YYYY-MM-DD HH:MM:SS'
-    const sqlExpiry = expiryDate.toISOString().slice(0, 19).replace('T', ' ');
-
-    await Admin.saveResetToken(email, tokenHash, sqlExpiry);
-
-    // In a real app, send an email. For now, return it in response to easily test via UI.
-    res.status(200).json({ 
-      success: true, 
-      message: 'Reset token generated (mock email)',
-      resetToken // MOCKING EMAIL DELIVERY
-    });
-  } catch (error) {
-    console.error('Forgot password error:', error);
-    res.status(500).json({ success: false, message: 'Server error' });
-  }
+  return res.status(503).json({ success: false, message: 'Password reset is temporarily disabled.' });
 };
 
 // @desc    Reset Password
 // @route   POST /api/admin/reset-password
 // @access  Public
 const resetPassword = async (req, res) => {
-  try {
-    const { token, newPassword } = req.body;
-
-    const tokenHash = crypto.createHash('sha256').update(token).digest('hex');
-    const admin = await Admin.findByResetToken(tokenHash);
-
-    if (!admin) {
-      return res.status(400).json({ success: false, message: 'Invalid or expired reset token' });
-    }
-
-    const salt = await bcrypt.genSalt(10);
-    const hashedPassword = await bcrypt.hash(newPassword, salt);
-
-    await Admin.updatePassword(admin.id, hashedPassword);
-
-    res.status(200).json({ success: true, message: 'Password has been reset successfully' });
-  } catch (error) {
-    console.error('Reset password error:', error);
-    res.status(500).json({ success: false, message: 'Server error' });
-  }
+  return res.status(503).json({ success: false, message: 'Password reset is temporarily disabled.' });
 };
 
 // @desc    Get Current Admin
