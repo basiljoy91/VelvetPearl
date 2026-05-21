@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import RouteMap from '../components/routes/RouteMap';
 
 export default function Home() {
   const navigate = useNavigate();
@@ -156,7 +157,7 @@ export default function Home() {
           </div>
         </div>
       </section>
-
+      <RouteMap />
       {/* Popular Routes */}
       <section className="py-24 px-8 bg-surface-container-lowest">
         <div className="max-w-7xl mx-auto space-y-8">
