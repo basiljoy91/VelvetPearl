@@ -1,22 +1,24 @@
-const API_URL = 'http://localhost:5000/api/admin';
+const API_URL = '/api/admin';
 
 // Helper for safe JSON parsing
 const safeFetch = async (url, options) => {
   const res = await fetch(url, options);
   const contentType = res.headers.get('content-type');
-  
-  if (!contentType || !contentType.includes('application/json')) {
-    const text = await res.text();
-    console.error('Non-JSON response:', text);
-    throw new Error('Received non-JSON response from backend. Check API URL or Server status.');
+
+  if (contentType && contentType.includes('application/json')) {
+    const data = await res.json();
+    if (!res.ok) {
+      throw new Error(data.message || `Request failed with status ${res.status}`);
+    }
+
+    return data;
   }
-  
-  const data = await res.json();
-  if (!res.ok) {
-    throw new Error(data.message || `Request failed with status ${res.status}`);
-  }
-  
-  return data;
+
+  const text = await res.text();
+  console.error(`Non-JSON response (${res.status}):`, text);
+  throw new Error(
+    text || `Backend returned a non-JSON response with status ${res.status}. Check the backend server and proxy port.`
+  );
 };
 
 export const loginAdmin = async (email, password) => {

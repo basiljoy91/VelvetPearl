@@ -4,7 +4,7 @@ const Admin = {
   // Find an admin by ID
   findById: async (id) => {
     try {
-      const [rows] = await db.execute('SELECT * FROM admins WHERE id = ?', [id]);
+      const { rows } = await db.query('SELECT * FROM admins WHERE id = $1', [id]);
       return rows[0];
     } catch (error) {
       throw error;
@@ -13,7 +13,7 @@ const Admin = {
   // Find an admin by email
   findByEmail: async (email) => {
     try {
-      const [rows] = await db.execute('SELECT * FROM admins WHERE email = ?', [email]);
+      const { rows } = await db.query('SELECT * FROM admins WHERE email = $1', [email]);
       return rows[0]; // Return the first match if exists
     } catch (error) {
       throw error;
@@ -23,7 +23,7 @@ const Admin = {
   // Count total admins
   countAdmins: async () => {
     try {
-      const [rows] = await db.execute('SELECT COUNT(*) as count FROM admins');
+      const { rows } = await db.query('SELECT COUNT(*)::int AS count FROM admins');
       return rows[0].count;
     } catch (error) {
       throw error;
@@ -33,8 +33,11 @@ const Admin = {
   // Create an admin
   create: async (email, hashedPassword) => {
     try {
-      const [result] = await db.execute('INSERT INTO admins (email, password) VALUES (?, ?)', [email, hashedPassword]);
-      return result.insertId;
+      const { rows } = await db.query(
+        'INSERT INTO admins (email, password) VALUES ($1, $2) RETURNING id',
+        [email, hashedPassword]
+      );
+      return rows[0].id;
     } catch (error) {
       throw error;
     }
@@ -43,7 +46,11 @@ const Admin = {
   // Save reset token
   saveResetToken: async (email, tokenHash, expiry) => {
     try {
-      await db.execute('UPDATE admins SET reset_token = ?, reset_token_expiry = ? WHERE email = ?', [tokenHash, expiry, email]);
+      await db.query('UPDATE admins SET reset_token = $1, reset_token_expiry = $2 WHERE email = $3', [
+        tokenHash,
+        expiry,
+        email
+      ]);
     } catch (error) {
       throw error;
     }
@@ -52,7 +59,10 @@ const Admin = {
   // Find by valid reset token
   findByResetToken: async (tokenHash) => {
     try {
-      const [rows] = await db.execute('SELECT * FROM admins WHERE reset_token = ? AND reset_token_expiry > NOW()', [tokenHash]);
+      const { rows } = await db.query(
+        'SELECT * FROM admins WHERE reset_token = $1 AND reset_token_expiry > NOW()',
+        [tokenHash]
+      );
       return rows[0];
     } catch (error) {
       throw error;
@@ -62,7 +72,10 @@ const Admin = {
   // Update password and clear token
   updatePassword: async (adminId, newHashedPassword) => {
     try {
-      await db.execute('UPDATE admins SET password = ?, reset_token = NULL, reset_token_expiry = NULL WHERE id = ?', [newHashedPassword, adminId]);
+      await db.query(
+        'UPDATE admins SET password = $1, reset_token = NULL, reset_token_expiry = NULL WHERE id = $2',
+        [newHashedPassword, adminId]
+      );
     } catch (error) {
       throw error;
     }

@@ -3,23 +3,23 @@ const db = require('../config/db');
 exports.getAnalytics = async (req, res) => {
   try {
     // 1. Today's Bookings
-    const [todayBookingsRes] = await db.query(
-      `SELECT COUNT(*) AS count FROM bookings WHERE DATE(created_at) = CURDATE()`
+    const { rows: todayBookingsRes } = await db.query(
+      `SELECT COUNT(*)::int AS count FROM bookings WHERE DATE(created_at) = CURRENT_DATE`
     );
     const todayBookings = todayBookingsRes[0].count;
 
     // 2. Active Drivers
-    const [activeDriversRes] = await db.query(
-      `SELECT COUNT(*) AS count FROM drivers WHERE status = 'Active'`
+    const { rows: activeDriversRes } = await db.query(
+      `SELECT COUNT(*)::int AS count FROM drivers WHERE status = 'Active'`
     );
     const activeDrivers = activeDriversRes[0].count;
 
     // 3. Utilization
-    const [activeVehiclesRes] = await db.query(
-      `SELECT COUNT(*) AS count FROM fleet WHERE status = 'Available'`
+    const { rows: activeVehiclesRes } = await db.query(
+      `SELECT COUNT(*)::int AS count FROM fleet WHERE status = 'Available'`
     );
-    const [totalVehiclesRes] = await db.query(
-      `SELECT COUNT(*) AS count FROM fleet`
+    const { rows: totalVehiclesRes } = await db.query(
+      `SELECT COUNT(*)::int AS count FROM fleet`
     );
     const activeVehicles = activeVehiclesRes[0].count;
     const totalVehicles = totalVehiclesRes[0].count;
@@ -29,7 +29,7 @@ exports.getAnalytics = async (req, res) => {
     }
 
     // 4. Pending Payments
-    const [pendingPaymentsRes] = await db.query(
+    const { rows: pendingPaymentsRes } = await db.query(
       `SELECT amount FROM bookings WHERE status = 'Pending' AND amount != 'TBD'`
     );
     

@@ -1,4 +1,4 @@
-const API = 'http://localhost:5000/api';
+const API = '/api';
 
 // Helper: adds JWT token for admin-protected routes
 const authHeaders = () => {
@@ -11,12 +11,15 @@ const authHeaders = () => {
 
 const handleResponse = async (res) => {
   const contentType = res.headers.get('content-type');
-  if (!contentType || !contentType.includes('application/json')) {
-    throw new Error('Server returned a non-JSON response. Check backend status.');
+
+  if (contentType && contentType.includes('application/json')) {
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.message || `Request failed (${res.status})`);
+    return data;
   }
-  const data = await res.json();
-  if (!res.ok) throw new Error(data.message || `Request failed (${res.status})`);
-  return data;
+
+  const text = await res.text();
+  throw new Error(text || `Server returned a non-JSON response (${res.status}). Check backend status.`);
 };
 
 // ─────────────────────────────────────────────

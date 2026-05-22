@@ -5,11 +5,11 @@
 
 -- 1. Admins Table
 CREATE TABLE IF NOT EXISTS admins (
-    id INT AUTO_INCREMENT PRIMARY KEY,
+    id SERIAL PRIMARY KEY,
     email VARCHAR(255) NOT NULL UNIQUE,
     password VARCHAR(255) NOT NULL, -- Will store bcrypt hash
     reset_token VARCHAR(255),
-    reset_token_expiry DATETIME,
+    reset_token_expiry TIMESTAMP,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
@@ -24,7 +24,7 @@ CREATE TABLE IF NOT EXISTS bookings (
     service VARCHAR(255) NOT NULL,
     details TEXT,
     schedule VARCHAR(255),
-    status ENUM('Pending', 'Confirmed', 'Cancelled') DEFAULT 'Pending',
+    status VARCHAR(20) NOT NULL DEFAULT 'Pending' CHECK (status IN ('Pending', 'Confirmed', 'Cancelled')),
     amount VARCHAR(50) DEFAULT 'TBD',
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
@@ -36,7 +36,7 @@ CREATE TABLE IF NOT EXISTS drivers (
     phone VARCHAR(50),
     rating VARCHAR(10) DEFAULT '5.0',
     experience VARCHAR(50),
-    status ENUM('Active', 'Inactive') DEFAULT 'Active',
+    status VARCHAR(20) NOT NULL DEFAULT 'Active' CHECK (status IN ('Active', 'Inactive')),
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
@@ -46,7 +46,7 @@ CREATE TABLE IF NOT EXISTS fleet (
     model VARCHAR(255) NOT NULL,
     plate VARCHAR(50) NOT NULL,
     type VARCHAR(100),
-    status ENUM('Available', 'On Trip', 'Maintenance') DEFAULT 'Available',
-    lastService VARCHAR(100),
+    status VARCHAR(20) NOT NULL DEFAULT 'Available' CHECK (status IN ('Available', 'On Trip', 'Maintenance')),
+    "lastService" VARCHAR(100),
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );

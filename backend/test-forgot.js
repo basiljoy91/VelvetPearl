@@ -1,4 +1,4 @@
-require('dotenv').config();
+require('./config/loadEnv');
 const { forgotPassword } = require('./controllers/authController');
 
 const req = { body: { email: 'admin@velvetpearl.com' } }; // adjust based on DB

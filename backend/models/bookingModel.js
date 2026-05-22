@@ -4,7 +4,7 @@ const Booking = {
   // Get all bookings
   getAll: async () => {
     try {
-      const [rows] = await db.execute('SELECT * FROM bookings ORDER BY created_at DESC');
+      const { rows } = await db.query('SELECT * FROM bookings ORDER BY created_at DESC');
       return rows;
     } catch (error) {
       throw error;
@@ -17,9 +17,9 @@ const Booking = {
       const { id, customer, phone, service, details, schedule } = bookingData;
       const query = `
         INSERT INTO bookings (id, customer, phone, service, details, schedule, status, amount)
-        VALUES (?, ?, ?, ?, ?, ?, 'Pending', 'TBD')
+        VALUES ($1, $2, $3, $4, $5, $6, 'Pending', 'TBD')
       `;
-      const [result] = await db.execute(query, [id, customer, phone, service, details, schedule]);
+      const result = await db.query(query, [id, customer, phone, service, details, schedule]);
       return result;
     } catch (error) {
       throw error;
@@ -29,7 +29,7 @@ const Booking = {
   // Update booking status
   updateStatus: async (id, status) => {
     try {
-      const [result] = await db.execute('UPDATE bookings SET status = ? WHERE id = ?', [status, id]);
+      const result = await db.query('UPDATE bookings SET status = $1 WHERE id = $2', [status, id]);
       return result;
     } catch (error) {
       throw error;
@@ -39,7 +39,7 @@ const Booking = {
   // Delete booking
   delete: async (id) => {
     try {
-      const [result] = await db.execute('DELETE FROM bookings WHERE id = ?', [id]);
+      const result = await db.query('DELETE FROM bookings WHERE id = $1', [id]);
       return result;
     } catch (error) {
       throw error;
