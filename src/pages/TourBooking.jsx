@@ -1,10 +1,32 @@
 import React, { useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
+import { addBooking } from '../services/dataService';
 
 export default function TourBooking() {
   const { state } = useLocation();
   const navigate = useNavigate();
   const [isBooked, setIsBooked] = useState(false);
+
+  const handleBookingSubmit = (e) => {
+    e.preventDefault();
+    const formData = new FormData(e.target);
+    const customer = formData.get('customer') || 'Guest';
+    const phone = formData.get('phone') || 'N/A';
+    const destination = formData.get('destination') || 'Unknown Tour';
+    const date = formData.get('date') || '';
+    const duration = formData.get('duration') || '';
+    const budget = formData.get('budget') || 'Standard';
+
+    addBooking({
+      customer,
+      phone,
+      service: `Tour: ${destination}`,
+      details: `${budget} Package (${duration} Days)`,
+      schedule: date
+    });
+
+    setIsBooked(true);
+  };
 
   return (
     <main className="pt-20 min-h-screen bg-background pb-24">
@@ -52,15 +74,15 @@ export default function TourBooking() {
                 </button>
               </div>
             ) : (
-              <form className="space-y-8" onSubmit={(e) => { e.preventDefault(); setIsBooked(true); }}>
+              <form className="space-y-8" onSubmit={handleBookingSubmit}>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                   <div className="space-y-2">
                     <label className="font-label text-[10px] uppercase tracking-widest text-on-surface-variant">Full Name</label>
-                    <input defaultValue={state?.name || ''} className="w-full bg-black/40 border-0 outline-none focus:ring-0 focus:border-l-2 focus:border-secondary transition-all p-4 text-on-surface font-medium rounded-sm" placeholder="Alexander Vance" type="text" required/>
+                    <input name="customer" defaultValue={state?.name || ''} className="w-full bg-black/40 border-0 outline-none focus:ring-0 focus:border-l-2 focus:border-secondary transition-all p-4 text-on-surface font-medium rounded-sm" placeholder="Alexander Vance" type="text" required/>
                   </div>
                   <div className="space-y-2">
                     <label className="font-label text-[10px] uppercase tracking-widest text-on-surface-variant">Email Address</label>
-                    <input defaultValue={state?.email || ''} className="w-full bg-black/40 border-0 outline-none focus:ring-0 focus:border-l-2 focus:border-secondary transition-all p-4 text-on-surface font-medium rounded-sm" placeholder="alex@example.com" type="email" required/>
+                    <input name="email" defaultValue={state?.email || ''} className="w-full bg-black/40 border-0 outline-none focus:ring-0 focus:border-l-2 focus:border-secondary transition-all p-4 text-on-surface font-medium rounded-sm" placeholder="alex@example.com" type="email" required/>
                   </div>
                   <div className="grid grid-cols-4 gap-4 md:col-span-2">
                     <div className="col-span-1 space-y-2">
@@ -69,30 +91,30 @@ export default function TourBooking() {
                     </div>
                     <div className="col-span-3 space-y-2">
                       <label className="font-label text-[10px] uppercase tracking-widest text-on-surface-variant">Contact Phone</label>
-                      <input defaultValue={state?.phone || ''} className="w-full bg-black/40 border-0 outline-none focus:ring-0 focus:border-l-2 focus:border-secondary transition-all p-4 text-on-surface font-medium rounded-sm" placeholder="99431 39353" type="tel" required/>
+                      <input name="phone" defaultValue={state?.phone || ''} className="w-full bg-black/40 border-0 outline-none focus:ring-0 focus:border-l-2 focus:border-secondary transition-all p-4 text-on-surface font-medium rounded-sm" placeholder="99431 39353" type="tel" required/>
                     </div>
                   </div>
                   <div className="space-y-2 md:col-span-2">
                     <label className="font-label text-[10px] uppercase tracking-widest text-on-surface-variant">Origin Country</label>
-                    <input defaultValue={state?.country || ''} className="w-full bg-black/40 border-0 outline-none focus:ring-0 focus:border-l-2 focus:border-secondary transition-all p-4 text-on-surface font-medium rounded-sm" placeholder="United Kingdom" type="text" required/>
+                    <input name="country" defaultValue={state?.country || ''} className="w-full bg-black/40 border-0 outline-none focus:ring-0 focus:border-l-2 focus:border-secondary transition-all p-4 text-on-surface font-medium rounded-sm" placeholder="United Kingdom" type="text" required/>
                   </div>
                   <div className="space-y-2 md:col-span-2">
                     <label className="font-label text-[10px] uppercase tracking-widest text-on-surface-variant">Tour Destination</label>
-                    <select className="w-full bg-black/40 border-0 outline-none focus:ring-0 focus:border-l-2 focus:border-secondary transition-all p-4 text-on-surface font-medium appearance-none rounded-sm" required>
+                    <select name="destination" className="w-full bg-black/40 border-0 outline-none focus:ring-0 focus:border-l-2 focus:border-secondary transition-all p-4 text-on-surface font-medium appearance-none rounded-sm" required>
                       <option value="">Select Package</option>
-                      <option>The Temple Trail (Madurai & Thanjavur)</option>
-                      <option>Coastal Serenity (Pondicherry & Mahabalipuram)</option>
-                      <option>Royal Nilgiris (Ooty & Coonoor)</option>
-                      <option>Custom Itinerary</option>
+                      <option value="The Temple Trail (Madurai & Thanjavur)">The Temple Trail (Madurai & Thanjavur)</option>
+                      <option value="Coastal Serenity (Pondicherry & Mahabalipuram)">Coastal Serenity (Pondicherry & Mahabalipuram)</option>
+                      <option value="Royal Nilgiris (Ooty & Coonoor)">Royal Nilgiris (Ooty & Coonoor)</option>
+                      <option value="Custom Itinerary">Custom Itinerary</option>
                     </select>
                   </div>
                   <div className="space-y-2">
                     <label className="font-label text-[10px] uppercase tracking-widest text-on-surface-variant">Start Date</label>
-                    <input className="w-full bg-black/40 border-0 outline-none focus:ring-0 focus:border-l-2 focus:border-secondary transition-all p-4 text-on-surface font-medium rounded-sm" type="date" required/>
+                    <input name="date" className="w-full bg-black/40 border-0 outline-none focus:ring-0 focus:border-l-2 focus:border-secondary transition-all p-4 text-on-surface font-medium rounded-sm" type="date" required/>
                   </div>
                   <div className="space-y-2">
                     <label className="font-label text-[10px] uppercase tracking-widest text-on-surface-variant">Duration (Days)</label>
-                    <input className="w-full bg-black/40 border-0 outline-none focus:ring-0 focus:border-l-2 focus:border-secondary transition-all p-4 text-on-surface font-medium rounded-sm" placeholder="7" type="number" required/>
+                    <input name="duration" className="w-full bg-black/40 border-0 outline-none focus:ring-0 focus:border-l-2 focus:border-secondary transition-all p-4 text-on-surface font-medium rounded-sm" placeholder="7" type="number" required/>
                   </div>
                   <div className="space-y-2 md:col-span-2">
                     <label className="font-label text-[10px] uppercase tracking-widest text-on-surface-variant">Budget Bracket</label>

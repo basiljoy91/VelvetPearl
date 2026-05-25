@@ -1,7 +1,8 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { initialBookings, initialFleet, initialDrivers, initialMessages } from '../data/mockData';
+import { getBookings, getFleet, getDrivers, getMessages, getAnalytics, addBooking, addFleet, addDriver, updateBookingStatus, deleteBookingRecord } from '../services/dataService';
 import AdminForms from '../components/admin/AdminForms';
+import { logoutAdmin, changePassword } from '../services/authService';
 
 export default function AdminDashboard() {
   const navigate = useNavigate();
@@ -9,17 +10,58 @@ export default function AdminDashboard() {
   const [searchQuery, setSearchQuery] = useState('');
   const [isEntryModalOpen, setIsEntryModalOpen] = useState(false);
   
+  // Settings Form State
+  const [oldPassword, setOldPassword] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [pwdError, setPwdError] = useState('');
+  const [pwdMessage, setPwdMessage] = useState('');
+  const [isPwdLoading, setIsPwdLoading] = useState(false);
+  
+  const handleLogout = () => {
+    logoutAdmin();
+    navigate('/admin');
+  };
+  
   // Data States
-  const [bookings, setBookings] = useState(initialBookings);
-  const [fleet, setFleet] = useState(initialFleet);
-  const [drivers, setDrivers] = useState(initialDrivers);
-  const [messages, setMessages] = useState(initialMessages);
+  const [bookings, setBookings] = useState([]);
+  const [fleet, setFleet] = useState([]);
+  const [drivers, setDrivers] = useState([]);
+  const [messages, setMessages] = useState([]);
+  const [analytics, setAnalytics] = useState(null);
+
+  // Reload data when switching tabs to stay fresh
+  useEffect(() => {
+    const loadData = async () => {
+      const [b, f, d, m, a] = await Promise.all([getBookings(), getFleet(), getDrivers(), getMessages(), getAnalytics()]);
+      setBookings(b);
+      setFleet(f);
+      setDrivers(d);
+      setMessages(m);
+      setAnalytics(a);
+    };
+    loadData();
+  }, [activeTab]);
 
   // Handlers
-  const handleAddEntry = (newEntry) => {
-    if (activeTab === 'bookings') setBookings([newEntry, ...bookings]);
-    if (activeTab === 'fleet') setFleet([newEntry, ...fleet]);
-    if (activeTab === 'drivers') setDrivers([newEntry, ...drivers]);
+  const handleAddEntry = async (newEntry) => {
+    if (activeTab === 'bookings') {
+      await addBooking(newEntry);
+      const b = await getBookings();
+      setBookings(b);
+    }
+    if (activeTab === 'fleet') {
+      await addFleet(newEntry);
+      const f = await getFleet();
+      setFleet(f);
+    }
+    if (activeTab === 'drivers') {
+      await addDriver(newEntry);
+      const d = await getDrivers();
+      setDrivers(d);
+    }
+    const a = await getAnalytics();
+    setAnalytics(a);
   };
 
   // Filtered Data based on Search
@@ -39,20 +81,47 @@ export default function AdminDashboard() {
   );
 
   // Actions
-  const deleteBooking = (id) => setBookings(bookings.filter(b => b.id !== id));
-  const updateStatus = (id, newStatus) => {
-    setBookings(bookings.map(b => b.id === id ? { ...b, status: newStatus } : b));
+  const deleteBooking = async (id) => {
+    await deleteBookingRecord(id);
+    const b = await getBookings();
+    setBookings(b);
+    setAnalytics(await getAnalytics());
+  };
+  const updateStatus = async (id, newStatus) => {
+    await updateBookingStatus(id, newStatus);
+    const b = await getBookings();
+    setBookings(b);
+    setAnalytics(await getAnalytics());
+  };
+
+  const handlePasswordChange = async (e) => {
+    e.preventDefault();
+    setPwdError('');
+    setPwdMessage('');
+    setIsPwdLoading(true);
+
+    try {
+      await changePassword(oldPassword, newPassword, confirmPassword);
+      setPwdMessage('Password updated successfully. You can use it on your next login.');
+      setOldPassword('');
+      setNewPassword('');
+      setConfirmPassword('');
+    } catch (err) {
+      setPwdError(err.message || 'Failed to update password');
+    } finally {
+      setIsPwdLoading(false);
+    }
   };
 
   const navItems = [
-    { id: 'dashboard', label: 'Dashboard', icon: 'dashboard' },
-    { id: 'bookings', label: 'Bookings', icon: 'calendar_month' },
-    { id: 'drivers', label: 'Drivers', icon: 'person_pin' },
-    { id: 'fleet', label: 'Fleet', icon: 'directions_car' },
-    { id: 'routes', label: 'Routes', icon: 'map' },
-    { id: 'messages', label: 'Messages', icon: 'chat_bubble' },
-    { id: 'reports', label: 'Reports', icon: 'assessment' },
-    { id: 'settings', label: 'Settings', icon: 'settings' },
+    { id: 'dashboard', label: 'Dashboard', icon: 'dashboard', active: true },
+    { id: 'bookings', label: 'Bookings', icon: 'calendar_month', active: true },
+    { id: 'drivers', label: 'Drivers', icon: 'person_pin', active: true },
+    { id: 'fleet', label: 'Fleet', icon: 'directions_car', active: true },
+    { id: 'routes', label: 'Routes', icon: 'map', active: false },
+    { id: 'messages', label: 'Messages', icon: 'chat_bubble', active: false },
+    { id: 'reports', label: 'Reports', icon: 'assessment', active: false },
+    { id: 'settings', label: 'Settings', icon: 'settings', active: true },
   ];
 
   return (
@@ -68,23 +137,31 @@ export default function AdminDashboard() {
           {navItems.map((item) => (
             <button
               key={item.id}
-              onClick={() => setActiveTab(item.id)}
-              className={`w-full flex items-center gap-4 px-4 py-3 rounded-xl transition-all duration-300 border-none outline-none ${
-                activeTab === item.id 
-                  ? 'bg-[#EFBF04]/10 text-[#EFBF04] border-l-4 border-[#EFBF04]' 
-                  : 'text-gray-400 hover:text-white hover:bg-white/5'
+              onClick={() => item.active && setActiveTab(item.id)}
+              disabled={!item.active}
+              className={`w-full flex items-center justify-between px-4 py-3 rounded-xl transition-all duration-300 border-none outline-none ${
+                !item.active 
+                  ? 'opacity-50 cursor-not-allowed text-gray-500' 
+                  : activeTab === item.id 
+                    ? 'bg-[#EFBF04]/10 text-[#EFBF04] border-l-4 border-[#EFBF04]' 
+                    : 'text-gray-400 hover:text-white hover:bg-white/5'
               }`}
             >
-              <span className={`material-symbols-outlined text-xl ${activeTab === item.id ? 'fill-1' : ''}`}>
-                {item.icon}
-              </span>
-              <span className="font-medium text-sm">{item.label}</span>
+              <div className="flex items-center gap-4">
+                <span className={`material-symbols-outlined text-xl ${activeTab === item.id ? 'fill-1' : ''}`}>
+                  {item.icon}
+                </span>
+                <span className="font-medium text-sm">{item.label}</span>
+              </div>
+              {!item.active && (
+                <span className="text-[8px] bg-white/10 px-2 py-0.5 rounded-full uppercase tracking-widest font-bold">Soon</span>
+              )}
             </button>
           ))}
         </nav>
 
         <div className="p-6 mt-auto border-t border-white/5">
-          <div className="flex items-center gap-3 p-3 bg-white/5 rounded-2xl border border-white/10 cursor-pointer hover:bg-white/10 transition" onClick={() => navigate('/admin')}>
+          <div className="flex items-center gap-3 p-3 bg-white/5 rounded-2xl border border-white/10 cursor-pointer hover:bg-white/10 transition" onClick={handleLogout}>
             <div className="w-10 h-10 rounded-lg bg-[#EFBF04]/20 flex items-center justify-center">
               <span className="material-symbols-outlined text-[#EFBF04]">person</span>
             </div>
@@ -135,10 +212,10 @@ export default function AdminDashboard() {
               {/* Stats Bento Grid */}
               <section className="grid grid-cols-1 md:grid-cols-4 gap-6">
                 {[
-                  { label: "Today's Bookings", val: "42", icon: "event_available", color: "text-emerald-400", bg: "bg-emerald-500/10" },
-                  { label: "Active Drivers", val: "18", icon: "person_celebrate", color: "text-[#EFBF04]", bg: "bg-[#EFBF04]/10" },
-                  { label: "Utilization", val: "89%", icon: "speed", color: "text-blue-400", bg: "bg-blue-500/10" },
-                  { label: "Pending Payments", val: "₹14k", icon: "account_balance_wallet", color: "text-rose-400", bg: "bg-rose-500/10" }
+                  { label: "Today's Bookings", val: analytics?.todayBookings ?? "-", icon: "event_available", color: "text-emerald-400", bg: "bg-emerald-500/10" },
+                  { label: "Active Drivers", val: analytics?.activeDrivers ?? "-", icon: "person_celebrate", color: "text-[#EFBF04]", bg: "bg-[#EFBF04]/10" },
+                  { label: "Utilization", val: analytics ? `${analytics.utilization.toFixed(1)}%` : "-", icon: "speed", color: "text-blue-400", bg: "bg-blue-500/10" },
+                  { label: "Pending Payments", val: analytics ? `₹${analytics.pendingPayments}` : "-", icon: "account_balance_wallet", color: "text-rose-400", bg: "bg-rose-500/10" }
                 ].map((stat, i) => (
                   <div key={i} className="bg-white/5 p-6 rounded-2xl border border-white/10 shadow-xl group hover:border-[#EFBF04]/30 transition-all">
                     <div className="flex justify-between items-start mb-4">
@@ -289,14 +366,102 @@ export default function AdminDashboard() {
             </div>
           )}
 
-          {/* Fallback for other tabs */}
-          {['routes', 'messages', 'reports', 'settings'].includes(activeTab) && (
-            <div className="flex flex-col items-center justify-center py-40 bg-white/5 rounded-3xl border border-dashed border-white/10">
-              <span className="material-symbols-outlined text-6xl text-gray-700 mb-4 animate-pulse">construction</span>
-              <h3 className="text-2xl font-headline font-bold text-white">Module Under Expansion</h3>
-              <p className="text-gray-500 mt-2">The {activeTab} control module is being finalized for deployment.</p>
+          {activeTab === 'settings' && (
+            <div className="max-w-2xl mx-auto space-y-8">
+              <section className="bg-white/5 p-10 rounded-3xl border border-white/5 shadow-2xl">
+                <div className="mb-8 border-b border-white/5 pb-6">
+                  <div className="flex items-center gap-4 mb-2">
+                    <div className="p-3 bg-blue-500/10 text-blue-400 rounded-xl">
+                      <span className="material-symbols-outlined text-2xl">security</span>
+                    </div>
+                    <h3 className="text-2xl font-headline font-bold text-white">Security & Authentication</h3>
+                  </div>
+                  <p className="text-gray-400 text-sm pl-16">Manage your admin access credentials securely.</p>
+                </div>
+
+                <form onSubmit={handlePasswordChange} className="space-y-6">
+                  {pwdError && (
+                    <div className="bg-rose-500/10 border border-rose-500/30 text-rose-400 px-4 py-3 rounded-lg text-sm flex items-center gap-3">
+                      <span className="material-symbols-outlined text-sm">error</span>
+                      {pwdError}
+                    </div>
+                  )}
+                  {pwdMessage && (
+                    <div className="bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 px-4 py-3 rounded-lg text-sm flex items-center gap-3">
+                      <span className="material-symbols-outlined text-sm">check_circle</span>
+                      {pwdMessage}
+                    </div>
+                  )}
+
+                  <div className="space-y-2">
+                    <label className="text-[10px] uppercase tracking-widest text-gray-500 font-bold ml-1">Current Password</label>
+                    <div className="relative group">
+                      <div className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 group-focus-within:text-[#EFBF04] transition-colors">
+                        <span className="material-symbols-outlined text-sm">lock_open</span>
+                      </div>
+                      <input 
+                        className="w-full bg-black/40 border-none focus:ring-0 focus:border-l-2 focus:border-[#EFBF04] transition-all rounded-lg py-4 pl-12 pr-4 text-white placeholder:text-gray-600 font-body text-sm outline-none" 
+                        placeholder="Enter your current password" 
+                        type="password" 
+                        value={oldPassword} 
+                        onChange={(e) => setOldPassword(e.target.value)} 
+                        required
+                      />
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div className="space-y-2">
+                      <label className="text-[10px] uppercase tracking-widest text-gray-500 font-bold ml-1">New Password</label>
+                      <div className="relative group">
+                        <div className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 group-focus-within:text-blue-400 transition-colors">
+                          <span className="material-symbols-outlined text-sm">lock</span>
+                        </div>
+                        <input 
+                          className="w-full bg-black/40 border-none focus:ring-0 focus:border-l-2 focus:border-blue-400 transition-all rounded-lg py-4 pl-12 pr-4 text-white placeholder:text-gray-600 font-body text-sm outline-none" 
+                          placeholder="New password" 
+                          type="password" 
+                          value={newPassword} 
+                          onChange={(e) => setNewPassword(e.target.value)} 
+                          required
+                          minLength={6}
+                        />
+                      </div>
+                    </div>
+
+                    <div className="space-y-2">
+                      <label className="text-[10px] uppercase tracking-widest text-gray-500 font-bold ml-1">Confirm Password</label>
+                      <div className="relative group">
+                        <div className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 group-focus-within:text-emerald-400 transition-colors">
+                          <span className="material-symbols-outlined text-sm">enhanced_encryption</span>
+                        </div>
+                        <input 
+                          className="w-full bg-black/40 border-none focus:ring-0 focus:border-l-2 focus:border-emerald-400 transition-all rounded-lg py-4 pl-12 pr-4 text-white placeholder:text-gray-600 font-body text-sm outline-none" 
+                          placeholder="Confirm new password" 
+                          type="password" 
+                          value={confirmPassword} 
+                          onChange={(e) => setConfirmPassword(e.target.value)} 
+                          required
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="pt-6 border-t border-white/5 flex justify-end">
+                    <button 
+                      disabled={isPwdLoading} 
+                      className="bg-[#EFBF04] text-black font-bold py-3 px-8 rounded-lg shadow-xl hover:scale-95 transition-transform disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 border-none"
+                      type="submit"
+                    >
+                      <span className="material-symbols-outlined text-sm">save</span>
+                      {isPwdLoading ? 'Updating...' : 'Update Password'}
+                    </button>
+                  </div>
+                </form>
+              </section>
             </div>
           )}
+
         </div>
       </main>
 

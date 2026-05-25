@@ -1,10 +1,33 @@
 import React, { useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
+import { addBooking } from '../services/dataService';
 
 export default function CabBooking() {
   const { state } = useLocation();
   const navigate = useNavigate();
   const [isBooked, setIsBooked] = useState(false);
+
+  const handleBookingSubmit = (e) => {
+    e.preventDefault();
+    const formData = new FormData(e.target);
+    const customer = formData.get('customer') || 'Guest';
+    const phone = formData.get('phone') || 'N/A';
+    const pickup = formData.get('pickup') || 'Unknown';
+    const dropoff = formData.get('dropoff') || 'Unknown';
+    const vehicle = formData.get('vehicle') || 'Cab';
+    const date = formData.get('date') || '';
+    const time = formData.get('time') || '';
+
+    addBooking({
+      customer,
+      phone,
+      service: `Cab: ${pickup} ➔ ${dropoff}`,
+      details: vehicle,
+      schedule: `${date} - ${time}`
+    });
+
+    setIsBooked(true);
+  };
 
   return (
     <main className="pt-20 min-h-screen relative overflow-hidden bg-background pb-24">
@@ -67,24 +90,24 @@ export default function CabBooking() {
                 </button>
               </div>
             ) : (
-                <form className="space-y-8" onSubmit={(e) => { e.preventDefault(); setIsBooked(true); }}>
+                <form className="space-y-8" onSubmit={handleBookingSubmit}>
                   <div className="space-y-6">
                     <h3 className="text-xs font-bold text-secondary uppercase tracking-widest">01. Guest Identification</h3>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                       <div className="relative group">
-                        <input defaultValue={state?.name || ''} className="w-full bg-surface-container-highest/50 border-none rounded-sm px-4 py-3 text-on-surface focus:ring-0 placeholder:text-outline-variant transition-all border-l-0 focus:border-l-2 focus:border-secondary outline-none" placeholder="Full Name" type="text" required/>
+                        <input name="customer" defaultValue={state?.name || ''} className="w-full bg-surface-container-highest/50 border-none rounded-sm px-4 py-3 text-on-surface focus:ring-0 placeholder:text-outline-variant transition-all border-l-0 focus:border-l-2 focus:border-secondary outline-none" placeholder="Full Name" type="text" required/>
                       </div>
                       <div className="relative group">
-                        <input defaultValue={state?.email || ''} className="w-full bg-surface-container-highest/50 border-none rounded-sm px-4 py-3 text-on-surface focus:ring-0 placeholder:text-outline-variant transition-all border-l-0 focus:border-l-2 focus:border-secondary outline-none" placeholder="Email Address" type="email" required/>
+                        <input name="email" defaultValue={state?.email || ''} className="w-full bg-surface-container-highest/50 border-none rounded-sm px-4 py-3 text-on-surface focus:ring-0 placeholder:text-outline-variant transition-all border-l-0 focus:border-l-2 focus:border-secondary outline-none" placeholder="Email Address" type="email" required/>
                       </div>
                     </div>
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                       <div className="md:col-span-1">
-                        <input defaultValue={state?.country || ''} className="w-full bg-surface-container-highest/50 border-none rounded-sm px-4 py-3 text-on-surface focus:ring-0 placeholder:text-outline-variant transition-all border-l-0 focus:border-l-2 focus:border-secondary outline-none" placeholder="Country" type="text" required/>
+                        <input name="country" defaultValue={state?.country || ''} className="w-full bg-surface-container-highest/50 border-none rounded-sm px-4 py-3 text-on-surface focus:ring-0 placeholder:text-outline-variant transition-all border-l-0 focus:border-l-2 focus:border-secondary outline-none" placeholder="Country" type="text" required/>
                       </div>
                       <div className="flex gap-2 md:col-span-2">
-                        <input className="w-20 bg-surface-container-highest/50 border-none rounded-sm px-4 py-3 text-on-surface focus:ring-0 placeholder:text-outline-variant outline-none" defaultValue="91" placeholder="+91" type="number"/>
-                        <input defaultValue={state?.phone || ''} className="flex-1 bg-surface-container-highest/50 border-none rounded-sm px-4 py-3 text-on-surface focus:ring-0 placeholder:text-outline-variant transition-all border-l-0 focus:border-l-2 focus:border-secondary outline-none" placeholder="Contact Phone" type="tel" required/>
+                        <input name="countryCode" className="w-20 bg-surface-container-highest/50 border-none rounded-sm px-4 py-3 text-on-surface focus:ring-0 placeholder:text-outline-variant outline-none" defaultValue="91" placeholder="+91" type="number"/>
+                        <input name="phone" defaultValue={state?.phone || ''} className="flex-1 bg-surface-container-highest/50 border-none rounded-sm px-4 py-3 text-on-surface focus:ring-0 placeholder:text-outline-variant transition-all border-l-0 focus:border-l-2 focus:border-secondary outline-none" placeholder="Contact Phone" type="tel" required/>
                       </div>
                     </div>
                   </div>
@@ -93,19 +116,19 @@ export default function CabBooking() {
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                       <div className="relative">
                         <span className="absolute left-4 top-1/2 -translate-y-1/2 material-symbols-outlined text-primary text-sm">my_location</span>
-                        <input className="w-full bg-surface-container-highest/50 border-none rounded-sm pl-11 pr-4 py-3 text-on-surface focus:ring-0 placeholder:text-outline-variant transition-all border-l-0 focus:border-l-2 focus:border-primary-container outline-none" placeholder="Pickup Location" type="text" required/>
+                        <input name="pickup" className="w-full bg-surface-container-highest/50 border-none rounded-sm pl-11 pr-4 py-3 text-on-surface focus:ring-0 placeholder:text-outline-variant transition-all border-l-0 focus:border-l-2 focus:border-primary-container outline-none" placeholder="Pickup Location" type="text" required/>
                       </div>
                       <div className="relative">
                         <span className="absolute left-4 top-1/2 -translate-y-1/2 material-symbols-outlined text-secondary text-sm">location_on</span>
-                        <input className="w-full bg-surface-container-highest/50 border-none rounded-sm pl-11 pr-4 py-3 text-on-surface focus:ring-0 placeholder:text-outline-variant transition-all border-l-0 focus:border-l-2 focus:border-primary-container outline-none" placeholder="Dropoff Location" type="text" required/>
+                        <input name="dropoff" className="w-full bg-surface-container-highest/50 border-none rounded-sm pl-11 pr-4 py-3 text-on-surface focus:ring-0 placeholder:text-outline-variant transition-all border-l-0 focus:border-l-2 focus:border-primary-container outline-none" placeholder="Dropoff Location" type="text" required/>
                       </div>
                     </div>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                       <div className="relative">
-                        <input className="w-full bg-surface-container-highest/50 border-none rounded-sm px-4 py-3 text-on-surface focus:ring-0 outline-none" type="date" required/>
+                        <input name="date" className="w-full bg-surface-container-highest/50 border-none rounded-sm px-4 py-3 text-on-surface focus:ring-0 outline-none" type="date" required/>
                       </div>
                       <div className="relative">
-                        <input className="w-full bg-surface-container-highest/50 border-none rounded-sm px-4 py-3 text-on-surface focus:ring-0 outline-none" type="time" required/>
+                        <input name="time" className="w-full bg-surface-container-highest/50 border-none rounded-sm px-4 py-3 text-on-surface focus:ring-0 outline-none" type="time" required/>
                       </div>
                     </div>
                   </div>

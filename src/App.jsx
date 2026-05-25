@@ -11,6 +11,7 @@ import RoutesPage from './pages/Routes';
 import Contact from './pages/Contact';
 import AdminLogin from './pages/AdminLogin';
 import AdminDashboard from './pages/AdminDashboard';
+import ProtectedRoute from './guards/ProtectedRoute';
 
 function App() {
   return (
@@ -28,7 +29,7 @@ function App() {
           <Route path="book/event" element={<EventBooking />} />
         </Route>
         <Route path="/admin" element={<AdminLogin />} />
-        <Route path="/admin/dashboard" element={<AdminDashboard />} />
+        <Route path="/admin/dashboard" element={<ProtectedRoute><AdminDashboard /></ProtectedRoute>} />
       </Routes>
     </Router>
   );
