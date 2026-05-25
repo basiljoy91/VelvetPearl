@@ -18,7 +18,6 @@ exports.getAnalytics = async (req, res) => {
     const { rows: activeVehiclesRes } = await db.query(
       `SELECT COUNT(*)::int AS count FROM fleet WHERE status = 'On Trip'`
     );
-    );
     const { rows: totalVehiclesRes } = await db.query(
       `SELECT COUNT(*)::int AS count FROM fleet`
     );
@@ -33,7 +32,7 @@ exports.getAnalytics = async (req, res) => {
     const { rows: pendingPaymentsRes } = await db.query(
       `SELECT amount FROM bookings WHERE status = 'Pending' AND amount != 'TBD'`
     );
-    
+
     let pendingPayments = 0;
     pendingPaymentsRes.forEach(row => {
       // Try to extract numeric value from amount string (e.g., '₹14k', '14000', '150.50')

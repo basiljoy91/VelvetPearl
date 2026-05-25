@@ -1,21 +1,27 @@
 # Velvet Pearl Backend Server
 
-This is the Express backend for the Velvet Pearl Premium Travel application. It handles authentication, data persistence via MySQL, and analytics calculations for the admin dashboard.
+This is the Express backend for the Velvet Pearl Premium Travel application. It handles authentication, data persistence via PostgreSQL, and analytics calculations for the admin dashboard.
 
 ## Prerequisites
 
 - Node.js (v18+)
-- MySQL Server (v8+)
+- PostgreSQL (v13+)
 
 ## Setup Instructions
 
 ### 1. Database Initialization
-1. Ensure your MySQL server is running.
-2. Open your MySQL client (e.g., MySQL Workbench, CLI).
-3. Execute the `schema.sql` file located in `backend/config/schema.sql` to generate the `velvet_pearl` database and all required tables.
-   ```sql
-   source /path/to/backend/config/schema.sql;
+1. Ensure your PostgreSQL server is running.
+2. Create the database if it does not already exist.
+3. Apply the schema from [`backend/utils/schema.sql`](./utils/schema.sql).
+   ```bash
+   psql -U postgres -d velvet_pearl -f backend/utils/schema.sql
    ```
+
+You can also use the bootstrap script after configuring your environment:
+```bash
+cd backend
+npm run init-db
+```
 
 ### 2. Environment Configuration
 Create a `.env` file at the root of the `backend/` directory.
@@ -25,16 +31,26 @@ Create a `.env` file at the root of the `backend/` directory.
 **Example `.env` structure:**
 ```env
 PORT=5000
-DB_HOST=localhost
-DB_USER=root
-DB_PASSWORD=your_mysql_password
-DB_NAME=velvet_pearl
 JWT_SECRET=your_super_secret_jwt_key
 SETUP_SECRET=velvet_pearl_setup_2026
+CORS_ORIGIN=http://localhost:5173
+
+DATABASE_URL=postgresql://postgres:your_postgres_password@localhost:5432/velvet_pearl
+DB_SSL=false
+
+# Optional alternative to DATABASE_URL
+# DB_HOST=localhost
+# DB_PORT=5432
+# DB_NAME=velvet_pearl
+# DB_USER=postgres
+# DB_PASSWORD=your_postgres_password
 ```
 
 - `JWT_SECRET`: Used to encrypt session tokens for the admin portal. Use a secure random string.
 - `SETUP_SECRET`: A secure passphrase required by the frontend during the First Admin Initialization to prevent unauthorized bootstraps.
+- `CORS_ORIGIN`: Comma-separated list of frontend origins allowed to call the API.
+- `DATABASE_URL`: Recommended single-variable PostgreSQL connection string.
+- `DB_SSL`: Set to `true` when your PostgreSQL provider requires SSL.
 
 ### 3. Install Dependencies
 Navigate into the `backend/` directory and install the required Node modules:
@@ -56,8 +72,9 @@ npm start
 The server should output:
 ```
 Server running on port 5000
-MySQL Connected!
 ```
+
+When running the frontend locally, the Vite dev server proxies `/api` requests to `http://localhost:5000` by default. You can override that with `VITE_PROXY_API_TARGET` or point the frontend directly at a deployed backend with `VITE_API_BASE_URL`.
 
 ## Admin Initialization
 Because there is no default admin account in the database, you must initialize one through the frontend interface:
@@ -73,5 +90,3 @@ Because there is no default admin account in the database, you must initialize o
 - `/api/admin/change-password` - Updates the admin password (requires JWT authentication).
 - `/api/admin/analytics` - Computes live statistics (bookings today, utilization, active drivers, etc.).
 - `/api/bookings`, `/api/fleet`, `/api/drivers` - Standard CRUD endpoints for operational data.
-
-## Note: for frontend there is also an .env file
