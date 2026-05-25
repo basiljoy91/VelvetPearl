@@ -1,42 +1,6 @@
 import React, { useState } from 'react';
-import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
 import { useNavigate } from 'react-router-dom';
-import 'leaflet/dist/leaflet.css';
-import L from 'leaflet';
-import 'leaflet-routing-machine';
-import 'leaflet-routing-machine/dist/leaflet-routing-machine.css';
 import { routes } from '../../data/routes';
-
-function Routing({ start, end }) {
-    const map = useMap();
-
-    React.useEffect(() => {
-        const routingControl = L.Routing.control({
-            waypoints: [
-                L.latLng(start[0], start[1]),
-                L.latLng(end[0], end[1])
-            ],
-            lineOptions: {
-                styles: [
-                    {
-                        color: '#EFBF04',
-                        weight: 5
-                    }
-                ]
-            },
-            routeWhileDragging: false,
-            addWaypoints: false,
-            draggableWaypoints: false,
-            fitSelectedRoutes: true,
-            show: false,
-            createMarker: () => null
-        }).addTo(map);
-
-        return () => map.removeControl(routingControl);
-    }, [map, start, end]);
-
-    return null;
-}
 
 export default function RouteMap() {
     const navigate = useNavigate();
@@ -53,6 +17,7 @@ export default function RouteMap() {
     };
 
     const [selectedRoute, setSelectedRoute] = useState('Chennai-Pondicherry');
+    const selectedCoordinates = routeCoordinates[selectedRoute];
 
     const handleBookRoute = (route) => {
         navigate('/book/cab', {
@@ -84,34 +49,42 @@ export default function RouteMap() {
 
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
 
-                    {/* Real Map */}
-                    <div className="rounded-3xl overflow-hidden border border-white/10 h-[320px] md:h-[550px] w-full min-w-0">
-                        <MapContainer
-                            center={[12.5, 80.0]}
-                            zoom={7}
-                            scrollWheelZoom={false}
-                            className="h-full w-full max-w-full"
-                        >
-                            <TileLayer
-                                attribution='&copy; OpenStreetMap contributors'
-                                url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-                            />
+                    {/* Route preview */}
+                    <div className="rounded-3xl overflow-hidden border border-white/10 h-[320px] md:h-[550px] w-full min-w-0 bg-surface-container-high">
+                        <div className="h-full p-8 bg-gradient-to-b from-slate-950 via-slate-900 to-slate-950">
+                            <div className="flex h-full flex-col justify-between rounded-3xl border border-white/10 bg-slate-950/80 p-6 shadow-[0_20px_80px_rgba(0,0,0,0.35)]">
+                                <div>
+                                    <p className="text-secondary uppercase tracking-[0.3em] text-xs mb-4">
+                                        Route preview
+                                    </p>
+                                    <h3 className="text-3xl text-white font-bold mb-4">
+                                        {selectedRoute.replace('-', ' → ')}
+                                    </h3>
+                                    <p className="text-on-surface-variant max-w-xl leading-7">
+                                        This preview highlights route waypoints, pickup and destination coordinates, and estimated travel details.
+                                    </p>
+                                </div>
 
-                            {/* Markers */}
-                            <Marker position={routeCoordinates[selectedRoute].start}>
-                                <Popup>Chennai Pickup Point</Popup>
-                            </Marker>
-
-                            <Marker position={routeCoordinates[selectedRoute].end}>
-                                <Popup>Pondicherry Destination</Popup>
-                            </Marker>
-
-                            {/* Route Line */}
-                            <Routing
-                                start={routeCoordinates[selectedRoute].start}
-                                end={routeCoordinates[selectedRoute].end}
-                            />
-                        </MapContainer>
+                                <div className="grid gap-4 sm:grid-cols-2 mt-8">
+                                    <div className="rounded-3xl border border-white/10 bg-slate-900/80 p-5">
+                                        <p className="text-on-surface-variant uppercase tracking-[0.2em] text-xs mb-2">
+                                            Pickup point
+                                        </p>
+                                        <p className="text-white font-semibold">
+                                            {selectedCoordinates.start[0]}, {selectedCoordinates.start[1]}
+                                        </p>
+                                    </div>
+                                    <div className="rounded-3xl border border-white/10 bg-slate-900/80 p-5">
+                                        <p className="text-on-surface-variant uppercase tracking-[0.2em] text-xs mb-2">
+                                            Destination
+                                        </p>
+                                        <p className="text-white font-semibold">
+                                            {selectedCoordinates.end[0]}, {selectedCoordinates.end[1]}
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
 
                     {/* Route Cards */}
