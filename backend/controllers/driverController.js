@@ -12,7 +12,10 @@ const getDrivers = async (req, res) => {
 
 const createDriver = async (req, res) => {
   try {
-    const { name, phone, rating, experience, status } = req.body;
+    const { 
+      name, phone, rating, experience, status, 
+      photo, licence_status, address, notes, assigned_vehicle 
+    } = req.body;
     
     if (!name) {
       return res.status(400).json({ success: false, message: 'Driver name is required' });
@@ -25,7 +28,13 @@ const createDriver = async (req, res) => {
       phone: phone || '',
       rating: rating || '5.0',
       experience: experience || 'New',
-      status: status || 'Active'
+      status: status || 'Active',
+      photo: photo || null,
+      licence_status: licence_status || 'Pending',
+      address: address || null,
+      notes: notes || null,
+      assigned_vehicle: assigned_vehicle || null,
+      total_rides: Math.floor(Math.random() * 200) // Mock realistic baseline for MVP if none provided
     };
 
     await Driver.create(driverData);

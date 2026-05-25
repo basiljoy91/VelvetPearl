@@ -31,11 +31,11 @@ const Admin = {
   },
 
   // Create an admin
-  create: async (email, hashedPassword) => {
+  create: async (email, hashedPassword, isMainAdmin = false) => {
     try {
       const { rows } = await db.query(
-        'INSERT INTO admins (email, password) VALUES ($1, $2) RETURNING id',
-        [email, hashedPassword]
+        'INSERT INTO admins (email, password, is_main_admin) VALUES ($1, $2, $3) RETURNING id',
+        [email, hashedPassword, isMainAdmin]
       );
       return rows[0].id;
     } catch (error) {
@@ -76,6 +76,38 @@ const Admin = {
         'UPDATE admins SET password = $1, reset_token = NULL, reset_token_expiry = NULL WHERE id = $2',
         [newHashedPassword, adminId]
       );
+    } catch (error) {
+      throw error;
+    }
+  },
+
+  // ---- Setup Key Management ----
+  saveSetupKey: async (tokenHash, createdBy, expiresAt) => {
+    try {
+      await db.query(
+        'INSERT INTO admin_setup_keys (token_hash, created_by, expires_at) VALUES ($1, $2, $3)',
+        [tokenHash, createdBy, expiresAt]
+      );
+    } catch (error) {
+      throw error;
+    }
+  },
+
+  findValidSetupKey: async (tokenHash) => {
+    try {
+      const { rows } = await db.query(
+        'SELECT * FROM admin_setup_keys WHERE token_hash = $1 AND used = false AND expires_at > NOW()',
+        [tokenHash]
+      );
+      return rows[0];
+    } catch (error) {
+      throw error;
+    }
+  },
+
+  invalidateSetupKey: async (keyId) => {
+    try {
+      await db.query('UPDATE admin_setup_keys SET used = true WHERE id = $1', [keyId]);
     } catch (error) {
       throw error;
     }
