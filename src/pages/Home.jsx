@@ -200,7 +200,7 @@ export default function Home() {
             <p className="text-2xl font-headline font-bold text-white">₹4,500</p>
             </td>
             <td className="px-8 py-8 text-right">
-            <button className="bg-primary-container text-white px-8 py-3 font-label text-xs uppercase tracking-widest font-black rounded transition-all duration-300 hover:bg-[#294edf] hover:shadow-[0_0_20px_rgba(34,73,219,0.4)] active:scale-95" onClick={() => setModalOpen(true)}>Book</button>
+            <button className="bg-primary-container text-white px-8 py-3 font-label text-xs uppercase tracking-widest font-black rounded transition-all duration-300 hover:bg-[#294edf] hover:shadow-[0_0_20px_rgba(34,73,219,0.4)] active:scale-95" onClick={() => navigate('/book/cab')}>Book</button>
             </td>
             </tr>
             <tr className="glass-panel group transition-all duration-300 hover:bg-surface-container-high/60">
@@ -228,7 +228,7 @@ export default function Home() {
             <p className="text-2xl font-headline font-bold text-white">₹3,200</p>
             </td>
             <td className="px-8 py-8 text-right">
-            <button className="bg-primary-container text-white px-8 py-3 font-label text-xs uppercase tracking-widest font-black rounded transition-all duration-300 hover:bg-[#294edf] hover:shadow-[0_0_20px_rgba(34,73,219,0.4)] active:scale-95" onClick={() => setModalOpen(true)}>Book</button>
+            <button className="bg-primary-container text-white px-8 py-3 font-label text-xs uppercase tracking-widest font-black rounded transition-all duration-300 hover:bg-[#294edf] hover:shadow-[0_0_20px_rgba(34,73,219,0.4)] active:scale-95" onClick={() => navigate('/book/cab')}>Book</button>
             </td>
             </tr>
             </tbody>

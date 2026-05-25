@@ -16,7 +16,8 @@ exports.getAnalytics = async (req, res) => {
 
     // 3. Utilization
     const { rows: activeVehiclesRes } = await db.query(
-      `SELECT COUNT(*)::int AS count FROM fleet WHERE status = 'Available'`
+      `SELECT COUNT(*)::int AS count FROM fleet WHERE status = 'On Trip'`
+    );
     );
     const { rows: totalVehiclesRes } = await db.query(
       `SELECT COUNT(*)::int AS count FROM fleet`

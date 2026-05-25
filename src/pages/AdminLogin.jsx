@@ -1,15 +1,13 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { loginAdmin, signupAdmin, changePassword } from '../services/authService';
+import { loginAdmin, signupAdmin } from '../services/authService';
 
 export default function AdminLogin() {
   const navigate = useNavigate();
-  const [mode, setMode] = useState('login'); // 'login', 'signup', 'changepass'
+  const [mode, setMode] = useState('login'); // 'login', 'signup'
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [oldPassword, setOldPassword] = useState('');
-  const [newPassword, setNewPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
+  const [setupSecret, setSetupSecret] = useState('');
   const [error, setError] = useState('');
   const [message, setMessage] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -25,21 +23,8 @@ export default function AdminLogin() {
         await loginAdmin(email, password);
         navigate('/admin/dashboard');
       } else if (mode === 'signup') {
-        await signupAdmin(email, password);
+        await signupAdmin(email, password, setupSecret);
         setMessage('Admin created successfully. You can now login.');
-        setMode('login');
-      } else if (mode === 'changepass') {
-        // changePassword needs a valid JWT token but here we're not logged in.
-        // We verify the old password first via login, then change.
-        // Step 1: login with old password to get token
-        await loginAdmin(email, oldPassword);
-        // Step 2: now change the password
-        await changePassword(oldPassword, newPassword, confirmPassword);
-        setMessage('Password updated successfully. Please login with your new password.');
-        setOldPassword('');
-        setNewPassword('');
-        setConfirmPassword('');
-        setPassword('');
         setMode('login');
       }
     } catch (err) {
@@ -53,9 +38,7 @@ export default function AdminLogin() {
     setMode(newMode);
     setError('');
     setMessage('');
-    setOldPassword('');
-    setNewPassword('');
-    setConfirmPassword('');
+    setSetupSecret('');
     setPassword('');
   };
 
@@ -78,7 +61,7 @@ export default function AdminLogin() {
             <span className="font-headline font-bold text-2xl text-on-surface tracking-tight">Velvet Pearl</span>
           </div>
           <h1 className="font-headline font-light text-4xl tracking-tighter text-on-surface mb-2">
-            {mode === 'login' ? 'Admin Login' : mode === 'signup' ? 'Admin Initialization' : 'Change Password'}
+            {mode === 'login' ? 'Admin Login' : 'Admin Initialization'}
           </h1>
           <p className="font-label text-xs uppercase tracking-[0.2em] text-on-surface-variant">Secured Management Portal</p>
         </div>
@@ -117,9 +100,6 @@ export default function AdminLogin() {
               <div className="space-y-2">
                 <div className="flex justify-between items-center ml-1">
                   <label className="font-label text-[10px] uppercase tracking-widest text-secondary font-semibold">Password</label>
-                  {mode === 'login' && (
-                    <button type="button" onClick={() => switchMode('changepass')} className="font-label text-[10px] uppercase tracking-widest text-primary-fixed-dim hover:text-white transition-colors bg-transparent border-none cursor-pointer">Forgot password?</button>
-                  )}
                 </div>
                 <div className="relative group">
                   <div className="absolute left-4 top-1/2 -translate-y-1/2 text-on-surface-variant group-focus-within:text-secondary transition-colors">
@@ -130,44 +110,15 @@ export default function AdminLogin() {
               </div>
             )}
 
-            {/* Change Password: Email + Old + New + Confirm fields */}
-            {mode === 'changepass' && (
-              <div className="space-y-4">
-                <div className="space-y-2">
-                  <label className="font-label text-[10px] uppercase tracking-widest text-secondary font-semibold ml-1">Email</label>
-                  <div className="relative group">
-                    <div className="absolute left-4 top-1/2 -translate-y-1/2 text-on-surface-variant group-focus-within:text-secondary transition-colors">
-                      <span className="material-symbols-outlined text-sm">person</span>
-                    </div>
-                    <input className="w-full bg-black/40 border-none focus:ring-0 focus:border-l-2 focus:border-secondary transition-all rounded-sm py-4 pl-12 pr-4 text-on-surface placeholder:text-outline-variant font-body text-sm outline-none" placeholder="Your admin email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} required/>
+            {/* Signup: Setup Secret field */}
+            {mode === 'signup' && (
+              <div className="space-y-2">
+                <label className="font-label text-[10px] uppercase tracking-widest text-secondary font-semibold ml-1">Setup Secret</label>
+                <div className="relative group">
+                  <div className="absolute left-4 top-1/2 -translate-y-1/2 text-on-surface-variant group-focus-within:text-secondary transition-colors">
+                    <span className="material-symbols-outlined text-sm">key</span>
                   </div>
-                </div>
-                <div className="space-y-2">
-                  <label className="font-label text-[10px] uppercase tracking-widest text-secondary font-semibold ml-1">Old Password</label>
-                  <div className="relative group">
-                    <div className="absolute left-4 top-1/2 -translate-y-1/2 text-on-surface-variant group-focus-within:text-secondary transition-colors">
-                      <span className="material-symbols-outlined text-sm">lock_open</span>
-                    </div>
-                    <input className="w-full bg-black/40 border-none focus:ring-0 focus:border-l-2 focus:border-secondary transition-all rounded-sm py-4 pl-12 pr-4 text-on-surface placeholder:text-outline-variant font-body text-sm outline-none" placeholder="Enter your current password" type="password" value={oldPassword} onChange={(e) => setOldPassword(e.target.value)} required/>
-                  </div>
-                </div>
-                <div className="space-y-2">
-                  <label className="font-label text-[10px] uppercase tracking-widest text-secondary font-semibold ml-1">New Password</label>
-                  <div className="relative group">
-                    <div className="absolute left-4 top-1/2 -translate-y-1/2 text-on-surface-variant group-focus-within:text-secondary transition-colors">
-                      <span className="material-symbols-outlined text-sm">lock</span>
-                    </div>
-                    <input className="w-full bg-black/40 border-none focus:ring-0 focus:border-l-2 focus:border-secondary transition-all rounded-sm py-4 pl-12 pr-4 text-on-surface placeholder:text-outline-variant font-body text-sm outline-none" placeholder="Enter your new password" type="password" value={newPassword} onChange={(e) => setNewPassword(e.target.value)} required minLength={6}/>
-                  </div>
-                </div>
-                <div className="space-y-2">
-                  <label className="font-label text-[10px] uppercase tracking-widest text-secondary font-semibold ml-1">Confirm New Password</label>
-                  <div className="relative group">
-                    <div className="absolute left-4 top-1/2 -translate-y-1/2 text-on-surface-variant group-focus-within:text-secondary transition-colors">
-                      <span className="material-symbols-outlined text-sm">enhanced_encryption</span>
-                    </div>
-                    <input className="w-full bg-black/40 border-none focus:ring-0 focus:border-l-2 focus:border-secondary transition-all rounded-sm py-4 pl-12 pr-4 text-on-surface placeholder:text-outline-variant font-body text-sm outline-none" placeholder="Confirm your new password" type="password" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} required/>
-                  </div>
+                  <input className="w-full bg-black/40 border-none focus:ring-0 focus:border-l-2 focus:border-secondary transition-all rounded-sm py-4 pl-12 pr-4 text-on-surface placeholder:text-outline-variant font-body text-sm outline-none" placeholder="Enter setup secret" type="password" value={setupSecret} onChange={(e) => setSetupSecret(e.target.value)} required/>
                 </div>
               </div>
             )}
@@ -175,7 +126,7 @@ export default function AdminLogin() {
             {/* Primary Action */}
             <div className="pt-4">
               <button disabled={isLoading} className="w-full bg-primary-container text-white font-headline font-bold py-4 rounded-lg shadow-xl shadow-primary-container/20 hover:brightness-110 active:scale-[0.98] transition-all duration-200 border-none uppercase tracking-widest text-sm disabled:opacity-50" type="submit">
-                {isLoading ? 'Processing...' : mode === 'login' ? 'Sign In' : mode === 'signup' ? 'Initialize Admin' : 'Update Password'}
+                {isLoading ? 'Processing...' : mode === 'login' ? 'Sign In' : 'Initialize Admin'}
               </button>
             </div>
             

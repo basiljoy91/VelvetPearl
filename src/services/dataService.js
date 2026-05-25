@@ -1,4 +1,5 @@
-const API = '/api';
+const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL || '').replace(/\/$/, '');
+const API = `${API_BASE_URL}/api`;
 
 // Helper: adds JWT token for admin-protected routes
 const authHeaders = () => {
@@ -97,14 +98,6 @@ export const addFleet = async (fleetData) => {
   });
   const data = await handleResponse(res);
   return data.data;
-};
-
-// ─────────────────────────────────────────────
-// MESSAGES (kept local — no backend table yet)
-// ─────────────────────────────────────────────
-
-export const getMessages = () => {
-  return JSON.parse(localStorage.getItem('vp_messages') || '[]');
 };
 
 // ─────────────────────────────────────────────

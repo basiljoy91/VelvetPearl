@@ -6,9 +6,14 @@ export default function RoomBooking() {
   const { state } = useLocation();
   const navigate = useNavigate();
   const [isBooked, setIsBooked] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState(null);
 
-  const handleBookingSubmit = (e) => {
+  const handleBookingSubmit = async (e) => {
     e.preventDefault();
+    setIsLoading(true);
+    setError(null);
+
     const formData = new FormData(e.target);
     const customer = formData.get('customer') || 'Guest';
     const phone = formData.get('phone') || 'N/A';
@@ -18,15 +23,20 @@ export default function RoomBooking() {
     const roomType = formData.get('roomType') || 'Standard';
     const guests = formData.get('guests') || '1';
 
-    addBooking({
-      customer,
-      phone,
-      service: `Room: ${hotel}`,
-      details: `${roomType} (${guests} Guests)`,
-      schedule: `${checkin} to ${checkout}`
-    });
-
-    setIsBooked(true);
+    try {
+      await addBooking({
+        customer,
+        phone,
+        service: `Room: ${hotel}`,
+        details: `${roomType} (${guests} Guests)`,
+        schedule: `${checkin} to ${checkout}`
+      });
+      setIsBooked(true);
+    } catch (err) {
+      setError(err.message || 'Failed to submit booking. Please try again.');
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -85,6 +95,11 @@ export default function RoomBooking() {
               </div>
             ) : (
               <form className="space-y-8" onSubmit={handleBookingSubmit}>
+                {error && (
+                  <div className="bg-red-500/20 border border-red-500/30 text-red-400 px-4 py-3 rounded-lg text-sm text-center font-body">
+                    {error}
+                  </div>
+                )}
                 {/* Name & Contact */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                   <div className="space-y-2">
@@ -144,8 +159,8 @@ export default function RoomBooking() {
                   </div>
                 </div>
                 <div className="pt-6">
-                  <button className="w-full bg-primary-container text-on-primary py-5 rounded-md font-headline font-bold uppercase tracking-widest text-sm hover:brightness-110 active:scale-[0.98] transition-all shadow-xl shadow-primary-container/20 border-none" type="submit">
-                    Book Room
+                  <button disabled={isLoading} className="w-full md:w-auto px-12 py-5 bg-primary-container text-white font-headline font-bold text-xs uppercase tracking-[0.2em] rounded-md shadow-xl shadow-primary-container/20 hover:brightness-110 active:scale-[0.98] transition-all border-none disabled:opacity-50 disabled:cursor-not-allowed" type="submit">
+                    {isLoading ? 'Processing...' : 'Reserve Room'}
                   </button>
                 </div>
               </form>

@@ -6,26 +6,35 @@ export default function EventBooking() {
   const { state } = useLocation();
   const navigate = useNavigate();
   const [isBooked, setIsBooked] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState(null);
 
-  const handleBookingSubmit = (e) => {
+  const handleBookingSubmit = async (e) => {
     e.preventDefault();
+    setIsLoading(true);
+    setError(null);
+
     const formData = new FormData(e.target);
     const customer = formData.get('customer') || 'Guest';
     const phone = formData.get('phone') || 'N/A';
     const eventType = formData.get('eventType') || 'Event';
-    const location = formData.get('location') || 'Unknown Venue';
     const date = formData.get('date') || '';
     const guests = formData.get('guests') || '1';
 
-    addBooking({
-      customer,
-      phone,
-      service: `Event: ${eventType}`,
-      details: `${location} (${guests} Guests)`,
-      schedule: date
-    });
-
-    setIsBooked(true);
+    try {
+      await addBooking({
+        customer,
+        phone,
+        service: `Event: ${eventType}`,
+        details: `${guests} Guests`,
+        schedule: date
+      });
+      setIsBooked(true);
+    } catch (err) {
+      setError(err.message || 'Failed to submit booking. Please try again.');
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -92,6 +101,11 @@ export default function EventBooking() {
             </div>
           ) : (
             <form className="space-y-8" onSubmit={handleBookingSubmit}>
+              {error && (
+                <div className="bg-red-500/20 border border-red-500/30 text-red-400 px-4 py-3 rounded-lg text-sm text-center font-body">
+                  {error}
+                </div>
+              )}
               {/* Section: Personal Info */}
               <div>
                 <h2 className="font-headline text-xl font-bold mb-6 text-secondary flex items-center gap-3">
@@ -177,8 +191,8 @@ export default function EventBooking() {
                   <span className="material-symbols-outlined">chat</span>
                   <span className="font-label text-xs uppercase tracking-widest font-bold">+91 99431 39353</span>
                 </a>
-                <button type="submit" className="w-full md:w-auto px-10 py-4 bg-primary-container text-white font-headline font-bold uppercase tracking-widest text-xs rounded-sm hover:bg-inverse-primary transition-all active:scale-95 shadow-xl shadow-primary-container/20 border-none">
-                  Consult with Event Team
+                <button disabled={isLoading} className="w-full md:w-auto px-12 py-5 bg-primary-container text-white font-headline font-bold text-xs uppercase tracking-[0.2em] rounded-md shadow-xl shadow-primary-container/20 hover:brightness-110 active:scale-[0.98] transition-all border-none disabled:opacity-50 disabled:cursor-not-allowed" type="submit">
+                  {isLoading ? 'Processing...' : 'Request Proposal'}
                 </button>
               </div>
             </form>

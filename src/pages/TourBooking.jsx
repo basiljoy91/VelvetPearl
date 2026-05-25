@@ -6,9 +6,14 @@ export default function TourBooking() {
   const { state } = useLocation();
   const navigate = useNavigate();
   const [isBooked, setIsBooked] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState(null);
 
-  const handleBookingSubmit = (e) => {
+  const handleBookingSubmit = async (e) => {
     e.preventDefault();
+    setIsLoading(true);
+    setError(null);
+
     const formData = new FormData(e.target);
     const customer = formData.get('customer') || 'Guest';
     const phone = formData.get('phone') || 'N/A';
@@ -17,15 +22,20 @@ export default function TourBooking() {
     const duration = formData.get('duration') || '';
     const budget = formData.get('budget') || 'Standard';
 
-    addBooking({
-      customer,
-      phone,
-      service: `Tour: ${destination}`,
-      details: `${budget} Package (${duration} Days)`,
-      schedule: date
-    });
-
-    setIsBooked(true);
+    try {
+      await addBooking({
+        customer,
+        phone,
+        service: `Tour: ${destination}`,
+        details: `${budget} Package (${duration} Days)`,
+        schedule: date
+      });
+      setIsBooked(true);
+    } catch (err) {
+      setError(err.message || 'Failed to submit booking. Please try again.');
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -75,6 +85,11 @@ export default function TourBooking() {
               </div>
             ) : (
               <form className="space-y-8" onSubmit={handleBookingSubmit}>
+                {error && (
+                  <div className="bg-red-500/20 border border-red-500/30 text-red-400 px-4 py-3 rounded-lg text-sm text-center font-body">
+                    {error}
+                  </div>
+                )}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                   <div className="space-y-2">
                     <label className="font-label text-[10px] uppercase tracking-widest text-on-surface-variant">Full Name</label>
@@ -142,8 +157,8 @@ export default function TourBooking() {
                       <div className="text-sm">+91-9943139353</div>
                     </div>
                   </a>
-                  <button className="w-full md:w-auto px-12 py-5 bg-primary-container text-white font-headline font-bold text-xs uppercase tracking-[0.2em] rounded-md shadow-xl shadow-primary-container/20 hover:brightness-110 transition-all border-none" type="submit">
-                    Request Tour Quote
+                  <button disabled={isLoading} className="w-full md:w-auto px-12 py-5 bg-primary-container text-white font-headline font-bold text-xs uppercase tracking-[0.2em] rounded-md shadow-xl shadow-primary-container/20 hover:brightness-110 active:scale-[0.98] transition-all border-none disabled:opacity-50 disabled:cursor-not-allowed" type="submit">
+                    {isLoading ? 'Processing...' : 'Request Tour Quote'}
                   </button>
                 </div>
               </form>

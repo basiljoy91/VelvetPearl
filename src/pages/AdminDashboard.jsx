@@ -1,6 +1,6 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { getBookings, getFleet, getDrivers, getMessages, getAnalytics, addBooking, addFleet, addDriver, updateBookingStatus, deleteBookingRecord } from '../services/dataService';
+import { getBookings, getFleet, getDrivers, getAnalytics, addBooking, addFleet, addDriver, updateBookingStatus, deleteBookingRecord } from '../services/dataService';
 import AdminForms from '../components/admin/AdminForms';
 import { logoutAdmin, changePassword } from '../services/authService';
 
@@ -27,17 +27,15 @@ export default function AdminDashboard() {
   const [bookings, setBookings] = useState([]);
   const [fleet, setFleet] = useState([]);
   const [drivers, setDrivers] = useState([]);
-  const [messages, setMessages] = useState([]);
   const [analytics, setAnalytics] = useState(null);
 
   // Reload data when switching tabs to stay fresh
   useEffect(() => {
     const loadData = async () => {
-      const [b, f, d, m, a] = await Promise.all([getBookings(), getFleet(), getDrivers(), getMessages(), getAnalytics()]);
+      const [b, f, d, a] = await Promise.all([getBookings(), getFleet(), getDrivers(), getAnalytics()]);
       setBookings(b);
       setFleet(f);
       setDrivers(d);
-      setMessages(m);
       setAnalytics(a);
     };
     loadData();
@@ -121,7 +119,7 @@ export default function AdminDashboard() {
     { id: 'routes', label: 'Routes', icon: 'map', active: false },
     { id: 'messages', label: 'Messages', icon: 'chat_bubble', active: false },
     { id: 'reports', label: 'Reports', icon: 'assessment', active: false },
-    { id: 'settings', label: 'Settings', icon: 'settings', active: true },
+    { id: 'settings', label: 'Settings', icon: 'settings', active: false },
   ];
 
   return (
@@ -197,8 +195,13 @@ export default function AdminDashboard() {
               />
             </div>
             <button 
-              onClick={() => setIsEntryModalOpen(true)}
-              className="bg-[#EFBF04] text-black px-6 py-3 rounded-lg font-bold text-sm hover:scale-95 transition-all flex items-center gap-2 border-none"
+              onClick={() => ['bookings', 'fleet', 'drivers'].includes(activeTab) && setIsEntryModalOpen(true)}
+              disabled={!['bookings', 'fleet', 'drivers'].includes(activeTab)}
+              className={`px-6 py-3 rounded-lg font-bold text-sm transition-all flex items-center gap-2 border-none ${
+                ['bookings', 'fleet', 'drivers'].includes(activeTab)
+                  ? 'bg-[#EFBF04] text-black hover:scale-95 cursor-pointer'
+                  : 'bg-white/5 text-gray-500 opacity-50 cursor-not-allowed'
+              }`}
             >
               <span className="material-symbols-outlined text-sm font-bold">add</span>
               New Entry
