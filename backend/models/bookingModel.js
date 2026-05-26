@@ -44,6 +44,21 @@ const Booking = {
     } catch (error) {
       throw error;
     }
+  },
+
+  // Assign a driver to a booking
+  assignDriver: async (id, driverId, driverName) => {
+    try {
+      const query = `
+        UPDATE bookings 
+        SET driver_id = $1, driver_name = $2 
+        WHERE id = $3
+      `;
+      const result = await db.query(query, [driverId, driverName, id]);
+      return result;
+    } catch (error) {
+      throw error;
+    }
   }
 };
 

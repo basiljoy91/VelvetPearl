@@ -8,6 +8,7 @@ const bookingRoutes = require('./routes/bookingRoutes');
 const driverRoutes = require('./routes/driverRoutes');
 const fleetRoutes = require('./routes/fleetRoutes');
 const analyticsRoutes = require('./routes/analyticsRoutes');
+const tripRoutes = require('./routes/tripRoutes');
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -43,6 +44,7 @@ app.use('/api/bookings', bookingRoutes);
 app.use('/api/drivers', driverRoutes);
 app.use('/api/fleet', fleetRoutes);
 app.use('/api/admin', analyticsRoutes);
+app.use('/api/trips', tripRoutes);
 
 // Catch-all 404 for undefined routes
 app.use((req, res, next) => {
@@ -102,8 +104,22 @@ app.listen(PORT, async () => {
       ADD COLUMN IF NOT EXISTS fuel_status INT DEFAULT 100,
       ADD COLUMN IF NOT EXISTS next_service VARCHAR(100),
       ADD COLUMN IF NOT EXISTS condition VARCHAR(50) DEFAULT 'Good',
-      ADD COLUMN IF NOT EXISTS notes TEXT;
+      ADD COLUMN IF NOT EXISTS notes TEXT,
+      ADD COLUMN IF NOT EXISTS insurance_provider VARCHAR(255),
+      ADD COLUMN IF NOT EXISTS insurance_policy VARCHAR(100),
+      ADD COLUMN IF NOT EXISTS insurance_start DATE,
+      ADD COLUMN IF NOT EXISTS insurance_expiry DATE,
+      ADD COLUMN IF NOT EXISTS insurance_status VARCHAR(50) DEFAULT 'Unknown',
+      ADD COLUMN IF NOT EXISTS insurance_doc TEXT;
     `);
+
+    // Auto-run DB migrations for driver assignment in bookings
+    await db.query(`
+      ALTER TABLE bookings
+      ADD COLUMN IF NOT EXISTS driver_id VARCHAR(50),
+      ADD COLUMN IF NOT EXISTS driver_name VARCHAR(255);
+    `);
+
     console.log('Database auto-migrations complete.');
   } catch (e) {
     console.error('Failed to auto-migrate database. (This is fine if columns already exist or if using a different DB)', e.message);
