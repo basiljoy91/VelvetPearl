@@ -71,10 +71,10 @@ npm start
 
 The server should output:
 ```
-Server running on port 5000
+Server running on port 5009
 ```
 
-When running the frontend locally, the Vite dev server proxies `/api` requests to `http://localhost:5000` by default. You can override that with `VITE_PROXY_API_TARGET` or point the frontend directly at a deployed backend with `VITE_API_BASE_URL`.
+When running the frontend locally, the Vite dev server proxies `/api` requests to `http://localhost:5009` by default. You can override that with `VITE_PROXY_API_TARGET` or point the frontend directly at a deployed backend with `VITE_API_BASE_URL`.
 
 ## Admin Initialization
 Because there is no default admin account in the database, you must initialize one through the frontend interface:
