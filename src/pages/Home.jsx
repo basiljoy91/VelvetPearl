@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import RouteMap from '../components/routes/RouteMap';
 import { countries } from '../data/countries';
@@ -6,7 +6,6 @@ import { countries } from '../data/countries';
 
 export default function Home() {
   const navigate = useNavigate();
-  const [selectedCountry, setSelectedCountry] = useState(null);
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -15,18 +14,23 @@ export default function Home() {
     phone: '',
     service: 'cab'
   });
-
-  useEffect(() => {
-    const defaultCountry = countries.find(
-      (c) => c.name === formData.country
-    );
-
-    setSelectedCountry(defaultCountry);
-  }, [formData.country]);
+  const selectedCountry = countries.find((country) => country.name === formData.country);
 
   const handleQuickBook = (e) => {
     e.preventDefault();
     navigate(`/book/${formData.service}`, { state: formData });
+  };
+
+  const handleHeroBook = () => {
+    navigate('/book/cab');
+  };
+
+  const handleExplore = () => {
+    navigate('/services');
+  };
+
+  const handleRouteBook = (route) => {
+    navigate('/book/cab', { state: { ...formData, route } });
   };
 
   return (
@@ -34,7 +38,7 @@ export default function Home() {
       <section className="relative min-h-[921px] flex items-center px-8 overflow-hidden">
         <div className="absolute inset-0 z-0">
           <div className="absolute inset-0 bg-gradient-to-r from-background via-background/80 to-transparent z-10"></div>
-          <img className="w-full h-full object-cover" data-alt="Luxury sedan driving on a scenic South Indian coastal road" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCQ85db9nJGv2vTyFqfH46Vv596_GKcDdoRSoOKpOrMOHn4PQEjTTw47L5-EZMEFpl3w4Ln18d2wUZuQDWabAt2hlqzsRoAcC3NOKEQGvqMn5GjPnE0W_nRD5Hied4Xc-oEDlNAKQ7gdjpmRIeOT8N5sYSsjFZ1uKSTr-ZGwEDX6RjrRGjNz7GEF3ONqlrjhouVk9enVFc0maKbROjO_-oKgR3J0knqoJbvb4mWh3S0AxyLBOjsbXwY0cl_qyK0oV0Hexmuto_lEZHY" />
+          <img className="w-full h-full object-cover" alt="Luxury sedan driving on a scenic South Indian coastal road" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCQ85db9nJGv2vTyFqfH46Vv596_GKcDdoRSoOKpOrMOHn4PQEjTTw47L5-EZMEFpl3w4Ln18d2wUZuQDWabAt2hlqzsRoAcC3NOKEQGvqMn5GjPnE0W_nRD5Hied4Xc-oEDlNAKQ7gdjpmRIeOT8N5sYSsjFZ1uKSTr-ZGwEDX6RjrRGjNz7GEF3ONqlrjhouVk9enVFc0maKbROjO_-oKgR3J0knqoJbvb4mWh3S0AxyLBOjsbXwY0cl_qyK0oV0Hexmuto_lEZHY" />
           <div className="absolute top-1/2 left-1/4 -translate-y-1/2 w-[600px] h-[600px] bg-primary-container/10 blur-[120px] rounded-full"></div>
         </div>
         <div className="relative z-20 max-w-7xl mx-auto w-full grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
@@ -51,11 +55,11 @@ export default function Home() {
               </p>
             </div>
             <div className="flex flex-wrap gap-4">
-              <button className="bg-primary-container text-white px-8 py-4 rounded-md font-bold font-jakarta text-sm uppercase tracking-widest hover:bg-opacity-90 transition-all flex items-center gap-2">
+              <button className="bg-primary-container text-white px-8 py-4 rounded-md font-bold font-jakarta text-sm uppercase tracking-widest hover:bg-opacity-90 transition-all flex items-center gap-2" onClick={handleHeroBook}>
                 <span className="material-symbols-outlined" style={{ fontVariationSettings: "'FILL' 0" }}>local_taxi</span>
                 Book a Cab
               </button>
-              <button className="border border-secondary text-secondary px-8 py-4 rounded-md font-bold font-jakarta text-sm uppercase tracking-widest hover:bg-secondary/10 transition-all">
+              <button className="border border-secondary text-secondary px-8 py-4 rounded-md font-bold font-jakarta text-sm uppercase tracking-widest hover:bg-secondary/10 transition-all" onClick={handleExplore}>
                 Explore Services
               </button>
             </div>
@@ -95,8 +99,6 @@ export default function Home() {
                     const country = countries.find(
                       (c) => c.name === e.target.value
                     );
-
-                    setSelectedCountry(country);
 
                     setFormData({
                       ...formData,
@@ -205,8 +207,8 @@ export default function Home() {
           <div className="flex flex-col md:flex-row justify-between items-baseline mb-8">
             <h2 className="font-headline text-4xl font-bold text-white tracking-tight">Popular Routes</h2>
           </div>
-          <div className="overflow-hidden rounded-xl border border-outline-variant/10">
-            <table className="w-full text-left border-collapse">
+          <div className="overflow-x-auto rounded-xl border border-outline-variant/10">
+            <table className="min-w-[900px] w-full text-left border-collapse">
               <thead>
                 <tr className="bg-surface-container-low border-b border-outline-variant/20">
                   <th className="px-8 py-6 font-label text-[10px] uppercase tracking-[0.2em] text-outline font-bold">Route & Distance</th>
@@ -232,17 +234,17 @@ export default function Home() {
                   <td className="px-8 py-8">
                     <div className="flex items-center gap-2 text-on-surface">
                       <span className="material-symbols-outlined text-sm opacity-60" style={{ fontVariationSettings: "'FILL' 0" }}>schedule</span>
-                      <span className="font-body font-medium">3h 15m</span>
+                      <span className="font-body font-medium whitespace-nowrap">3h 15m</span>
                     </div>
                   </td>
                   <td className="px-8 py-8">
-                    <span className="bg-surface-container-highest text-[10px] font-label font-bold uppercase tracking-widest px-3 py-1 rounded border border-outline-variant/30">Executive Sedan</span>
+                    <span className="bg-surface-container-highest text-[10px] font-label font-bold uppercase tracking-widest px-3 py-1 rounded border border-outline-variant/30 whitespace-nowrap inline-block">Executive Sedan</span>
                   </td>
                   <td className="px-8 py-8">
                     <p className="text-2xl font-headline font-bold text-white">₹4,500</p>
                   </td>
                   <td className="px-8 py-8 text-right">
-                    <button className="bg-primary-container text-white px-8 py-3 font-label text-xs uppercase tracking-widest font-black rounded transition-all duration-300 hover:bg-[#294edf] hover:shadow-[0_0_20px_rgba(34,73,219,0.4)] active:scale-95" onClick={() => setModalOpen(true)}>Book</button>
+                    <button className="bg-primary-container text-white px-8 py-3 font-label text-xs uppercase tracking-widest font-black rounded transition-all duration-300 hover:bg-[#294edf] hover:shadow-[0_0_20px_rgba(34,73,219,0.4)] active:scale-95" onClick={() => handleRouteBook('Chennai → Pondicherry')}>Book</button>
                   </td>
                 </tr>
                 <tr className="glass-panel group transition-all duration-300 hover:bg-surface-container-high/60">
@@ -260,17 +262,17 @@ export default function Home() {
                   <td className="px-8 py-8">
                     <div className="flex items-center gap-2 text-on-surface">
                       <span className="material-symbols-outlined text-sm opacity-60" style={{ fontVariationSettings: "'FILL' 0" }}>schedule</span>
-                      <span className="font-body font-medium">2h 45m</span>
+                      <span className="font-body font-medium whitespace-nowrap">2h 45m</span>
                     </div>
                   </td>
                   <td className="px-8 py-8">
-                    <span className="bg-surface-container-highest text-[10px] font-label font-bold uppercase tracking-widest px-3 py-1 rounded border border-outline-variant/30">Premium SUV</span>
+                    <span className="bg-surface-container-highest text-[10px] font-label font-bold uppercase tracking-widest px-3 py-1 rounded border border-outline-variant/30 whitespace-nowrap inline-block">Premium SUV</span>
                   </td>
                   <td className="px-8 py-8">
                     <p className="text-2xl font-headline font-bold text-white">₹3,200</p>
                   </td>
                   <td className="px-8 py-8 text-right">
-                    <button className="bg-primary-container text-white px-8 py-3 font-label text-xs uppercase tracking-widest font-black rounded transition-all duration-300 hover:bg-[#294edf] hover:shadow-[0_0_20px_rgba(34,73,219,0.4)] active:scale-95" onClick={() => setModalOpen(true)}>Book</button>
+                    <button className="bg-primary-container text-white px-8 py-3 font-label text-xs uppercase tracking-widest font-black rounded transition-all duration-300 hover:bg-[#294edf] hover:shadow-[0_0_20px_rgba(34,73,219,0.4)] active:scale-95" onClick={() => handleRouteBook('Coimbatore → Ooty')}>Book</button>
                   </td>
                 </tr>
               </tbody>
