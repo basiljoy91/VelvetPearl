@@ -29,6 +29,15 @@ export default function Home() {
     navigate(`/book/${formData.service}`, { state: formData });
   };
 
+  const handleHeroBook = () => {
+    navigate('/book/cab');
+  };
+
+  const handleExplore = () => {
+    navigate('/services');
+  };
+
+
   return (
     <main className="pt-20">
       <section className="relative min-h-[921px] flex items-center px-8 overflow-hidden">
@@ -51,11 +60,11 @@ export default function Home() {
               </p>
             </div>
             <div className="flex flex-wrap gap-4">
-              <button className="bg-primary-container text-white px-8 py-4 rounded-md font-bold font-jakarta text-sm uppercase tracking-widest hover:bg-opacity-90 transition-all flex items-center gap-2">
+              <button className="bg-primary-container text-white px-8 py-4 rounded-md font-bold font-jakarta text-sm uppercase tracking-widest hover:bg-opacity-90 transition-all flex items-center gap-2" onClick={handleHeroBook}>
                 <span className="material-symbols-outlined" style={{ fontVariationSettings: "'FILL' 0" }}>local_taxi</span>
                 Book a Cab
               </button>
-              <button className="border border-secondary text-secondary px-8 py-4 rounded-md font-bold font-jakarta text-sm uppercase tracking-widest hover:bg-secondary/10 transition-all">
+              <button className="border border-secondary text-secondary px-8 py-4 rounded-md font-bold font-jakarta text-sm uppercase tracking-widest hover:bg-secondary/10 transition-all" onClick={handleExplore}> 
                 Explore Services
               </button>
             </div>
@@ -160,7 +169,7 @@ export default function Home() {
           </div>
           <div className="grid grid-cols-1 md:grid-cols-12 gap-6 h-auto md:h-[600px]">
             {/* Primary: Cab Services */}
-            <div className="md:col-span-7 bg-primary-container relative rounded-xl overflow-hidden group cursor-pointer">
+            <div className="md:col-span-7 bg-primary-container relative rounded-xl overflow-hidden group cursor-pointer" onClick={() => navigate('/book/cab')}>
               <img className="absolute inset-0 w-full h-full object-cover opacity-50 mix-blend-overlay group-hover:scale-110 transition-transform duration-700" data-alt="Chauffeur opening door of a luxury black car" src="https://lh3.googleusercontent.com/aida-public/AB6AXuD4WHaVJDBNpcyIZB9wgg1xBUVJV4b55JI7-pV4DAGxpnf77guWHlhg6xTjJbXkqy3VLVxaHzbKyGql7wCqAm2XQwmSoaALi9H396TdikmsTM-eGzI6ZKfauzofmJikvZMJIzE08xMmZDjxVfwPMY3TXZKEWAbTk46MZEC1KvC0kQ-BTsPesD8VkEZH4VPx923F3ZmubOXVDY0bZ5T7ltFMpXbvN7dBRZB6ERK4m3DhSASDaySCebfOnsV5sAnbBYPmQdO-0n3wiYO-" />
               <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent"></div>
               <div className="absolute bottom-0 left-0 p-10">
@@ -171,28 +180,91 @@ export default function Home() {
             </div>
             {/* Side Grid */}
             <div className="md:col-span-5 grid grid-cols-1 gap-6">
-              <div className="bg-surface-container-high rounded-xl p-8 relative overflow-hidden group cursor-pointer">
+              <div
+                onClick={() => navigate('/book/tour')}
+                className="bg-surface-container-high rounded-xl p-8 relative overflow-hidden group cursor-pointer"
+              >
+
+                {/* Background Image */}
+                <img
+                  src="https://images.unsplash.com/photo-1501785888041-af3ef285b470"
+                  alt="Travel mountains tour"
+                  className="absolute inset-0 w-full h-full object-cover opacity-35 group-hover:scale-110 transition-transform duration-700"
+                />
+
+                {/* Dark overlay */}
+                <div className="absolute inset-0 bg-black/30"></div>
+
+                {/* Content */}
                 <div className="relative z-10">
-                  <span className="material-symbols-outlined text-secondary text-4xl mb-4" style={{ fontVariationSettings: "'FILL' 0" }}>explore</span>
-                  <h3 className="font-headline text-xl font-bold text-white mb-1">Tailored Tours</h3>
-                  <p className="text-on-surface-variant text-sm">Bespoke itineraries through the soul of Tamil Nadu.</p>
+                  <span className="material-symbols-outlined text-secondary text-4xl mb-4" style={{ fontVariationSettings: "'FILL' 0" }}>
+                    explore
+                  </span>
+
+                  <h3 className="font-headline text-xl font-bold text-white mb-1">
+                    Tailored Tours
+                  </h3>
+
+                  <p className="text-white/80 text-sm">
+                    Bespoke itineraries through the soul of Tamil Nadu.
+                  </p>
                 </div>
               </div>
-              <div className="bg-surface-container-high rounded-xl p-8 relative overflow-hidden group cursor-pointer">
+              <div className="bg-surface-container-high rounded-xl p-8 relative overflow-hidden group cursor-pointer" onClick={() => navigate("/book/room")}>
+
+                {/* Background Image */}
+                <img
+                  src="https://images.unsplash.com/photo-1505693416388-ac5ce068fe85"
+                  alt="Luxury hotel room"
+                  className="absolute inset-0 w-full h-full object-cover opacity-30 group-hover:scale-110 transition-transform duration-700"
+                />
+                {/* Dark overlay */}
+                <div className="absolute inset-0 bg-black/30"></div>
+                {/* Content */}
                 <div className="relative z-10">
-                  <span className="material-symbols-outlined text-secondary text-4xl mb-4" style={{ fontVariationSettings: "'FILL' 0" }}>bed</span>
-                  <h3 className="font-headline text-xl font-bold text-white mb-1">Room Bookings</h3>
-                  <p className="text-on-surface-variant text-sm">Preferred rates at the finest luxury properties.</p>
+                  <span className="material-symbols-outlined text-secondary text-4xl mb-4" style={{ fontVariationSettings: "'FILL' 0" }}>
+                    bed
+                  </span>
+                  <h3 className="font-headline text-xl font-bold text-white mb-1">
+                    Room Bookings
+                  </h3>
+                  <p className="text-white/80 text-sm">
+                    Preferred rates at the finest luxury properties.
+                  </p>
                 </div>
               </div>
             </div>
-            <div className="md:col-span-12 bg-surface-container-high rounded-xl p-8 flex items-center gap-6 group cursor-pointer">
-              <div className="w-16 h-16 rounded-full bg-secondary/10 flex items-center justify-center group-hover:bg-secondary/20 transition-colors">
-                <span className="material-symbols-outlined text-secondary text-3xl" style={{ fontVariationSettings: "'FILL' 0" }}>event</span>
-              </div>
-              <div>
-                <h3 className="font-headline text-xl font-bold text-white mb-1">Event Planning</h3>
-                <p className="text-on-surface-variant text-sm">Corporate events and destination weddings handled with precision.</p>
+            <div
+              onClick={() => navigate('/book/event')}
+              className="md:col-span-12 bg-surface-container-high rounded-xl p-8 flex items-center gap-6 group cursor-pointer relative overflow-hidden"
+            >
+
+              {/* Background Image */}
+              <img
+                src="https://images.unsplash.com/photo-1511795409834-ef04bbd61622" 
+                alt="Event planning"
+                className="absolute inset-0 w-full h-full object-cover opacity-30 group-hover:scale-105 transition-transform duration-700"
+              />
+
+              {/* Dark overlay */}
+              <div className="absolute inset-0 bg-black/30"></div>
+
+              {/* Content */}
+              <div className="relative z-10 w-full flex items-center gap-6">
+                <div className="w-16 h-16 rounded-full bg-secondary/10 flex items-center justify-center group-hover:bg-secondary/20 transition-colors">
+                  <span className="material-symbols-outlined text-secondary text-3xl" style={{ fontVariationSettings: "'FILL' 0" }}>
+                    event
+                  </span>
+                </div>
+
+                <div>
+                  <h3 className="font-headline text-xl font-bold text-white mb-1">
+                    Event Planning
+                  </h3>
+                  <p className="text-white/80 text-sm">
+                    Corporate events and destination weddings handled with precision.
+                  </p>
+                </div>
               </div>
             </div>
           </div>
