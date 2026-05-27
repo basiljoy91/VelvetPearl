@@ -1,6 +1,12 @@
 const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL || '').replace(/\/$/, '');
 const API_URL = `${API_BASE_URL}/api/admin`;
 
+const getAuthToken = () => {
+  const token = localStorage.getItem('adminToken');
+  if (!token) throw new Error('Not authenticated');
+  return token;
+};
+
 // Helper for safe JSON parsing
 const safeFetch = async (url, options) => {
   const res = await fetch(url, options);
@@ -45,8 +51,7 @@ export const signupAdmin = async (email, password, setupSecret) => {
 
 
 export const changePassword = async (oldPassword, newPassword, confirmPassword) => {
-  const token = localStorage.getItem('adminToken');
-  if (!token) throw new Error('Not authenticated');
+  const token = getAuthToken();
 
   return await safeFetch(`${API_URL}/change-password`, {
     method: 'PUT',
@@ -55,6 +60,30 @@ export const changePassword = async (oldPassword, newPassword, confirmPassword) 
       Authorization: `Bearer ${token}`
     },
     body: JSON.stringify({ oldPassword, newPassword, confirmPassword }),
+  });
+};
+
+export const getAdminProfile = async () => {
+  const token = getAuthToken();
+  const data = await safeFetch(`${API_URL}/me`, {
+    method: 'GET',
+    headers: { Authorization: `Bearer ${token}` },
+  });
+
+  return {
+    adminId: data.adminId,
+    isMainAdmin: !!data.isMainAdmin,
+  };
+};
+
+export const generateAdminSetupKey = async () => {
+  const token = getAuthToken();
+  return await safeFetch(`${API_URL}/generate-setup-key`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${token}`,
+    },
   });
 };
 

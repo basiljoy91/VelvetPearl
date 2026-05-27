@@ -60,6 +60,15 @@ export const deleteBookingRecord = async (id) => {
   return handleResponse(res);
 };
 
+export const assignDriverToBooking = async (id, driverAssignment) => {
+  const res = await fetch(`${API}/bookings/${id}/assign-driver`, {
+    method: 'PUT',
+    headers: authHeaders(),
+    body: JSON.stringify(driverAssignment),
+  });
+  return handleResponse(res);
+};
+
 // ─────────────────────────────────────────────
 // DRIVERS
 // ─────────────────────────────────────────────
