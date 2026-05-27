@@ -61,6 +61,49 @@ _Please check the Admin Dashboard for full details._`;
   }
 };
 
+const sendSupportNotification = async (contactData) => {
+  try {
+    const accountSid = process.env.TWILIO_ACCOUNT_SID;
+    const authToken = process.env.TWILIO_AUTH_TOKEN;
+    const twilioNumber = process.env.TWILIO_WHATSAPP_NUMBER;
+    const adminNumber = process.env.ADMIN_WHATSAPP_NUMBER;
+
+    if (!accountSid || !authToken || !twilioNumber || !adminNumber) {
+      console.error('[WHATSAPP CRITICAL ERROR] Missing required Twilio environment variables. Notification aborted.');
+      return { success: false, error: 'Missing Credentials' };
+    }
+
+    const messageBody = `📞 *New Contact Support Request* 📞
+    
+*Name:* ${contactData.name || 'N/A'}
+*Email:* ${contactData.email || 'N/A'}
+*Phone:* ${contactData.phone || 'N/A'}
+
+*Message:*
+${contactData.message || 'N/A'}`;
+
+    const adminDigitsOnly = adminNumber.replace(/\D/g, '');
+    const toFormatted = `whatsapp:+${adminDigitsOnly}`;
+
+    const twilio = require('twilio');
+    const client = twilio(accountSid, authToken);
+
+    const message = await client.messages.create({
+      from: 'whatsapp:+14155238886',
+      body: messageBody,
+      to: toFormatted
+    });
+
+    console.log(`[WHATSAPP API SUCCESS] Support notification delivered to admin. SID: ${message.sid}`);
+    return { success: true, sid: message.sid };
+
+  } catch (error) {
+    console.error(`[WHATSAPP DELIVERY FAILURE] Twilio API Error (Support):`, error.message);
+    return { success: false, error: error.message };
+  }
+};
+
 module.exports = {
-  sendAdminNotification
+  sendAdminNotification,
+  sendSupportNotification
 };

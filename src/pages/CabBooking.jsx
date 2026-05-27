@@ -1,13 +1,21 @@
 import React, { useState } from 'react';
-import { useLocation, useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate, useSearchParams } from 'react-router-dom';
 import { addBooking } from '../services/dataService';
 
 export default function CabBooking() {
   const { state } = useLocation();
+  const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const [isBooked, setIsBooked] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
+
+  const routeFrom = searchParams.get('from') || '';
+  const routeTo = searchParams.get('to') || state?.destination || '';
+  const routeVehicle = searchParams.get('vehicle') || '';
+  const routeDate = searchParams.get('date') || '';
+  
+  const isVehicleType = (type) => routeVehicle.toLowerCase().includes(type.toLowerCase());
 
   const handleBookingSubmit = async (e) => {
     e.preventDefault();
@@ -131,16 +139,16 @@ export default function CabBooking() {
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                       <div className="relative">
                         <span className="absolute left-4 top-1/2 -translate-y-1/2 material-symbols-outlined text-primary text-sm">my_location</span>
-                        <input name="pickup" className="w-full bg-surface-container-highest/50 border-none rounded-sm pl-11 pr-4 py-3 text-on-surface focus:ring-0 placeholder:text-outline-variant transition-all border-l-0 focus:border-l-2 focus:border-primary-container outline-none" placeholder="Pickup Location" type="text" required/>
+                        <input name="pickup" defaultValue={routeFrom} className="w-full bg-surface-container-highest/50 border-none rounded-sm pl-11 pr-4 py-3 text-on-surface focus:ring-0 placeholder:text-outline-variant transition-all border-l-0 focus:border-l-2 focus:border-primary-container outline-none" placeholder="Pickup Location" type="text" required/>
                       </div>
                       <div className="relative">
                         <span className="absolute left-4 top-1/2 -translate-y-1/2 material-symbols-outlined text-secondary text-sm">location_on</span>
-                        <input name="dropoff" className="w-full bg-surface-container-highest/50 border-none rounded-sm pl-11 pr-4 py-3 text-on-surface focus:ring-0 placeholder:text-outline-variant transition-all border-l-0 focus:border-l-2 focus:border-primary-container outline-none" placeholder="Dropoff Location" type="text" required/>
+                        <input name="dropoff" defaultValue={routeTo} className="w-full bg-surface-container-highest/50 border-none rounded-sm pl-11 pr-4 py-3 text-on-surface focus:ring-0 placeholder:text-outline-variant transition-all border-l-0 focus:border-l-2 focus:border-primary-container outline-none" placeholder="Dropoff Location" type="text" required/>
                       </div>
                     </div>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                       <div className="relative">
-                        <input name="date" className="w-full bg-surface-container-highest/50 border-none rounded-sm px-4 py-3 text-on-surface focus:ring-0 outline-none" type="date" required/>
+                        <input name="date" defaultValue={routeDate} className="w-full bg-surface-container-highest/50 border-none rounded-sm px-4 py-3 text-on-surface focus:ring-0 outline-none" type="date" required/>
                       </div>
                       <div className="relative">
                         <input name="time" className="w-full bg-surface-container-highest/50 border-none rounded-sm px-4 py-3 text-on-surface focus:ring-0 outline-none" type="time" required/>
@@ -151,35 +159,35 @@ export default function CabBooking() {
                     <h3 className="text-xs font-bold text-secondary uppercase tracking-widest">03. Fleet Selection</h3>
                     <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
                       <label className="cursor-pointer group">
-                        <input className="hidden peer" name="vehicle" type="radio" value="Sedan" defaultChecked/>
+                        <input className="hidden peer" name="vehicle" type="radio" value="Sedan" defaultChecked={!routeVehicle || isVehicleType('Sedan')}/>
                         <div className="flex flex-col items-center justify-center p-3 rounded-xl border border-outline-variant/20 bg-surface-container-low peer-checked:border-secondary peer-checked:bg-secondary/10 transition-all">
                           <span className="material-symbols-outlined text-on-surface mb-2">directions_car</span>
                           <span className="text-[10px] uppercase font-bold tracking-tighter">Sedan</span>
                         </div>
                       </label>
                       <label className="cursor-pointer group">
-                        <input className="hidden peer" name="vehicle" type="radio" value="SUV"/>
+                        <input className="hidden peer" name="vehicle" type="radio" value="SUV" defaultChecked={isVehicleType('SUV')}/>
                         <div className="flex flex-col items-center justify-center p-3 rounded-xl border border-outline-variant/20 bg-surface-container-low peer-checked:border-secondary peer-checked:bg-secondary/10 transition-all">
                           <span className="material-symbols-outlined text-on-surface mb-2">electric_car</span>
                           <span className="text-[10px] uppercase font-bold tracking-tighter">SUV</span>
                         </div>
                       </label>
                       <label className="cursor-pointer group">
-                        <input className="hidden peer" name="vehicle" type="radio" value="Mini"/>
+                        <input className="hidden peer" name="vehicle" type="radio" value="Mini" defaultChecked={isVehicleType('Mini')}/>
                         <div className="flex flex-col items-center justify-center p-3 rounded-xl border border-outline-variant/20 bg-surface-container-low peer-checked:border-secondary peer-checked:bg-secondary/10 transition-all">
                           <span className="material-symbols-outlined text-on-surface mb-2">airport_shuttle</span>
                           <span className="text-[10px] uppercase font-bold tracking-tighter">Mini</span>
                         </div>
                       </label>
                       <label className="cursor-pointer group">
-                        <input className="hidden peer" name="vehicle" type="radio" value="Tempo"/>
+                        <input className="hidden peer" name="vehicle" type="radio" value="Tempo" defaultChecked={isVehicleType('Traveler') || isVehicleType('Tempo')}/>
                         <div className="flex flex-col items-center justify-center p-3 rounded-xl border border-outline-variant/20 bg-surface-container-low peer-checked:border-secondary peer-checked:bg-secondary/10 transition-all">
                           <span className="material-symbols-outlined text-on-surface mb-2">group</span>
                           <span className="text-[10px] uppercase font-bold tracking-tighter">Tempo</span>
                         </div>
                       </label>
                       <label className="cursor-pointer group">
-                        <input className="hidden peer" name="vehicle" type="radio" value="Luxury"/>
+                        <input className="hidden peer" name="vehicle" type="radio" value="Luxury" defaultChecked={isVehicleType('Luxury') && !isVehicleType('Traveler')}/>
                         <div className="flex flex-col items-center justify-center p-3 rounded-xl border border-outline-variant/20 bg-surface-container-low peer-checked:border-secondary peer-checked:bg-secondary/10 transition-all">
                           <span className="material-symbols-outlined text-on-surface mb-2">stars</span>
                           <span className="text-[10px] uppercase font-bold tracking-tighter">Luxury</span>

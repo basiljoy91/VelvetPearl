@@ -1,13 +1,64 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
+import { sendChatMessage } from '../../services/dataService';
+import { useNavigate } from 'react-router-dom';
 
 export default function ChatWidget() {
   const [isOpen, setIsOpen] = useState(false);
+  const [messages, setMessages] = useState([
+    { id: 1, sender: 'bot', text: 'Hello! We create journeys, not just trips. How can we help you today?', isWidget: true }
+  ]);
+  const [inputValue, setInputValue] = useState('');
+  const [isTyping, setIsTyping] = useState(false);
+  const messagesEndRef = useRef(null);
+  const navigate = useNavigate();
+
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  };
+
+  useEffect(() => {
+    if (isOpen) {
+      setTimeout(scrollToBottom, 100);
+    }
+  }, [messages, isTyping, isOpen]);
+
+  const handleSend = async (text) => {
+    const userText = text || inputValue.trim();
+    if (!userText || isTyping) return;
+
+    setInputValue('');
+    setMessages(prev => [...prev, { id: Date.now(), sender: 'user', text: userText }]);
+    setIsTyping(true);
+
+    try {
+      const response = await sendChatMessage(userText);
+      if (response && response.reply) {
+        setMessages(prev => [...prev, { 
+          id: Date.now(), 
+          sender: 'bot', 
+          text: response.reply,
+          actions: response.actions // Automatically pass actions if backend provides them
+        }]);
+      } else {
+        setMessages(prev => [...prev, { id: Date.now(), sender: 'bot', text: 'I apologize, I am having trouble connecting right now.' }]);
+      }
+    } catch (error) {
+      setMessages(prev => [...prev, { id: Date.now(), sender: 'bot', text: 'Sorry, I encountered a network error. Please try again.' }]);
+    } finally {
+      setIsTyping(false);
+    }
+  };
+
+  const onSubmit = (e) => {
+    e.preventDefault();
+    handleSend();
+  };
 
   return (
     <>
       {/* Expanded Chat Widget Overlay */}
       {isOpen && (
-        <div className="fixed bottom-28 right-8 z-[110] w-[350px] md:w-[380px] h-[550px] md:h-[600px] flex flex-col glass-panel rounded-2xl overflow-hidden shadow-[0_20px_60px_rgba(0,0,0,0.6)] border border-white/10 animate-in slide-in-from-bottom-4 duration-500">
+        <div className="fixed bottom-28 right-8 z-[110] w-[350px] md:w-[380px] h-[550px] md:h-[600px] max-h-[calc(100vh-140px)] flex flex-col glass-panel rounded-2xl overflow-hidden shadow-[0_20px_60px_rgba(0,0,0,0.6)] border border-white/10 animate-in slide-in-from-bottom-4 duration-500">
           {/* Header */}
           <div className="bg-primary-container px-6 py-4 flex items-center justify-between shrink-0">
             <div className="flex items-center gap-3">
@@ -32,70 +83,85 @@ export default function ChatWidget() {
           
           {/* Body */}
           <div className="flex-1 overflow-y-auto p-6 space-y-6 bg-surface-container-lowest custom-scrollbar">
-            {/* Greeting */}
-            <div className="flex gap-3">
-              <div className="w-8 h-8 rounded-full bg-secondary/10 flex items-center justify-center shrink-0">
-                <span className="material-symbols-outlined text-secondary text-sm">travel_explore</span>
+            
+            {messages.map((msg) => (
+              <div key={msg.id} className={`flex gap-3 ${msg.sender === 'user' ? 'flex-row-reverse' : ''}`}>
+                {msg.sender === 'bot' && (
+                  <div className="w-8 h-8 rounded-full bg-secondary/10 flex items-center justify-center shrink-0">
+                    <span className="material-symbols-outlined text-secondary text-sm">travel_explore</span>
+                  </div>
+                )}
+                <div className="max-w-[85%] space-y-2">
+                  <div className={`rounded-2xl p-4 ${msg.sender === 'user' ? 'bg-primary-container text-white rounded-tr-none' : 'bg-surface-container-high rounded-tl-none'}`}>
+                    <p className="text-sm leading-relaxed whitespace-pre-wrap">{msg.text}</p>
+                  </div>
+                  {/* Action Buttons for Booking/Navigation */}
+                  {msg.actions && msg.actions.map(action => (
+                    <button 
+                      key={action.label} 
+                      onClick={() => {
+                        setIsOpen(false);
+                        navigate(action.url);
+                      }}
+                      className="w-full bg-secondary/10 hover:bg-secondary/20 text-secondary border border-secondary/30 text-xs font-bold py-3 px-4 rounded-lg flex items-center justify-center gap-2 transition-all mt-1"
+                    >
+                      {action.icon && <span className="material-symbols-outlined text-sm" style={{fontVariationSettings: "'FILL' 1"}}>{action.icon}</span>}
+                      {action.label}
+                    </button>
+                  ))}
+                </div>
               </div>
-              <div className="bg-surface-container-high rounded-2xl rounded-tl-none p-4 max-w-[85%]">
-                <p className="text-on-surface text-sm leading-relaxed">
-                  Hello! We create <span className="text-secondary font-bold">journeys</span>, not just trips. How can we help you today?
-                </p>
-              </div>
-            </div>
+            ))}
 
-            {/* Quick Contact Form */}
-            <div className="space-y-4">
-              <p className="text-[10px] uppercase tracking-widest text-on-surface-variant font-bold ml-1">Contact Inquiry</p>
-              <form className="space-y-3" onSubmit={(e) => e.preventDefault()}>
-                <div>
-                  <input className="w-full bg-white/5 border border-white/10 focus:border-secondary transition-all p-3 rounded-md text-xs text-white placeholder:text-white/20 outline-none" placeholder="Full Name" type="text" />
-                </div>
-                <div>
-                  <input className="w-full bg-white/5 border border-white/10 focus:border-secondary transition-all p-3 rounded-md text-xs text-white placeholder:text-white/20 outline-none" placeholder="Email Address" type="email" />
-                </div>
-                <div className="flex gap-2">
-                  <input className="w-16 bg-white/5 border border-white/10 p-3 rounded-md text-center text-xs text-white outline-none" defaultValue="91" type="number" />
-                  <input className="flex-1 bg-white/5 border border-white/10 focus:border-secondary transition-all p-3 rounded-md text-xs text-white placeholder:text-white/20 outline-none" placeholder="Phone Number" type="tel" />
-                </div>
+            {/* Quick Actions (Only show below the first greeting if no user messages yet, or always show at bottom if preferred. Let's just show it below the first message if it's the only one) */}
+            {messages.length === 1 && (
+              <div className="space-y-2 animate-in fade-in duration-700">
+                <button onClick={() => { setIsOpen(false); navigate('/book/cab'); }} className="w-full bg-primary-container text-white text-xs font-bold py-3 rounded-md uppercase tracking-widest hover:brightness-110 transition-all flex items-center justify-center gap-2">
+                  <span className="material-symbols-outlined text-sm">book_online</span>
+                  Book Now
+                </button>
                 <div className="grid grid-cols-2 gap-2">
-                  <select className="bg-white/5 border border-white/10 focus:border-secondary transition-all p-3 rounded-md text-xs text-white appearance-none outline-none">
-                    <option className="bg-surface">India</option>
-                    <option className="bg-surface">USA</option>
-                    <option className="bg-surface">UK</option>
-                    <option className="bg-surface">UAE</option>
-                  </select>
-                  <select className="bg-white/5 border border-white/10 focus:border-secondary transition-all p-3 rounded-md text-xs text-white appearance-none outline-none">
-                    <option className="bg-surface" value="cab">Cab Services</option>
-                    <option className="bg-surface" value="tours">Tailored Tours</option>
-                    <option className="bg-surface" value="rooms">Room Bookings</option>
-                    <option className="bg-surface" value="events">Event Planning</option>
-                  </select>
+                  <button onClick={() => handleSend('Check Prices')} className="border border-secondary/30 text-secondary text-[10px] font-bold py-3 rounded-md uppercase tracking-widest hover:bg-secondary/5 transition-all text-center">Check Prices</button>
+                  <button onClick={() => handleSend('Support')} className="border border-white/10 text-white text-[10px] font-bold py-3 rounded-md uppercase tracking-widest hover:bg-white/5 transition-all text-center">Support</button>
                 </div>
-              </form>
-            </div>
-
-            {/* Quick Actions */}
-            <div className="space-y-2">
-              <button className="w-full bg-primary-container text-white text-xs font-bold py-3 rounded-md uppercase tracking-widest hover:brightness-110 transition-all flex items-center justify-center gap-2">
-                <span className="material-symbols-outlined text-sm">book_online</span>
-                Book Now
-              </button>
-              <div className="grid grid-cols-2 gap-2">
-                <button className="border border-secondary/30 text-secondary text-[10px] font-bold py-3 rounded-md uppercase tracking-widest hover:bg-secondary/5 transition-all text-center">Check Prices</button>
-                <button className="border border-white/10 text-white text-[10px] font-bold py-3 rounded-md uppercase tracking-widest hover:bg-white/5 transition-all text-center">Support</button>
               </div>
-            </div>
+            )}
+
+            {isTyping && (
+              <div className="flex gap-3">
+                <div className="w-8 h-8 rounded-full bg-secondary/10 flex items-center justify-center shrink-0">
+                  <span className="material-symbols-outlined text-secondary text-sm">travel_explore</span>
+                </div>
+                <div className="bg-surface-container-high rounded-2xl rounded-tl-none p-4 flex items-center gap-1">
+                  <span className="w-2 h-2 bg-secondary/60 rounded-full animate-bounce"></span>
+                  <span className="w-2 h-2 bg-secondary/60 rounded-full animate-bounce" style={{animationDelay: '0.2s'}}></span>
+                  <span className="w-2 h-2 bg-secondary/60 rounded-full animate-bounce" style={{animationDelay: '0.4s'}}></span>
+                </div>
+              </div>
+            )}
+
+            <div ref={messagesEndRef} />
           </div>
 
           {/* Chat Footer */}
-          <div className="bg-surface-container p-4 border-t border-white/5 space-y-3">
-            <div className="relative flex items-center">
-              <input className="w-full bg-black/40 border-none focus:ring-1 focus:ring-secondary/50 rounded-full py-3 pl-4 pr-12 text-xs text-white placeholder:text-white/20 outline-none" placeholder="Type your message..." type="text" />
-              <button className="absolute right-2 w-8 h-8 flex items-center justify-center text-secondary hover:text-white transition-colors">
+          <div className="bg-surface-container p-4 border-t border-white/5 space-y-3 shrink-0">
+            <form onSubmit={onSubmit} className="relative flex items-center">
+              <input 
+                value={inputValue}
+                onChange={(e) => setInputValue(e.target.value)}
+                disabled={isTyping}
+                className="w-full bg-black/40 border-none focus:ring-1 focus:ring-secondary/50 rounded-full py-3 pl-4 pr-12 text-xs text-white placeholder:text-white/20 outline-none disabled:opacity-50" 
+                placeholder={isTyping ? "Concierge is typing..." : "Type your message..."} 
+                type="text" 
+              />
+              <button 
+                type="submit"
+                disabled={isTyping || !inputValue.trim()}
+                className="absolute right-2 w-8 h-8 flex items-center justify-center text-secondary hover:text-white transition-colors disabled:opacity-50 disabled:hover:text-secondary"
+              >
                 <span className="material-symbols-outlined" style={{fontVariationSettings: "'FILL' 1"}}>send</span>
               </button>
-            </div>
+            </form>
             <div className="flex items-center justify-center">
               <a className="flex items-center gap-2 group" href="https://wa.me/919943139353" target="_blank" rel="noreferrer">
                 <div className="w-6 h-6 rounded-full bg-green-500/10 flex items-center justify-center group-hover:bg-green-500 transition-colors">

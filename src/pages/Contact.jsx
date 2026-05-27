@@ -1,4 +1,5 @@
-import React from 'react';
+import React, { useState } from 'react';
+import { sendContactMessage } from '../services/dataService';
 
 export default function Contact() {
   const faqs = [
@@ -18,6 +19,44 @@ export default function Contact() {
       text: 'Our digital support is active 24/7. Physical concierge desk operates from 08:00 AM to 10:00 PM IST daily for personalized route planning and vehicle inspections.'
     }
   ];
+
+  const [formData, setFormData] = useState({
+    name: '',
+    email: '',
+    phone: '',
+    message: ''
+  });
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [status, setStatus] = useState({ type: '', message: '' });
+
+  const handleChange = (e) => {
+    setFormData({ ...formData, [e.target.name]: e.target.value });
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    if (!formData.name || !formData.email || !formData.message) {
+      setStatus({ type: 'error', message: 'Name, Email, and Message are required.' });
+      return;
+    }
+
+    setIsSubmitting(true);
+    setStatus({ type: '', message: '' });
+
+    try {
+      const response = await sendContactMessage(formData);
+      if (response.success) {
+        setStatus({ type: 'success', message: 'Your message has been sent successfully. We will get back to you soon!' });
+        setFormData({ name: '', email: '', phone: '', message: '' });
+      } else {
+        setStatus({ type: 'error', message: response.message || 'Failed to send message. Please try again.' });
+      }
+    } catch (error) {
+      setStatus({ type: 'error', message: 'An error occurred while sending your message. Please try again later.' });
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
 
   return (
     <main className="pt-32 pb-24 px-8 max-w-7xl mx-auto">
@@ -50,28 +89,72 @@ export default function Contact() {
         <div className="lg:col-span-7 bg-surface-container-low p-10 rounded-xl relative overflow-hidden border border-white/5">
           <div className="absolute top-0 right-0 w-64 h-64 bg-primary-container/5 rounded-full blur-[80px]"></div>
           <h2 className="font-headline font-bold text-3xl mb-8 relative text-white tracking-tight">Send a Message</h2>
-          <form className="space-y-6 relative" onSubmit={(e) => e.preventDefault()}>
+          
+          {status.message && (
+            <div className={`p-4 mb-6 rounded-lg text-sm font-bold ${
+              status.type === 'success' ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30' : 'bg-rose-500/20 text-rose-400 border border-rose-500/30'
+            }`}>
+              {status.message}
+            </div>
+          )}
+
+          <form className="space-y-6 relative" onSubmit={handleSubmit}>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="space-y-2">
-                <label className="font-label text-xs uppercase tracking-widest text-[#8e90a1] ml-1 font-bold">Full Name</label>
-                <input className="w-full bg-surface-container-highest border-0 border-l-2 border-transparent focus:border-secondary transition-all px-4 py-4 text-on-surface focus:ring-0 outline-none rounded-sm" placeholder="John Doe" type="text"/>
+                <label className="font-label text-xs uppercase tracking-widest text-[#8e90a1] ml-1 font-bold">Full Name *</label>
+                <input 
+                  name="name"
+                  value={formData.name}
+                  onChange={handleChange}
+                  required
+                  className="w-full bg-surface-container-highest border-0 border-l-2 border-transparent focus:border-secondary transition-all px-4 py-4 text-on-surface focus:ring-0 outline-none rounded-sm" 
+                  placeholder="John Doe" 
+                  type="text"
+                />
               </div>
               <div className="space-y-2">
-                <label className="font-label text-xs uppercase tracking-widest text-[#8e90a1] ml-1 font-bold">Email Address</label>
-                <input className="w-full bg-surface-container-highest border-0 border-l-2 border-transparent focus:border-secondary transition-all px-4 py-4 text-on-surface focus:ring-0 outline-none rounded-sm" placeholder="john@premium.com" type="email"/>
+                <label className="font-label text-xs uppercase tracking-widest text-[#8e90a1] ml-1 font-bold">Email Address *</label>
+                <input 
+                  name="email"
+                  value={formData.email}
+                  onChange={handleChange}
+                  required
+                  className="w-full bg-surface-container-highest border-0 border-l-2 border-transparent focus:border-secondary transition-all px-4 py-4 text-on-surface focus:ring-0 outline-none rounded-sm" 
+                  placeholder="john@premium.com" 
+                  type="email"
+                />
               </div>
             </div>
             <div className="space-y-2">
               <label className="font-label text-xs uppercase tracking-widest text-[#8e90a1] ml-1 font-bold">Phone Number</label>
-              <input className="w-full bg-surface-container-highest border-0 border-l-2 border-transparent focus:border-secondary transition-all px-4 py-4 text-on-surface focus:ring-0 outline-none rounded-sm" placeholder="+91 00000 00000" type="tel"/>
+              <input 
+                name="phone"
+                value={formData.phone}
+                onChange={handleChange}
+                className="w-full bg-surface-container-highest border-0 border-l-2 border-transparent focus:border-secondary transition-all px-4 py-4 text-on-surface focus:ring-0 outline-none rounded-sm" 
+                placeholder="+91 00000 00000" 
+                type="tel"
+              />
             </div>
             <div className="space-y-2">
-              <label className="font-label text-xs uppercase tracking-widest text-[#8e90a1] ml-1 font-bold">Message</label>
-              <textarea className="w-full bg-surface-container-highest border-0 border-l-2 border-transparent focus:border-secondary transition-all px-4 py-4 text-on-surface focus:ring-0 outline-none rounded-sm" placeholder="How can we curate your journey?" rows="4"></textarea>
+              <label className="font-label text-xs uppercase tracking-widest text-[#8e90a1] ml-1 font-bold">Message *</label>
+              <textarea 
+                name="message"
+                value={formData.message}
+                onChange={handleChange}
+                required
+                className="w-full bg-surface-container-highest border-0 border-l-2 border-transparent focus:border-secondary transition-all px-4 py-4 text-on-surface focus:ring-0 outline-none rounded-sm" 
+                placeholder="How can we curate your journey?" 
+                rows="4"
+              ></textarea>
             </div>
-            <button className="w-full py-5 bg-primary-container text-white font-headline font-bold text-lg tracking-tight hover:brightness-110 transition-all flex items-center justify-center gap-3 rounded-md shadow-xl shadow-blue-900/20">
-              Send Message
-              <span className="material-symbols-outlined">send</span>
+            <button 
+              type="submit"
+              disabled={isSubmitting}
+              className="w-full py-5 bg-primary-container text-white font-headline font-bold text-lg tracking-tight hover:brightness-110 transition-all flex items-center justify-center gap-3 rounded-md shadow-xl shadow-blue-900/20 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {isSubmitting ? 'Sending...' : 'Send Message'}
+              {!isSubmitting && <span className="material-symbols-outlined">send</span>}
             </button>
           </form>
         </div>

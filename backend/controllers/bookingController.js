@@ -1,4 +1,5 @@
 const Booking = require('../models/bookingModel');
+const Driver = require('../models/driverModel');
 const { sendAdminNotification } = require('../services/whatsappService');
 
 // @desc    Get all bookings
@@ -48,6 +49,32 @@ const updateBookingStatus = async (req, res) => {
   try {
     const { id } = req.params;
     const { status } = req.body;
+    
+    // Check if the status is changing to Completed
+    if (status === 'Completed') {
+      const booking = await Booking.getById(id);
+      
+      if (!booking) {
+        return res.status(404).json({ success: false, message: 'Booking not found' });
+      }
+      
+      if (booking.status === 'Completed') {
+        return res.status(400).json({ success: false, message: 'Booking is already marked as completed.' });
+      }
+      
+      if (booking.driver_id) {
+        await Driver.incrementCompletedTrips(booking.driver_id);
+        // Free up the driver
+        await Driver.updateAvailability(booking.driver_id, 'Available');
+      }
+    } else if (status === 'Cancelled') {
+      // Also free up driver if cancelled
+      const booking = await Booking.getById(id);
+      if (booking && booking.driver_id && booking.status !== 'Cancelled') {
+        await Driver.updateAvailability(booking.driver_id, 'Available');
+      }
+    }
+
     await Booking.updateStatus(id, status);
     res.status(200).json({ success: true, message: 'Booking status updated' });
   } catch (error) {
@@ -83,6 +110,9 @@ const assignDriver = async (req, res) => {
     }
 
     await Booking.assignDriver(id, driver_id, driver_name);
+    // Mark driver as Unavailable since they are on a trip
+    await Driver.updateAvailability(driver_id, 'Unavailable');
+
     res.status(200).json({ success: true, message: 'Driver assigned successfully' });
   } catch (error) {
     console.error('Error assigning driver:', error);

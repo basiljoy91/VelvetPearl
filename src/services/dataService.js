@@ -60,11 +60,34 @@ export const deleteBookingRecord = async (id) => {
   return handleResponse(res);
 };
 
+<<<<<<< HEAD
 export const assignDriverToBooking = async (id, driverAssignment) => {
   const res = await fetch(`${API}/bookings/${id}/assign-driver`, {
     method: 'PUT',
     headers: authHeaders(),
     body: JSON.stringify(driverAssignment),
+=======
+export const assignDriverToBooking = async (id, driverId, driverName) => {
+  const res = await fetch(`${API}/bookings/${id}/assign-driver`, {
+    method: 'PUT',
+    headers: authHeaders(),
+    body: JSON.stringify({ driver_id: driverId, driver_name: driverName })
+  });
+  return handleResponse(res);
+};
+
+// ─────────────────────────────────────────────
+// CONTACT / SUPPORT
+// ─────────────────────────────────────────────
+
+export const sendContactMessage = async (contactData) => {
+  const res = await fetch(`${API}/contact`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify(contactData)
+>>>>>>> feature/Admin-pannel-Sachin-update-004
   });
   return handleResponse(res);
 };
@@ -89,6 +112,24 @@ export const addDriver = async (driverData) => {
   return data.data;
 };
 
+export const updateDriverRecord = async (id, driverData) => {
+  const res = await fetch(`${API}/drivers/${id}`, {
+    method: 'PUT',
+    headers: authHeaders(),
+    body: JSON.stringify(driverData),
+  });
+  const data = await handleResponse(res);
+  return data.data;
+};
+
+export const deleteDriverRecord = async (id) => {
+  const res = await fetch(`${API}/drivers/${id}`, {
+    method: 'DELETE',
+    headers: authHeaders(),
+  });
+  return handleResponse(res);
+};
+
 // ─────────────────────────────────────────────
 // FLEET
 // ─────────────────────────────────────────────
@@ -109,6 +150,24 @@ export const addFleet = async (fleetData) => {
   return data.data;
 };
 
+export const updateFleetRecord = async (id, fleetData) => {
+  const res = await fetch(`${API}/fleet/${id}`, {
+    method: 'PUT',
+    headers: authHeaders(),
+    body: JSON.stringify(fleetData),
+  });
+  const data = await handleResponse(res);
+  return data.data;
+};
+
+export const deleteFleetRecord = async (id) => {
+  const res = await fetch(`${API}/fleet/${id}`, {
+    method: 'DELETE',
+    headers: authHeaders(),
+  });
+  return handleResponse(res);
+};
+
 // ─────────────────────────────────────────────
 // ANALYTICS
 // ─────────────────────────────────────────────
@@ -118,3 +177,18 @@ export const getAnalytics = async () => {
   const data = await handleResponse(res);
   return data.data || {};
 };
+
+// ─────────────────────────────────────────────
+// CHATBOT
+// ─────────────────────────────────────────────
+
+export const sendChatMessage = async (message) => {
+  const res = await fetch(`${API}/chat`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ message }),
+  });
+  const data = await handleResponse(res);
+  return data;
+};
+

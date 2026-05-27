@@ -23,8 +23,9 @@ if (shouldUseSsl) {
 
 const pool = new Pool({
   ...connectionConfig,
-  max: 10,
-  idleTimeoutMillis: 30000
+  max: 5,
+  idleTimeoutMillis: 10000,
+  connectionTimeoutMillis: 10000
 });
 
 pool.on('error', (error) => {

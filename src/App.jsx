@@ -11,6 +11,7 @@ import RoutesPage from './pages/Routes';
 import Contact from './pages/Contact';
 import AdminLogin from './pages/AdminLogin';
 import AdminDashboard from './pages/AdminDashboard';
+import InitializeAdmin from './pages/InitializeAdmin';
 import ProtectedRoute from './guards/ProtectedRoute';
 import ScrollToTop from './components/ScrollToTop';
 
@@ -33,6 +34,7 @@ function App() {
         </Route>
 
         <Route path="/admin" element={<AdminLogin />} />
+        <Route path="/admin/setup" element={<InitializeAdmin />} />
         <Route path="/admin/dashboard" element={<ProtectedRoute><AdminDashboard /></ProtectedRoute>} />
       </Routes>
     </Router>

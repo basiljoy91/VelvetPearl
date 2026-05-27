@@ -1,6 +1,23 @@
 import { Link } from 'react-router-dom';
 
 export default function Footer() {
+  const handleShare = async () => {
+    try {
+      if (navigator.share) {
+        await navigator.share({
+          title: 'Velvet Pearl Tours',
+          text: 'Redefining luxury travel and concierge services across South India.',
+          url: window.location.origin
+        });
+      } else {
+        await navigator.clipboard.writeText(window.location.origin);
+        alert('Website link copied to clipboard!');
+      }
+    } catch (err) {
+      console.log('Error sharing:', err);
+    }
+  };
+
     return (
       <footer className="bg-[#0E0E0F] w-full py-12 px-8">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8 max-w-7xl mx-auto">
@@ -30,12 +47,20 @@ export default function Footer() {
             <h4 className="font-label text-[10px] uppercase tracking-widest text-[#EFBF04] mb-6">Connect</h4>
             <p className="text-sm text-gray-500 mb-4">Contact: +91-9943139353</p>
             <div className="flex gap-4">
-              <div className="w-10 h-10 rounded-full border border-outline-variant/30 flex items-center justify-center hover:bg-primary-container transition-all group cursor-pointer">
+              <button 
+                onClick={handleShare}
+                className="w-10 h-10 rounded-full border border-outline-variant/30 flex items-center justify-center hover:bg-primary-container transition-all group cursor-pointer"
+                title="Share Website"
+              >
                 <span className="material-symbols-outlined text-sm text-gray-400 group-hover:text-white">share</span>
-              </div>
-              <div className="w-10 h-10 rounded-full border border-outline-variant/30 flex items-center justify-center hover:bg-primary-container transition-all group cursor-pointer">
+              </button>
+              <a 
+                href="mailto:sample@gmail.com?subject=Inquiry for Velvet Pearl Tours"
+                className="w-10 h-10 rounded-full border border-outline-variant/30 flex items-center justify-center hover:bg-primary-container transition-all group cursor-pointer"
+                title="Email Us"
+              >
                 <span className="material-symbols-outlined text-sm text-gray-400 group-hover:text-white">mail</span>
-              </div>
+              </a>
             </div>
           </div>
         </div>
