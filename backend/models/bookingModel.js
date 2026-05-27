@@ -11,6 +11,16 @@ const Booking = {
     }
   },
 
+  // Get a single booking by ID
+  getById: async (id) => {
+    try {
+      const { rows } = await db.query('SELECT * FROM bookings WHERE id = $1', [id]);
+      return rows[0];
+    } catch (error) {
+      throw error;
+    }
+  },
+
   // Create a new booking
   create: async (bookingData) => {
     try {

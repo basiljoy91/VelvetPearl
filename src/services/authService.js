@@ -60,16 +60,34 @@ export const changePassword = async (oldPassword, newPassword, confirmPassword) 
 
 export const verifyToken = async () => {
   const token = localStorage.getItem('adminToken');
-  if (!token) return false;
+  if (!token) return { valid: false };
   try {
     const data = await safeFetch(`${API_URL}/me`, {
       method: 'GET',
       headers: { Authorization: `Bearer ${token}` },
     });
-    return !!data.success;
+    return { valid: !!data.success, isMainAdmin: data.isMainAdmin };
   } catch {
-    return false;
+    return { valid: false };
   }
+};
+
+export const generateSetupKey = async () => {
+  const token = localStorage.getItem('adminToken');
+  if (!token) throw new Error('Not authenticated');
+
+  return await safeFetch(`${API_URL}/generate-setup-key`, {
+    method: 'POST',
+    headers: { Authorization: `Bearer ${token}` }
+  });
+};
+
+export const initializeAdmin = async (email, password, setupKey) => {
+  return await safeFetch(`${API_URL}/initialize`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ email, password, setupKey }),
+  });
 };
 
 export const logoutAdmin = () => {

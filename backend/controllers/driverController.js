@@ -13,8 +13,8 @@ const getDrivers = async (req, res) => {
 const createDriver = async (req, res) => {
   try {
     const { 
-      name, phone, rating, experience, status, 
-      photo, licence_status, address, notes, assigned_vehicle 
+      name, phone, experience, status, 
+      photo, licence_status, address, notes, assigned_vehicle, availability_status 
     } = req.body;
     
     if (!name) {
@@ -26,7 +26,6 @@ const createDriver = async (req, res) => {
       id,
       name,
       phone: phone || '',
-      rating: rating || '5.0',
       experience: experience || 'New',
       status: status || 'Active',
       photo: photo || null,
@@ -34,7 +33,8 @@ const createDriver = async (req, res) => {
       address: address || null,
       notes: notes || null,
       assigned_vehicle: assigned_vehicle || null,
-      total_rides: Math.floor(Math.random() * 200) // Mock realistic baseline for MVP if none provided
+      completed_trips: 0, // New driver starts with 0 trips
+      availability_status: availability_status || 'Available'
     };
 
     await Driver.create(driverData);
@@ -50,8 +50,8 @@ const updateDriver = async (req, res) => {
   try {
     const { id } = req.params;
     const { 
-      name, phone, rating, experience, status, 
-      photo, licence_status, address, notes, assigned_vehicle, total_rides 
+      name, phone, experience, status, 
+      photo, licence_status, address, notes, assigned_vehicle, completed_trips, availability_status 
     } = req.body;
 
     if (!name) {
@@ -61,7 +61,6 @@ const updateDriver = async (req, res) => {
     const driverData = {
       name,
       phone: phone || '',
-      rating: rating || '5.0',
       experience: experience || 'New',
       status: status || 'Active',
       photo: photo || null,
@@ -69,7 +68,8 @@ const updateDriver = async (req, res) => {
       address: address || null,
       notes: notes || null,
       assigned_vehicle: assigned_vehicle || null,
-      total_rides: total_rides || 0
+      completed_trips: completed_trips || 0,
+      availability_status: availability_status || 'Available'
     };
 
     const result = await Driver.update(id, driverData);

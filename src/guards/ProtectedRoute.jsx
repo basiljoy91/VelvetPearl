@@ -11,8 +11,8 @@ export default function ProtectedRoute({ children }) {
         setIsValid(false);
         return;
       }
-      const valid = await verifyToken();
-      setIsValid(valid);
+      const result = await verifyToken();
+      setIsValid(result.valid);
     };
     checkAuth();
   }, []);

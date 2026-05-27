@@ -1,10 +1,11 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import RouteMap from '../components/routes/RouteMap';
-
+import SmartTripPlanner from '../components/home/SmartTripPlanner';
 
 export default function Home() {
   const navigate = useNavigate();
+  const [isPlannerOpen, setIsPlannerOpen] = useState(false);
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -52,6 +53,13 @@ export default function Home() {
               </button>
               <button className="border border-secondary text-secondary px-8 py-4 rounded-md font-bold font-jakarta text-sm uppercase tracking-widest hover:bg-secondary/10 transition-all" onClick={handleExplore}>
                 Explore Services
+              </button>
+              <button 
+                className="bg-[#EFBF04] text-black px-8 py-4 rounded-md font-bold font-jakarta text-sm uppercase tracking-widest hover:bg-[#d6aa03] transition-all flex items-center gap-2 shadow-[0_0_15px_rgba(239,191,4,0.4)]"
+                onClick={() => setIsPlannerOpen(true)}
+              >
+                <span className="material-symbols-outlined" style={{ fontVariationSettings: "'FILL' 0" }}>explore</span>
+                Smart Planner
               </button>
             </div>
           </div>
@@ -393,6 +401,9 @@ export default function Home() {
           </div>
         </div>
       </section>
+
+      {/* Modals */}
+      <SmartTripPlanner isOpen={isPlannerOpen} onClose={() => setIsPlannerOpen(false)} />
     </main>
   );
 }

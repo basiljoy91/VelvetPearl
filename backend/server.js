@@ -9,6 +9,8 @@ const driverRoutes = require('./routes/driverRoutes');
 const fleetRoutes = require('./routes/fleetRoutes');
 const analyticsRoutes = require('./routes/analyticsRoutes');
 const tripRoutes = require('./routes/tripRoutes');
+const contactRoutes = require('./routes/contactRoutes');
+const chatRoutes = require('./routes/chatRoutes');
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -45,6 +47,8 @@ app.use('/api/drivers', driverRoutes);
 app.use('/api/fleet', fleetRoutes);
 app.use('/api/admin', analyticsRoutes);
 app.use('/api/trips', tripRoutes);
+app.use('/api/contact', contactRoutes);
+app.use('/api/chat', chatRoutes);
 
 // Catch-all 404 for undefined routes
 app.use((req, res, next) => {
@@ -93,7 +97,8 @@ app.listen(PORT, async () => {
       ADD COLUMN IF NOT EXISTS address TEXT,
       ADD COLUMN IF NOT EXISTS notes TEXT,
       ADD COLUMN IF NOT EXISTS assigned_vehicle VARCHAR(50),
-      ADD COLUMN IF NOT EXISTS total_rides INT DEFAULT 0;
+      ADD COLUMN IF NOT EXISTS completed_trips INT DEFAULT 0,
+      ADD COLUMN IF NOT EXISTS availability_status VARCHAR(50) DEFAULT 'Available';
     `);
     
     // Auto-run DB migrations for fleet
