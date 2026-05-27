@@ -8,6 +8,7 @@ const bookingRoutes = require('./routes/bookingRoutes');
 const driverRoutes = require('./routes/driverRoutes');
 const fleetRoutes = require('./routes/fleetRoutes');
 const analyticsRoutes = require('./routes/analyticsRoutes');
+const tripRoutes = require('./routes/tripRoutes');
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -29,7 +30,8 @@ app.use(cors({
   allowedHeaders: ['Content-Type', 'Authorization']
 }));
 app.options('*', cors());
-app.use(express.json()); // Parses incoming JSON requests
+app.use(express.json({ limit: '10mb' })); // Parses incoming JSON requests with increased limit for base64 images
+app.use(express.urlencoded({ limit: '10mb', extended: true }));
 
 // Health Check Route
 app.get('/api/health', (req, res) => {
@@ -42,6 +44,7 @@ app.use('/api/bookings', bookingRoutes);
 app.use('/api/drivers', driverRoutes);
 app.use('/api/fleet', fleetRoutes);
 app.use('/api/admin', analyticsRoutes);
+app.use('/api/trips', tripRoutes);
 
 // Catch-all 404 for undefined routes
 app.use((req, res, next) => {
@@ -55,6 +58,70 @@ app.use((err, req, res, next) => {
 });
 
 // Start Server
-app.listen(PORT, () => {
+app.listen(PORT, async () => {
   console.log(`Server is running on port ${PORT}`);
+  
+  // Auto-run DB migrations
+  try {
+    const db = require('./config/db');
+    
+    // Admins and Setup Keys Migrations
+    await db.query(`
+      ALTER TABLE admins
+      ADD COLUMN IF NOT EXISTS is_main_admin BOOLEAN DEFAULT false;
+    `);
+    // Ensure the very first admin is the main admin
+    await db.query(`
+      UPDATE admins SET is_main_admin = true WHERE id = (SELECT id FROM admins ORDER BY id ASC LIMIT 1) AND is_main_admin = false;
+    `);
+    
+    await db.query(`
+      CREATE TABLE IF NOT EXISTS admin_setup_keys (
+          id SERIAL PRIMARY KEY,
+          token_hash VARCHAR(255) NOT NULL,
+          created_by INT REFERENCES admins(id),
+          expires_at TIMESTAMP NOT NULL,
+          used BOOLEAN DEFAULT false,
+          created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      );
+    `);
+
+    await db.query(`
+      ALTER TABLE drivers
+      ADD COLUMN IF NOT EXISTS photo TEXT,
+      ADD COLUMN IF NOT EXISTS licence_status VARCHAR(50) DEFAULT 'Pending',
+      ADD COLUMN IF NOT EXISTS address TEXT,
+      ADD COLUMN IF NOT EXISTS notes TEXT,
+      ADD COLUMN IF NOT EXISTS assigned_vehicle VARCHAR(50),
+      ADD COLUMN IF NOT EXISTS total_rides INT DEFAULT 0;
+    `);
+    
+    // Auto-run DB migrations for fleet
+    await db.query(`
+      ALTER TABLE fleet
+      ADD COLUMN IF NOT EXISTS photo TEXT,
+      ADD COLUMN IF NOT EXISTS age INT DEFAULT 0,
+      ADD COLUMN IF NOT EXISTS fuel_status INT DEFAULT 100,
+      ADD COLUMN IF NOT EXISTS next_service VARCHAR(100),
+      ADD COLUMN IF NOT EXISTS condition VARCHAR(50) DEFAULT 'Good',
+      ADD COLUMN IF NOT EXISTS notes TEXT,
+      ADD COLUMN IF NOT EXISTS insurance_provider VARCHAR(255),
+      ADD COLUMN IF NOT EXISTS insurance_policy VARCHAR(100),
+      ADD COLUMN IF NOT EXISTS insurance_start DATE,
+      ADD COLUMN IF NOT EXISTS insurance_expiry DATE,
+      ADD COLUMN IF NOT EXISTS insurance_status VARCHAR(50) DEFAULT 'Unknown',
+      ADD COLUMN IF NOT EXISTS insurance_doc TEXT;
+    `);
+
+    // Auto-run DB migrations for driver assignment in bookings
+    await db.query(`
+      ALTER TABLE bookings
+      ADD COLUMN IF NOT EXISTS driver_id VARCHAR(50),
+      ADD COLUMN IF NOT EXISTS driver_name VARCHAR(255);
+    `);
+
+    console.log('Database auto-migrations complete.');
+  } catch (e) {
+    console.error('Failed to auto-migrate database. (This is fine if columns already exist or if using a different DB)', e.message);
+  }
 });

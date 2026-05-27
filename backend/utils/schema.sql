@@ -26,6 +26,8 @@ CREATE TABLE IF NOT EXISTS bookings (
     schedule VARCHAR(255),
     status VARCHAR(20) NOT NULL DEFAULT 'Pending' CHECK (status IN ('Pending', 'Confirmed', 'Cancelled')),
     amount VARCHAR(50) DEFAULT 'TBD',
+    driver_id VARCHAR(50),
+    driver_name VARCHAR(255),
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 

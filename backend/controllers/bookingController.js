@@ -1,4 +1,5 @@
 const Booking = require('../models/bookingModel');
+const { sendAdminNotification } = require('../services/whatsappService');
 
 // @desc    Get all bookings
 // @route   GET /api/bookings
@@ -29,6 +30,9 @@ const createBooking = async (req, res) => {
     const bookingData = { id, customer, phone, service, details, schedule };
 
     await Booking.create(bookingData);
+    
+    // Fire and forget WhatsApp notification (non-blocking)
+    sendAdminNotification(bookingData);
     
     res.status(201).json({ success: true, data: bookingData });
   } catch (error) {
@@ -66,9 +70,30 @@ const deleteBooking = async (req, res) => {
   }
 };
 
+// @desc    Assign driver to a booking
+// @route   PUT /api/bookings/:id/assign-driver
+// @access  Private (Admin only)
+const assignDriver = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { driver_id, driver_name } = req.body;
+
+    if (!driver_id || !driver_name) {
+      return res.status(400).json({ success: false, message: 'Driver ID and Name are required' });
+    }
+
+    await Booking.assignDriver(id, driver_id, driver_name);
+    res.status(200).json({ success: true, message: 'Driver assigned successfully' });
+  } catch (error) {
+    console.error('Error assigning driver:', error);
+    res.status(500).json({ success: false, message: 'Server error' });
+  }
+};
+
 module.exports = {
   getBookings,
   createBooking,
   updateBookingStatus,
-  deleteBooking
+  deleteBooking,
+  assignDriver
 };

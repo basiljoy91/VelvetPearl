@@ -30,7 +30,7 @@ const loginAdmin = async (req, res) => {
 
     // 3. Generate JWT Token
     const token = jwt.sign(
-      { id: admin.id, email: admin.email },
+      { id: admin.id, email: admin.email, is_main_admin: admin.is_main_admin },
       process.env.JWT_SECRET,
       { expiresIn: '30d' } // Token expires in 30 days
     );
@@ -41,7 +41,8 @@ const loginAdmin = async (req, res) => {
       token,
       admin: {
         id: admin.id,
-        email: admin.email
+        email: admin.email,
+        is_main_admin: admin.is_main_admin
       }
     });
 
@@ -101,8 +102,8 @@ const resetPassword = async (req, res) => {
 // @access  Private
 const getMe = async (req, res) => {
   try {
-    // req.adminId is set by authMiddleware
-    res.status(200).json({ success: true, message: 'Token is valid', adminId: req.adminId });
+    // req.adminId and req.isMainAdmin are set by authMiddleware
+    res.status(200).json({ success: true, message: 'Token is valid', adminId: req.adminId, isMainAdmin: req.isMainAdmin });
   } catch (error) {
     res.status(500).json({ success: false, message: 'Server error' });
   }
@@ -154,11 +155,92 @@ const changePassword = async (req, res) => {
   }
 };
 
+// @desc    Generate Setup Key for New Admin
+// @route   POST /api/admin/generate-setup-key
+// @access  Private (Main Admin Only)
+const generateSetupKey = async (req, res) => {
+  try {
+    // Generate a secure random token (e.g., 32 chars hex)
+    const rawToken = crypto.randomBytes(16).toString('hex');
+    
+    // Hash the token for storage (to prevent DB compromise from exposing unused keys)
+    const salt = await bcrypt.genSalt(10);
+    const tokenHash = await bcrypt.hash(rawToken, salt);
+    
+    // Set expiration to 24 hours from now
+    const expiresAt = new Date();
+    expiresAt.setHours(expiresAt.getHours() + 24);
+    
+    await Admin.saveSetupKey(tokenHash, req.adminId, expiresAt);
+    
+    res.status(201).json({ 
+      success: true, 
+      message: 'Setup key generated successfully', 
+      setupKey: rawToken, // This is returned only ONCE
+      expiresAt 
+    });
+  } catch (error) {
+    console.error('Generate setup key error:', error);
+    res.status(500).json({ success: false, message: 'Server error generating setup key' });
+  }
+};
+
+// @desc    Initialize New Admin via Setup Key
+// @route   POST /api/admin/initialize
+// @access  Public
+const initializeAdmin = async (req, res) => {
+  try {
+    const { email, password, setupKey } = req.body;
+    
+    if (!email || !password || !setupKey) {
+      return res.status(400).json({ success: false, message: 'Email, password, and setup key are required' });
+    }
+
+    // Since we hashed the keys using bcrypt, we must fetch ALL unused valid keys and compare
+    const db = require('../config/db');
+    const { rows } = await db.query('SELECT * FROM admin_setup_keys WHERE used = false AND expires_at > NOW()');
+    
+    let validKeyId = null;
+    for (const row of rows) {
+      const isMatch = await bcrypt.compare(setupKey, row.token_hash);
+      if (isMatch) {
+        validKeyId = row.id;
+        break;
+      }
+    }
+    
+    if (!validKeyId) {
+      return res.status(401).json({ success: false, message: 'Invalid or expired setup key' });
+    }
+
+    // Check if email already exists
+    const existingAdmin = await Admin.findByEmail(email);
+    if (existingAdmin) {
+      return res.status(400).json({ success: false, message: 'Email already registered' });
+    }
+
+    // Create the new admin
+    const salt = await bcrypt.genSalt(10);
+    const hashedPassword = await bcrypt.hash(password, salt);
+    const newAdminId = await Admin.create(email, hashedPassword, false);
+
+    // Invalidate the setup key
+    await Admin.invalidateSetupKey(validKeyId);
+
+    res.status(201).json({ success: true, message: 'Admin account initialized successfully' });
+  } catch (error) {
+    console.error('Initialize admin error:', error);
+    res.status(500).json({ success: false, message: 'Server error initializing admin' });
+  }
+};
+
 module.exports = {
   loginAdmin,
   signupAdmin,
   forgotPassword,
   resetPassword,
   getMe,
-  changePassword
+  changePassword,
+  generateSetupKey,
+  initializeAdmin
 };

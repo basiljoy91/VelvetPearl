@@ -15,7 +15,8 @@
     "dotenv": "^16.4.5",
     "express": "^4.19.2",
     "jsonwebtoken": "^9.0.2",
-    "pg": "^8.16.0"
+    "pg": "^8.16.0",
+    "twilio": "^6.0.2"
   },
   "devDependencies": {
     "nodemon": "^3.1.0"

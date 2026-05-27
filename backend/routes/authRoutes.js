@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
-const { loginAdmin, signupAdmin, forgotPassword, resetPassword, getMe, changePassword } = require('../controllers/authController');
-const { protectAdmin } = require('../middleware/authMiddleware');
+const { loginAdmin, signupAdmin, forgotPassword, resetPassword, getMe, changePassword, generateSetupKey, initializeAdmin } = require('../controllers/authController');
+const { protectAdmin, protectMainAdmin } = require('../middleware/authMiddleware');
 
 // Route: POST /api/admin/login
 router.post('/login', loginAdmin);
@@ -20,5 +20,11 @@ router.get('/me', protectAdmin, getMe);
 
 // Route: PUT /api/admin/change-password
 router.put('/change-password', protectAdmin, changePassword);
+
+// Route: POST /api/admin/generate-setup-key
+router.post('/generate-setup-key', protectAdmin, protectMainAdmin, generateSetupKey);
+
+// Route: POST /api/admin/initialize
+router.post('/initialize', initializeAdmin);
 
 module.exports = router;
