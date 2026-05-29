@@ -55,7 +55,7 @@ export default function Navbar({ onBookClick }) {
           onClick={onBookClick}
           className="bg-[#EFBF04] text-black font-label text-xs uppercase tracking-widest px-6 py-2.5 rounded-md font-bold hover:bg-yellow-400 hover:scale-105 hover:shadow-lg active:scale-95 transition-all duration-200 ease-in-out"
         >
-          Book Now
+          Submit Enquiry
         </button>
       </div>
     </nav>

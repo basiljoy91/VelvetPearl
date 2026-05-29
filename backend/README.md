@@ -44,6 +44,17 @@ DB_SSL=false
 # DB_NAME=velvet_pearl
 # DB_USER=postgres
 # DB_PASSWORD=your_postgres_password
+
+# WhatsApp Cloud API
+WHATSAPP_CLOUD_API_ENABLED=true
+WHATSAPP_ACCESS_TOKEN=your_meta_access_token
+WHATSAPP_PHONE_NUMBER_ID=your_whatsapp_phone_number_id
+ADMIN_WHATSAPP_NUMBER=919876543210
+
+# Optional customer acknowledgement template support
+# The approved template should accept one body variable for the enquiry reference ID.
+WHATSAPP_CUSTOMER_ACK_TEMPLATE_NAME=customer_enquiry_ack
+WHATSAPP_CUSTOMER_ACK_TEMPLATE_LANGUAGE=en_US
 ```
 
 - `JWT_SECRET`: Used to encrypt session tokens for the admin portal. Use a secure random string.
@@ -51,6 +62,12 @@ DB_SSL=false
 - `CORS_ORIGIN`: Comma-separated list of frontend origins allowed to call the API.
 - `DATABASE_URL`: Recommended single-variable PostgreSQL connection string.
 - `DB_SSL`: Set to `true` when your PostgreSQL provider requires SSL.
+- `WHATSAPP_CLOUD_API_ENABLED`: Enables async WhatsApp Cloud API notifications after the enquiry is saved.
+- `WHATSAPP_ACCESS_TOKEN`: Meta WhatsApp Cloud API access token.
+- `WHATSAPP_PHONE_NUMBER_ID`: WhatsApp Business phone number ID used to send messages.
+- `ADMIN_WHATSAPP_NUMBER`: Admin alert destination in international digits-only format like `919876543210`.
+- `WHATSAPP_CUSTOMER_ACK_TEMPLATE_NAME`: Optional approved customer acknowledgement template. When omitted, customer WhatsApp acknowledgements stay disabled.
+- `WHATSAPP_CUSTOMER_ACK_TEMPLATE_LANGUAGE`: Optional template language code. Defaults to `en_US`.
 
 ### 3. Install Dependencies
 Navigate into the `backend/` directory and install the required Node modules:

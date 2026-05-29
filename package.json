@@ -5,9 +5,11 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
+    "prebuild": "node scripts/generate-seo-files.mjs",
     "build": "vite build",
     "lint": "eslint .",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "seo:generate": "node scripts/generate-seo-files.mjs"
   },
   "dependencies": {
     "leaflet": "^1.9.4",

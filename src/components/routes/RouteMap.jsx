@@ -38,12 +38,11 @@ export default function RouteMap() {
                     </span>
 
                     <h2 className="font-headline text-4xl md:text-5xl font-light text-white mt-4">
-                        Explore Your Journey Before You Book
+                        Explore Example Route Requests
                     </h2>
 
                     <p className="text-on-surface-variant mt-4 max-w-2xl mx-auto">
-                        View pickup and destination routes with estimated travel details
-                        for a smoother booking experience.
+                        View sample route requests with editable travel details. Final pricing and confirmation are shared only after review.
                     </p>
                 </div>
 
@@ -61,7 +60,7 @@ export default function RouteMap() {
                                         {selectedRoute.replace('-', ' → ')}
                                     </h3>
                                     <p className="text-on-surface-variant max-w-xl leading-7">
-                                        This preview highlights route waypoints, pickup and destination coordinates, and estimated travel details.
+                                        This preview highlights example waypoints, pickup and destination coordinates, and editable travel details.
                                     </p>
                                 </div>
 
@@ -118,14 +117,15 @@ export default function RouteMap() {
 
                                     <div className="text-left md:text-right">
                                         <h4 className="text-2xl font-bold text-white mb-3">
-                                            {route.price}
+                                            <span className="text-lg leading-snug">{route.price}</span>
                                         </h4>
+                                        <p className="text-[10px] uppercase tracking-widest text-on-surface-variant mb-3">Price depends on date, vehicle, route, and availability</p>
 
                                         <button
                                             onClick={() => handleBookRoute(route)}
                                             className="bg-primary-container text-white px-6 py-3 rounded-md text-sm font-bold uppercase tracking-widest hover:brightness-110 transition-all"
                                         >
-                                            Book Route
+                                            Submit Route Enquiry
                                         </button>
                                     </div>
 

@@ -3,12 +3,25 @@ const jwt = require('jsonwebtoken');
 const crypto = require('crypto');
 const Admin = require('../models/adminModel');
 
+const normalizeEmail = (value) => String(value || '').trim().toLowerCase().slice(0, 255);
+const normalizeSecret = (value, maxLength = 255) => String(value || '').trim().slice(0, maxLength);
+const ADMIN_TOKEN_EXPIRY = process.env.JWT_EXPIRES_IN || '12h';
+const buildAdminRole = (admin) => (admin.is_main_admin ? 'main_admin' : (admin.role || 'admin'));
+const buildTokenPayload = (admin) => ({
+  id: admin.id,
+  email: admin.email,
+  role: buildAdminRole(admin),
+  is_main_admin: admin.is_main_admin,
+});
+const issueAdminToken = (admin) => jwt.sign(buildTokenPayload(admin), process.env.JWT_SECRET, { expiresIn: ADMIN_TOKEN_EXPIRY });
+
 // @desc    Admin Login
 // @route   POST /api/admin/login
 // @access  Public
 const loginAdmin = async (req, res) => {
   try {
-    const { email, password } = req.body;
+    const email = normalizeEmail(req.body?.email);
+    const password = normalizeSecret(req.body?.password, 128);
 
     if (!email || !password) {
       return res.status(400).json({ success: false, message: 'Please provide an email and password' });
@@ -29,11 +42,7 @@ const loginAdmin = async (req, res) => {
     }
 
     // 3. Generate JWT Token
-    const token = jwt.sign(
-      { id: admin.id, email: admin.email, is_main_admin: admin.is_main_admin },
-      process.env.JWT_SECRET,
-      { expiresIn: '30d' } // Token expires in 30 days
-    );
+    const token = issueAdminToken(admin);
 
     // 4. Return success response
     res.status(200).json({
@@ -42,6 +51,7 @@ const loginAdmin = async (req, res) => {
       admin: {
         id: admin.id,
         email: admin.email,
+        role: buildAdminRole(admin),
         is_main_admin: admin.is_main_admin
       }
     });
@@ -57,9 +67,16 @@ const loginAdmin = async (req, res) => {
 // @access  Public
 const signupAdmin = async (req, res) => {
   try {
-    const { email, password, setupSecret } = req.body;
+    const email = normalizeEmail(req.body?.email);
+    const password = normalizeSecret(req.body?.password, 128);
+    const setupSecret = normalizeSecret(req.body?.setupSecret);
+
     if (!email || !password) {
       return res.status(400).json({ success: false, message: 'Please provide an email and password' });
+    }
+
+    if (password.length < 8) {
+      return res.status(400).json({ success: false, message: 'Password must be at least 8 characters long' });
     }
 
     if (setupSecret !== process.env.SETUP_SECRET) {
@@ -102,8 +119,13 @@ const resetPassword = async (req, res) => {
 // @access  Private
 const getMe = async (req, res) => {
   try {
-    // req.adminId and req.isMainAdmin are set by authMiddleware
-    res.status(200).json({ success: true, message: 'Token is valid', adminId: req.adminId, isMainAdmin: req.isMainAdmin });
+    res.status(200).json({
+      success: true,
+      message: 'Token is valid',
+      adminId: req.adminId,
+      role: req.adminRole,
+      isMainAdmin: req.isMainAdmin,
+    });
   } catch (error) {
     res.status(500).json({ success: false, message: 'Server error' });
   }
@@ -115,7 +137,9 @@ const getMe = async (req, res) => {
 const changePassword = async (req, res) => {
   try {
     const adminId = req.adminId; // Set by authMiddleware
-    const { oldPassword, newPassword, confirmPassword } = req.body;
+    const oldPassword = normalizeSecret(req.body?.oldPassword, 128);
+    const newPassword = normalizeSecret(req.body?.newPassword, 128);
+    const confirmPassword = normalizeSecret(req.body?.confirmPassword, 128);
 
     if (!oldPassword || !newPassword || !confirmPassword) {
       return res.status(400).json({ success: false, message: 'Please provide all password fields' });
@@ -125,8 +149,8 @@ const changePassword = async (req, res) => {
       return res.status(400).json({ success: false, message: 'New password and confirm password must match' });
     }
 
-    if (newPassword.length < 6) {
-      return res.status(400).json({ success: false, message: 'New password must be at least 6 characters long' });
+    if (newPassword.length < 8) {
+      return res.status(400).json({ success: false, message: 'New password must be at least 8 characters long' });
     }
 
     if (oldPassword === newPassword) {
@@ -190,10 +214,16 @@ const generateSetupKey = async (req, res) => {
 // @access  Public
 const initializeAdmin = async (req, res) => {
   try {
-    const { email, password, setupKey } = req.body;
+    const email = normalizeEmail(req.body?.email);
+    const password = normalizeSecret(req.body?.password, 128);
+    const setupKey = normalizeSecret(req.body?.setupKey);
     
     if (!email || !password || !setupKey) {
       return res.status(400).json({ success: false, message: 'Email, password, and setup key are required' });
+    }
+
+    if (password.length < 8) {
+      return res.status(400).json({ success: false, message: 'Password must be at least 8 characters long' });
     }
 
     // Since we hashed the keys using bcrypt, we must fetch ALL unused valid keys and compare
@@ -222,7 +252,7 @@ const initializeAdmin = async (req, res) => {
     // Create the new admin
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(password, salt);
-    const newAdminId = await Admin.create(email, hashedPassword, false);
+    const newAdminId = await Admin.create(email, hashedPassword, false, 'admin');
 
     // Invalidate the setup key
     await Admin.invalidateSetupKey(validKeyId);

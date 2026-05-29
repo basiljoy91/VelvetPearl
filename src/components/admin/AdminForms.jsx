@@ -23,7 +23,13 @@ export default function AdminForms({ type, isOpen, onClose, onSubmit }) {
 
     let defaultValues = {};
     if (type === 'bookings') {
-      defaultValues = { status: 'Pending', amount: 'TBD' };
+      defaultValues = {
+        status: 'New',
+        quote_amount: '',
+        whatsapp_number: formData.whatsapp_number || formData.phone || '',
+        preferred_contact_method: formData.preferred_contact_method || 'whatsapp',
+        consent_to_contact: true,
+      };
     } else if (type === 'fleet') {
       defaultValues = {
         status: formData.status || 'Available',
@@ -58,30 +64,55 @@ export default function AdminForms({ type, isOpen, onClose, onSubmit }) {
           {type === 'bookings' && (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="space-y-2">
-                <label className={labelClassName}>Customer Name</label>
-                <input name="customer" onChange={handleChange} className={inputClassName} required />
+                <label className={labelClassName}>Full Name</label>
+                <input name="customer_name" onChange={handleChange} className={inputClassName} required />
               </div>
               <div className="space-y-2">
                 <label className={labelClassName}>Phone Number</label>
-                <input name="phone" onChange={handleChange} className={inputClassName} required />
+                <input name="phone_number" onChange={handleChange} className={inputClassName} required />
               </div>
               <div className="space-y-2">
-                <label className={labelClassName}>Service Type</label>
-                <select name="service" value={formData.service || ''} onChange={handleChange} className={inputClassName} required>
-                  <option value="" disabled className="bg-[#0F0F0F]">Select Service</option>
-                  <option value="Cab" className="bg-[#0F0F0F]">Cab Booking</option>
-                  <option value="Room" className="bg-[#0F0F0F]">Room Booking</option>
-                  <option value="Tour" className="bg-[#0F0F0F]">Tour Booking</option>
-                  <option value="Event" className="bg-[#0F0F0F]">Event Planning</option>
+                <label className={labelClassName}>WhatsApp Number</label>
+                <input name="whatsapp_number" onChange={handleChange} className={inputClassName} />
+              </div>
+              <div className="space-y-2">
+                <label className={labelClassName}>Enquiry Type</label>
+                <select name="enquiry_type" value={formData.enquiry_type || ''} onChange={handleChange} className={inputClassName} required>
+                  <option value="" disabled className="bg-[#0F0F0F]">Select Type</option>
+                  <option value="cab" className="bg-[#0F0F0F]">Cab Enquiry</option>
+                  <option value="room" className="bg-[#0F0F0F]">Room Enquiry</option>
+                  <option value="tour" className="bg-[#0F0F0F]">Tour Enquiry</option>
+                  <option value="custom" className="bg-[#0F0F0F]">Custom Trip Enquiry</option>
+                  <option value="general" className="bg-[#0F0F0F]">General Travel Enquiry</option>
                 </select>
               </div>
               <div className="space-y-2">
-                <label className={labelClassName}>Schedule Date</label>
-                <input name="schedule" type="date" onChange={handleChange} className={inputClassName} required />
+                <label className={labelClassName}>Travel Date</label>
+                <input name="travel_date" type="date" onChange={handleChange} className={inputClassName} />
+              </div>
+              <div className="space-y-2">
+                <label className={labelClassName}>Travel Time</label>
+                <input name="travel_time" type="time" onChange={handleChange} className={inputClassName} />
+              </div>
+              <div className="space-y-2">
+                <label className={labelClassName}>Preferred Contact</label>
+                <select name="preferred_contact_method" value={formData.preferred_contact_method || ''} onChange={handleChange} className={inputClassName}>
+                  <option value="whatsapp" className="bg-[#0F0F0F]">WhatsApp</option>
+                  <option value="phone" className="bg-[#0F0F0F]">Phone</option>
+                  <option value="email" className="bg-[#0F0F0F]">Email</option>
+                </select>
+              </div>
+              <div className="space-y-2">
+                <label className={labelClassName}>Source Page</label>
+                <input name="source_page" onChange={handleChange} placeholder="homepage, contact, admin" className={inputClassName} />
+              </div>
+              <div className="space-y-2">
+                <label className={labelClassName}>Quote Amount</label>
+                <input name="quote_amount" onChange={handleChange} placeholder="Optional" className={inputClassName} />
               </div>
               <div className="space-y-2 md:col-span-2">
-                <label className={labelClassName}>Details</label>
-                <input name="details" onChange={handleChange} placeholder="e.g. Airport pickup, VIP MPV, 4 Nights" className={inputClassName} required />
+                <label className={labelClassName}>Requirement Notes</label>
+                <textarea name="requirement_notes" onChange={handleChange} placeholder="Common requirement summary for the enquiry" className={inputClassName} rows="3" required />
               </div>
             </div>
           )}

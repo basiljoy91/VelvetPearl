@@ -1,0 +1,35 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630" role="img" aria-labelledby="title desc">
+  <title id="title">Velvet Pearl Travel Enquiries</title>
+  <desc id="desc">Social sharing image for Velvet Pearl travel enquiry website.</desc>
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0c0b10" />
+      <stop offset="55%" stop-color="#16203a" />
+      <stop offset="100%" stop-color="#3a2a16" />
+    </linearGradient>
+    <radialGradient id="glowA" cx="22%" cy="20%" r="45%">
+      <stop offset="0%" stop-color="#2249DB" stop-opacity="0.35" />
+      <stop offset="100%" stop-color="#2249DB" stop-opacity="0" />
+    </radialGradient>
+    <radialGradient id="glowB" cx="82%" cy="78%" r="42%">
+      <stop offset="0%" stop-color="#EFBF04" stop-opacity="0.28" />
+      <stop offset="100%" stop-color="#EFBF04" stop-opacity="0" />
+    </radialGradient>
+  </defs>
+  <rect width="1200" height="630" fill="url(#bg)" />
+  <rect width="1200" height="630" fill="url(#glowA)" />
+  <rect width="1200" height="630" fill="url(#glowB)" />
+  <g fill="none" opacity="0.24" stroke="#ffffff">
+    <path d="M0 462C144 404 214 330 316 330c120 0 176 102 292 102 122 0 170-116 322-116 88 0 180 30 270 82" />
+    <path d="M0 510C128 464 224 414 330 414c118 0 180 74 288 74 118 0 184-98 314-98 106 0 184 24 268 72" />
+  </g>
+  <g fill="#ffffff" font-family="Epilogue, Arial, sans-serif">
+    <text x="88" y="116" font-size="26" font-weight="700" letter-spacing="8" fill="#EFBF04">VELVET PEARL</text>
+    <text x="88" y="258" font-size="90" font-weight="900">Travel Enquiries</text>
+    <text x="88" y="352" font-size="90" font-weight="900">for Cabs, Stays</text>
+    <text x="88" y="446" font-size="90" font-weight="900">and Tours</text>
+  </g>
+  <g fill="#d4d4d8" font-family="Plus Jakarta Sans, Arial, sans-serif">
+    <text x="92" y="520" font-size="30">Manual review, WhatsApp follow-up, and route planning support.</text>
+  </g>
+</svg>

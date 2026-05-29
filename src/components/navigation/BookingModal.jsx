@@ -10,32 +10,32 @@ export default function BookingModal({ isOpen, onClose }) {
   const services = [
     {
       id: 'cab',
-      title: 'Cab Booking',
-      description: 'Premium taxi services for your comfortable travel',
+      title: 'Cab Booking Enquiry',
+      description: 'Share your route, date, passenger count, and vehicle preference',
       icon: <Car className="w-8 h-8 text-[#EFBF04]" />,
       path: '/book/cab',
       color: 'from-blue-500/20 to-blue-600/20'
     },
     {
       id: 'room',
-      title: 'Room Booking',
-      description: 'Luxury stays and comfortable accommodations',
+      title: 'Room or Stay Enquiry',
+      description: 'Send check-in, check-out, guests, room count, and stay preference',
       icon: <Home className="w-8 h-8 text-[#EFBF04]" />,
       path: '/book/room',
       color: 'from-purple-500/20 to-purple-600/20'
     },
     {
       id: 'tour',
-      title: 'Tour Booking',
-      description: 'Explore beautiful destinations with our guides',
+      title: 'Tour Package Enquiry',
+      description: 'Tell us your destination, travel window, group size, and budget',
       icon: <Map className="w-8 h-8 text-[#EFBF04]" />,
       path: '/book/tour',
       color: 'from-emerald-500/20 to-emerald-600/20'
     },
     {
       id: 'event',
-      title: 'Event Planning',
-      description: 'Professional planning for your special occasions',
+      title: 'Custom Trip Enquiry',
+      description: 'Use this for event-linked travel or special trip planning needs',
       icon: <Calendar className="w-8 h-8 text-[#EFBF04]" />,
       path: '/book/event',
       color: 'from-rose-500/20 to-rose-600/20'
@@ -61,7 +61,7 @@ export default function BookingModal({ isOpen, onClose }) {
         <div className="p-6 md:p-10 border-b border-[#EFBF04]/10 flex justify-between items-center bg-gradient-to-r from-black to-[#0F0F0F]">
           <div>
             <h2 className="text-3xl md:text-4xl font-headline font-bold text-white mb-2">Select Service</h2>
-            <p className="text-gray-400 font-body text-sm md:text-base">What would you like to book today?</p>
+            <p className="text-gray-400 font-body text-sm md:text-base">Choose the enquiry form that matches your requirement.</p>
           </div>
           <button 
             onClick={onClose}
@@ -102,7 +102,7 @@ export default function BookingModal({ isOpen, onClose }) {
         {/* Footer info */}
         <div className="px-10 py-6 bg-black/40 text-center border-t border-[#EFBF04]/10">
           <p className="text-gray-500 text-xs uppercase tracking-[0.2em] font-label">
-            Premium Concierge Services • Velvet Pearl
+            Manual Review Before Final Confirmation • Velvet Pearl
           </p>
         </div>
       </div>

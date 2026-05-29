@@ -2,9 +2,9 @@ const db = require('../config/db');
 
 exports.getAnalytics = async (req, res) => {
   try {
-    // 1. Today's Bookings
+    // 1. Today's Enquiries
     const { rows: todayBookingsRes } = await db.query(
-      `SELECT COUNT(*)::int AS count FROM bookings WHERE DATE(created_at) = CURRENT_DATE`
+      `SELECT COUNT(*)::int AS count FROM enquiries WHERE DATE(submitted_at) = CURRENT_DATE`
     );
     const todayBookings = todayBookingsRes[0].count;
 
@@ -30,13 +30,13 @@ exports.getAnalytics = async (req, res) => {
 
     // 4. Pending Payments
     const { rows: pendingPaymentsRes } = await db.query(
-      `SELECT amount FROM bookings WHERE status = 'Pending' AND amount != 'TBD'`
+      `SELECT quote_amount FROM enquiries WHERE status IN ('Quoted', 'Awaiting Customer', 'Confirmed') AND quote_amount IS NOT NULL AND quote_amount != ''`
     );
 
     let pendingPayments = 0;
     pendingPaymentsRes.forEach(row => {
       // Try to extract numeric value from amount string (e.g., '₹14k', '14000', '150.50')
-      let numStr = row.amount.replace(/[^0-9.-]+/g, "");
+      let numStr = row.quote_amount.replace(/[^0-9.-]+/g, "");
       let num = parseFloat(numStr);
       if (!isNaN(num)) {
         pendingPayments += num;

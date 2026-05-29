@@ -15,6 +15,9 @@ const safeFetch = async (url, options) => {
   if (contentType && contentType.includes('application/json')) {
     const data = await res.json();
     if (!res.ok) {
+      if (res.status === 401) {
+        localStorage.removeItem('adminToken');
+      }
       throw new Error(data.message || `Request failed with status ${res.status}`);
     }
 
@@ -36,6 +39,7 @@ export const loginAdmin = async (email, password) => {
   });
   if (data.success) {
     localStorage.setItem('adminToken', data.token);
+    localStorage.setItem('adminRole', data.admin?.role || 'admin');
     return data;
   }
   throw new Error('Login failed');
@@ -72,6 +76,7 @@ export const getAdminProfile = async () => {
 
   return {
     adminId: data.adminId,
+    role: data.role || 'admin',
     isMainAdmin: !!data.isMainAdmin,
   };
 };
@@ -103,6 +108,7 @@ export const verifyToken = async () => {
 
 export const logoutAdmin = () => {
   localStorage.removeItem('adminToken');
+  localStorage.removeItem('adminRole');
 };
 
 export const isAuthenticated = () => {

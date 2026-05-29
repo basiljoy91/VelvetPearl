@@ -1,122 +1,293 @@
-import React from 'react';
+import React, { useMemo, useState } from 'react';
+import { addEnquiry } from '../services/dataService';
+import {
+  buildWhatsAppHref,
+  CustomerDetailsFields,
+  EnquirySuccess,
+  FieldError,
+  FormShell,
+  inputClassName,
+  labelClassName,
+  SectionHeading,
+  validateCommonFields,
+} from '../components/forms/EnquiryFormParts';
+import { buildWhatsAppLink, DEFAULT_WHATSAPP_PHONE } from '../utils/whatsapp';
+
+const faqs = [
+  {
+    question: 'Will this contact form save to your dashboard?',
+    answer: 'Yes. Contact enquiries are submitted to the dashboard so the team can review and follow up manually.',
+  },
+  {
+    question: 'Can I message directly on WhatsApp instead?',
+    answer: 'Yes. You can use the WhatsApp buttons on this page if you want a faster first contact.',
+  },
+  {
+    question: 'When will I get a reply?',
+    answer: 'We reply manually after review. Response timing can vary based on request complexity and current operating hours.',
+  },
+];
+
+const renderSectionIntro = (eyebrow, title, description) => (
+  <div className="mb-10 max-w-3xl space-y-4">
+    <p className="text-[10px] font-bold uppercase tracking-[0.3em] text-secondary">{eyebrow}</p>
+    <h2 className="font-headline text-4xl font-bold tracking-tight text-white md:text-5xl">{title}</h2>
+    <p className="text-lg leading-relaxed text-on-surface-variant">{description}</p>
+  </div>
+);
 
 export default function Contact() {
-  const faqs = [
-    {
-      icon: 'payments',
-      title: 'Payment Methods',
-      text: 'We accept digital payments via PhonePe and Google Pay for immediate booking confirmation. Cash payments are also accepted upon trip commencement for your convenience.'
-    },
-    {
-      icon: 'event_busy',
-      title: 'Cancellation Policy',
-      text: 'Cancellations made 24 hours prior to departure are eligible for a full refund. Same-day cancellations may incur a nominal processing fee depending on the service tier.'
-    },
-    {
-      icon: 'schedule',
-      title: 'Support Hours',
-      text: 'Our digital support is active 24/7. Physical concierge desk operates from 08:00 AM to 10:00 PM IST daily for personalized route planning and vehicle inspections.'
+  const initialFormData = useMemo(() => ({
+    customer_name: '',
+    phone_number: '',
+    whatsapp_number: '',
+    email: '',
+    preferred_contact_method: 'whatsapp',
+    consent_to_contact: false,
+    enquiry_topic: 'General travel enquiry',
+    requirement_message: '',
+  }), []);
+
+  const [formData, setFormData] = useState(initialFormData);
+  const [errors, setErrors] = useState({});
+  const [apiError, setApiError] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+  const [submittedEnquiry, setSubmittedEnquiry] = useState(null);
+
+  const handleChange = (e) => {
+    const { name, type, value, checked } = e.target;
+    setFormData((current) => ({
+      ...current,
+      [name]: type === 'checkbox' ? checked : value,
+      ...(name === 'phone_number' && !current.whatsapp_number ? { whatsapp_number: value } : {}),
+    }));
+  };
+
+  const validateForm = () => {
+    const nextErrors = {
+      ...validateCommonFields(formData),
+    };
+
+    if (!formData.enquiry_topic.trim()) nextErrors.enquiry_topic = 'Choose or enter an enquiry topic.';
+    if (!formData.requirement_message.trim()) nextErrors.requirement_message = 'Please share your requirement.';
+
+    return nextErrors;
+  };
+
+  const resetForm = () => {
+    setFormData(initialFormData);
+    setErrors({});
+    setApiError('');
+    setSubmittedEnquiry(null);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    const nextErrors = validateForm();
+    setErrors(nextErrors);
+    setApiError('');
+
+    if (Object.keys(nextErrors).length > 0) return;
+
+    setIsLoading(true);
+
+    try {
+      const createdEnquiry = await addEnquiry({
+        customer_name: formData.customer_name,
+        phone_number: formData.phone_number,
+        whatsapp_number: formData.whatsapp_number,
+        email: formData.email,
+        preferred_contact_method: formData.preferred_contact_method,
+        consent_to_contact: formData.consent_to_contact,
+        service_type: 'general',
+        source_page: 'contact',
+        requirement_notes: formData.requirement_message,
+        enquiry_details: {
+          topic: formData.enquiry_topic,
+          message: formData.requirement_message,
+        },
+      });
+
+      setSubmittedEnquiry(createdEnquiry);
+    } catch (error) {
+      setApiError(error.message || 'Sorry, we could not submit your enquiry. Please try again or contact us on WhatsApp.');
+    } finally {
+      setIsLoading(false);
     }
-  ];
+  };
+
+  const contactWhatsAppHref = buildWhatsAppLink({
+    phone: DEFAULT_WHATSAPP_PHONE,
+    message: 'Hi, I would like to know more about your travel services.',
+  });
+
+  const successWhatsAppHref = buildWhatsAppHref(
+    `Hi, I submitted an enquiry. My reference ID is ${submittedEnquiry?.reference_id || 'GEN-REF-PENDING'}. Please help me with the next steps.`
+  );
 
   return (
-    <main className="pt-32 pb-24 px-8 max-w-7xl mx-auto">
-      {/* Hero Section */}
-      <header className="relative mb-24">
-        <div className="absolute -top-20 -left-20 w-96 h-96 bg-primary-container/10 rounded-full blur-[100px] pointer-events-none"></div>
-        <h1 className="font-headline font-light text-6xl md:text-8xl tracking-tighter mb-6 relative text-white">
-          Contact & <br/>
-          <span className="font-bold text-secondary">Support</span>
-        </h1>
-        <p className="font-body text-on-surface-variant max-w-xl text-lg leading-relaxed mb-12">
-          Our premium concierge service is available around the clock to ensure your journey through Tamil Nadu is as seamless as the velvet finish of our fleet.
-        </p>
-        <div className="flex flex-col md:flex-row gap-12 items-start">
-          <div className="flex items-center gap-6 group">
-            <div className="w-16 h-16 rounded-full bg-surface-container-high flex items-center justify-center text-secondary border border-secondary/10 group-hover:bg-secondary group-hover:text-on-secondary transition-all duration-500">
-              <span className="material-symbols-outlined text-3xl">call</span>
+    <>
+      <FormShell
+        aside={(
+          <div className="space-y-4 rounded-3xl border border-white/10 bg-black/20 p-6">
+            <h3 className="font-headline text-2xl text-white">Contact Details</h3>
+            <div className="space-y-3 text-sm text-on-surface-variant">
+              <p><span className="font-bold text-white">Phone:</span> <a href="tel:+919943139353">+91 99431 39353</a></p>
+              <p><span className="font-bold text-white">WhatsApp:</span> <a href={contactWhatsAppHref} rel="noreferrer" target="_blank">Start chat</a></p>
+              <p><span className="font-bold text-white">Support note:</span> We review travel requirements manually before sharing availability and pricing.</p>
             </div>
-            <div>
-              <span className="font-label text-xs uppercase tracking-widest text-[#8e90a1] block mb-1 font-bold">Direct Line & WhatsApp</span>
-              <a className="font-headline font-bold text-2xl tracking-tight text-on-surface hover:text-secondary transition-colors" href="tel:+919943139353">+91-9943139353</a>
-            </div>
+            <a
+              className="inline-flex rounded-xl bg-[#25D366] px-5 py-3 text-sm font-bold text-white transition-all hover:brightness-110"
+              href={contactWhatsAppHref}
+              rel="noreferrer"
+              target="_blank"
+            >
+              Chat on WhatsApp
+            </a>
           </div>
-        </div>
-      </header>
+        )}
+        description="Use this page for general travel questions, service clarification, or requirements that do not fit a single booking form. Every message is saved as an enquiry for manual follow-up."
+        eyebrow="Contact Page"
+        title="Reach Out for Travel Support"
+      >
+        {submittedEnquiry ? (
+          <EnquirySuccess
+            message="Our team will review your request and contact you shortly with the next steps. Availability and pricing, if needed, will be shared after manual review."
+            onReset={resetForm}
+            referenceId={submittedEnquiry.reference_id}
+            whatsappHref={successWhatsAppHref}
+          />
+        ) : (
+          <form className="space-y-10" noValidate onSubmit={handleSubmit}>
+            {apiError && (
+              <div className="rounded-xl border border-rose-500/30 bg-rose-500/10 px-4 py-3 text-sm text-rose-200">
+                {apiError}
+              </div>
+            )}
 
-      {/* Main Content Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 mb-32">
-        {/* Contact Form Section */}
-        <div className="lg:col-span-7 bg-surface-container-low p-10 rounded-xl relative overflow-hidden border border-white/5">
-          <div className="absolute top-0 right-0 w-64 h-64 bg-primary-container/5 rounded-full blur-[80px]"></div>
-          <h2 className="font-headline font-bold text-3xl mb-8 relative text-white tracking-tight">Send a Message</h2>
-          <form className="space-y-6 relative" onSubmit={(e) => e.preventDefault()}>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div className="space-y-2">
-                <label className="font-label text-xs uppercase tracking-widest text-[#8e90a1] ml-1 font-bold">Full Name</label>
-                <input className="w-full bg-surface-container-highest border-0 border-l-2 border-transparent focus:border-secondary transition-all px-4 py-4 text-on-surface focus:ring-0 outline-none rounded-sm" placeholder="John Doe" type="text"/>
+            <SectionHeading
+              description="Tell us how you want us to follow up on this general travel enquiry."
+              step="01"
+              title="Customer Details"
+            />
+            <CustomerDetailsFields errors={errors} formData={formData} onChange={handleChange} />
+
+            <SectionHeading
+              description="Use this form to ask about travel services, support, or general trip planning."
+              step="02"
+              title="General Enquiry Form"
+            />
+            <div className="grid grid-cols-1 gap-6">
+              <div>
+                <label className={labelClassName}>Enquiry Topic <span className="text-secondary">*</span></label>
+                <select className={inputClassName(errors, 'enquiry_topic')} name="enquiry_topic" onChange={handleChange} value={formData.enquiry_topic}>
+                  <option value="General travel enquiry">General travel enquiry</option>
+                  <option value="Cab support">Cab support</option>
+                  <option value="Room support">Room support</option>
+                  <option value="Tour package support">Tour package support</option>
+                  <option value="Custom trip support">Custom trip support</option>
+                </select>
+                <FieldError error={errors.enquiry_topic} />
               </div>
-              <div className="space-y-2">
-                <label className="font-label text-xs uppercase tracking-widest text-[#8e90a1] ml-1 font-bold">Email Address</label>
-                <input className="w-full bg-surface-container-highest border-0 border-l-2 border-transparent focus:border-secondary transition-all px-4 py-4 text-on-surface focus:ring-0 outline-none rounded-sm" placeholder="john@premium.com" type="email"/>
+              <div>
+                <label className={labelClassName}>Your Message <span className="text-secondary">*</span></label>
+                <textarea
+                  className={inputClassName(errors, 'requirement_message')}
+                  name="requirement_message"
+                  onChange={handleChange}
+                  placeholder="Tell us what you need help with."
+                  rows="5"
+                  value={formData.requirement_message}
+                ></textarea>
+                <FieldError error={errors.requirement_message} />
               </div>
             </div>
-            <div className="space-y-2">
-              <label className="font-label text-xs uppercase tracking-widest text-[#8e90a1] ml-1 font-bold">Phone Number</label>
-              <input className="w-full bg-surface-container-highest border-0 border-l-2 border-transparent focus:border-secondary transition-all px-4 py-4 text-on-surface focus:ring-0 outline-none rounded-sm" placeholder="+91 00000 00000" type="tel"/>
-            </div>
-            <div className="space-y-2">
-              <label className="font-label text-xs uppercase tracking-widest text-[#8e90a1] ml-1 font-bold">Message</label>
-              <textarea className="w-full bg-surface-container-highest border-0 border-l-2 border-transparent focus:border-secondary transition-all px-4 py-4 text-on-surface focus:ring-0 outline-none rounded-sm" placeholder="How can we curate your journey?" rows="4"></textarea>
-            </div>
-            <button className="w-full py-5 bg-primary-container text-white font-headline font-bold text-lg tracking-tight hover:brightness-110 transition-all flex items-center justify-center gap-3 rounded-md shadow-xl shadow-blue-900/20">
-              Send Message
-              <span className="material-symbols-outlined">send</span>
+
+            <button className="w-full rounded-xl bg-primary-container px-6 py-4 text-sm font-bold uppercase tracking-[0.2em] text-white transition-all hover:brightness-110 disabled:opacity-60" disabled={isLoading} type="submit">
+              {isLoading ? 'Submitting...' : 'Submit Enquiry'}
             </button>
           </form>
-        </div>
+        )}
+      </FormShell>
 
-        {/* FAQ Section */}
-        <div className="lg:col-span-5 space-y-6">
-          <h2 className="font-headline font-bold text-3xl mb-8 text-white tracking-tight">Frequently Asked <span className="text-secondary italic">Questions</span></h2>
-          {faqs.map((faq, index) => (
-            <div key={index} className="glass-panel p-8 rounded-xl border-t border-secondary/10 hover:border-secondary/30 transition-all duration-300">
-              <div className="flex items-start gap-4 mb-4">
-                <span className="material-symbols-outlined text-secondary">{faq.icon}</span>
-                <h3 className="font-headline font-bold text-xl tracking-tight text-white">{faq.title}</h3>
-              </div>
-              <p className="font-body text-on-surface-variant leading-relaxed text-sm">
-                {faq.text}
-              </p>
-            </div>
-          ))}
+      <section className="bg-surface-container-low px-6 py-24 md:px-8">
+        <div className="mx-auto grid max-w-7xl gap-6 lg:grid-cols-3">
+          <article className="rounded-[28px] border border-white/10 bg-black/20 p-8">
+            <p className="text-[10px] font-bold uppercase tracking-[0.3em] text-secondary">Business Location</p>
+            <h3 className="mt-4 font-headline text-3xl font-bold text-white">Map Placeholder</h3>
+            <p className="mt-4 text-sm leading-relaxed text-on-surface-variant">
+              Business location and map embed will be updated soon. For verification or travel discussion, contact us directly on WhatsApp.
+            </p>
+          </article>
+          <article className="rounded-[28px] border border-white/10 bg-black/20 p-8">
+            <p className="text-[10px] font-bold uppercase tracking-[0.3em] text-secondary">Support Hours</p>
+            <h3 className="mt-4 font-headline text-3xl font-bold text-white">Hours Placeholder</h3>
+            <p className="mt-4 text-sm leading-relaxed text-on-surface-variant">
+              Support hours will be updated soon. Response timing may vary depending on the enquiry type and operating schedule.
+            </p>
+          </article>
+          <article className="rounded-[28px] border border-white/10 bg-black/20 p-8">
+            <p className="text-[10px] font-bold uppercase tracking-[0.3em] text-secondary">Contact Note</p>
+            <h3 className="mt-4 font-headline text-3xl font-bold text-white">Manual Follow-Up</h3>
+            <p className="mt-4 text-sm leading-relaxed text-on-surface-variant">
+              We do not auto-confirm services from this page. Every message is reviewed manually and then added to the follow-up workflow.
+            </p>
+          </article>
         </div>
-      </div>
+      </section>
 
-      {/* Secondary Visual Anchor */}
-      <section className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div className="bg-surface-container-high h-48 rounded-xl overflow-hidden relative group border border-white/5">
-          <img className="w-full h-full object-cover opacity-40 group-hover:scale-110 transition-transform duration-700" alt="Luxury Hospitality" src="https://images.unsplash.com/photo-1542314831-068cd1dbfeeb?auto=format&fit=crop&q=80&w=800"/>
-          <div className="absolute inset-0 bg-gradient-to-t from-black to-transparent p-6 flex flex-col justify-end">
-            <span className="font-label text-[10px] tracking-[0.2em] text-secondary uppercase font-bold">Luxury Partners</span>
-            <span className="font-headline font-bold text-lg text-white">Hospitality Network</span>
-          </div>
-        </div>
-        <div className="bg-surface-container-high h-48 rounded-xl overflow-hidden relative group border border-white/5">
-          <img className="w-full h-full object-cover opacity-40 group-hover:scale-110 transition-transform duration-700" alt="Executive Fleet" src="https://images.unsplash.com/photo-1549317661-bd32c8ce0db2?auto=format&fit=crop&q=80&w=800"/>
-          <div className="absolute inset-0 bg-gradient-to-t from-black to-transparent p-6 flex flex-col justify-end">
-            <span className="font-label text-[10px] tracking-[0.2em] text-secondary uppercase font-bold">Premium Fleet</span>
-            <span className="font-headline font-bold text-lg text-white">Executive Logistics</span>
-          </div>
-        </div>
-        <div className="bg-surface-container-high h-48 rounded-xl overflow-hidden relative group border border-white/5">
-          <img className="w-full h-full object-cover opacity-40 group-hover:scale-110 transition-transform duration-700" alt="Cultural Routes" src="https://images.unsplash.com/photo-1582510003544-4d00b7f74220?auto=format&fit=crop&q=80&w=800"/>
-          <div className="absolute inset-0 bg-gradient-to-t from-black to-transparent p-6 flex flex-col justify-end">
-            <span className="font-label text-[10px] tracking-[0.2em] text-secondary uppercase font-bold">Cultural Routes</span>
-            <span className="font-headline font-bold text-lg text-white">Curated Experiences</span>
+      <section className="bg-background px-6 py-24 md:px-8">
+        <div className="mx-auto max-w-5xl">
+          {renderSectionIntro(
+            'FAQ',
+            'Contact Questions',
+            'A few quick answers to explain how this page works and what happens after you send a message.'
+          )}
+          <div className="space-y-4">
+            {faqs.map((faq) => (
+              <details key={faq.question} className="group rounded-[22px] border border-white/10 bg-surface-container p-6">
+                <summary className="flex cursor-pointer list-none items-center justify-between gap-4 font-headline text-2xl font-bold text-white">
+                  <span>{faq.question}</span>
+                  <span className="material-symbols-outlined text-secondary transition-transform group-open:rotate-45">add</span>
+                </summary>
+                <p className="mt-4 text-sm leading-relaxed text-on-surface-variant">{faq.answer}</p>
+              </details>
+            ))}
           </div>
         </div>
       </section>
-    </main>
+
+      <section className="bg-surface-container-low px-6 pb-24 pt-8 md:px-8">
+        <div className="mx-auto max-w-6xl rounded-[32px] border border-white/10 bg-[linear-gradient(135deg,rgba(34,73,219,0.12),rgba(255,255,255,0.06))] p-8 md:p-12">
+          <div className="grid gap-8 lg:grid-cols-[1fr_auto] lg:items-center">
+            <div>
+              <p className="text-[10px] font-bold uppercase tracking-[0.3em] text-secondary">Prefer Direct Chat?</p>
+              <h2 className="mt-4 font-headline text-4xl font-bold text-white">Use WhatsApp for Quick Contact</h2>
+              <p className="mt-4 max-w-3xl text-lg leading-relaxed text-on-surface-variant">
+                If you want a faster first conversation, message directly on WhatsApp and then continue with the full enquiry form if needed.
+              </p>
+            </div>
+            <div className="flex flex-col gap-4">
+              <button
+                className="rounded-xl bg-primary-container px-8 py-4 text-sm font-bold uppercase tracking-[0.18em] text-white transition-all hover:brightness-110"
+                onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+                type="button"
+              >
+                Submit Enquiry
+              </button>
+              <a
+                className="rounded-xl border border-secondary px-8 py-4 text-center text-sm font-bold uppercase tracking-[0.18em] text-secondary transition-all hover:bg-secondary/10"
+                href={contactWhatsAppHref}
+                rel="noreferrer"
+                target="_blank"
+              >
+                Chat on WhatsApp
+              </a>
+            </div>
+          </div>
+        </div>
+      </section>
+    </>
   );
 }
