@@ -187,7 +187,7 @@ export default function Home() {
 
                 {/* Background Image */}
                 <img
-                  src="https://images.unsplash.com/photo-1501785888041-af3ef285b470"
+                  src="https://images.unsplash.com/photo-1501785888041-af3ef285b470?w=1200&q=80&auto=format"
                   alt="Travel mountains tour"
                   className="absolute inset-0 w-full h-full object-cover opacity-35 group-hover:scale-110 transition-transform duration-700"
                 />
@@ -214,7 +214,7 @@ export default function Home() {
 
                 {/* Background Image */}
                 <img
-                  src="https://images.unsplash.com/photo-1505693416388-ac5ce068fe85"
+                  src="https://images.unsplash.com/photo-1505693416388-ac5ce068fe85?w=1200&q=80&auto=format"
                   alt="Luxury hotel room"
                   className="absolute inset-0 w-full h-full object-cover opacity-30 group-hover:scale-110 transition-transform duration-700"
                 />
@@ -241,7 +241,7 @@ export default function Home() {
 
               {/* Background Image */}
               <img
-                src="https://images.unsplash.com/photo-1511795409834-ef04bbd61622" 
+                src="https://images.unsplash.com/photo-1511795409834-ef04bbd61622?w=1200&q=80&auto=format"
                 alt="Event planning"
                 className="absolute inset-0 w-full h-full object-cover opacity-30 group-hover:scale-105 transition-transform duration-700"
               />
