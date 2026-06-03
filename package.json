@@ -7,6 +7,9 @@
     "dev": "vite",
     "prebuild": "node scripts/generate-seo-files.mjs",
     "build": "vite build",
+    "backend:install": "npm install --prefix backend",
+    "hostinger:build": "npm run backend:install && npm run build",
+    "hostinger:start": "node backend/server.js",
     "lint": "eslint .",
     "preview": "vite preview",
     "seo:generate": "node scripts/generate-seo-files.mjs"

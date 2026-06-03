@@ -19,7 +19,7 @@ const Fleet = {
       
       const query = `
         INSERT INTO fleet (
-          id, model, plate, type, status, "lastService", photo, age, fuel_status, next_service, condition, notes,
+          id, model, plate, type, status, \`lastService\`, photo, age, fuel_status, next_service, condition, notes,
           insurance_provider, insurance_policy, insurance_start, insurance_expiry, insurance_status, insurance_doc
         )
         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18)
@@ -44,7 +44,7 @@ const Fleet = {
       const query = `
         UPDATE fleet
         SET 
-          model = $1, plate = $2, type = $3, status = $4, "lastService" = $5, photo = $6, age = $7, fuel_status = $8, next_service = $9, condition = $10, notes = $11,
+          model = $1, plate = $2, type = $3, status = $4, \`lastService\` = $5, photo = $6, age = $7, fuel_status = $8, next_service = $9, condition = $10, notes = $11,
           insurance_provider = $12, insurance_policy = $13, insurance_start = $14, insurance_expiry = $15, insurance_status = $16, insurance_doc = $17
         WHERE id = $18
       `;

@@ -1,34 +1,129 @@
 require('./loadEnv');
-const { Pool } = require('pg');
+const mysql = require('mysql2/promise');
+
+const JSON_COLUMNS = new Set(['service_details_json', 'metadata_json']);
+const BOOLEAN_COLUMNS = new Set(['is_main_admin', 'used', 'consent_to_contact', 'is_archived']);
+
+const parseDatabaseUrl = (value) => {
+  const url = new URL(value);
+
+  if (!['mysql:', 'mariadb:'].includes(url.protocol)) {
+    throw new Error(`Unsupported database protocol: ${url.protocol}`);
+  }
+
+  return {
+    host: url.hostname,
+    port: Number(url.port || 3306),
+    user: decodeURIComponent(url.username),
+    password: decodeURIComponent(url.password),
+    database: decodeURIComponent(url.pathname.replace(/^\//, '')),
+  };
+};
 
 const connectionConfig = process.env.DATABASE_URL
-  ? {
-      connectionString: process.env.DATABASE_URL
-    }
+  ? parseDatabaseUrl(process.env.DATABASE_URL)
   : {
-      host: process.env.DB_HOST || process.env.PGHOST,
-      user: process.env.DB_USER || process.env.PGUSER,
-      password: process.env.DB_PASSWORD || process.env.PGPASSWORD,
-      database: process.env.DB_NAME || process.env.PGDATABASE,
-      port: Number(process.env.DB_PORT || process.env.PGPORT || 5432)
+      host: process.env.DB_HOST || '127.0.0.1',
+      user: process.env.DB_USER,
+      password: process.env.DB_PASSWORD,
+      database: process.env.DB_NAME,
+      port: Number(process.env.DB_PORT || 3306),
     };
 
-const shouldUseSsl =
-  process.env.DB_SSL === 'true' ||
-  (process.env.DATABASE_URL && process.env.DB_SSL !== 'false');
-
-if (shouldUseSsl) {
+if (String(process.env.DB_SSL || '').toLowerCase() === 'true') {
   connectionConfig.ssl = { rejectUnauthorized: false };
 }
 
-const pool = new Pool({
+const pool = mysql.createPool({
   ...connectionConfig,
-  max: 10,
-  idleTimeoutMillis: 30000
+  waitForConnections: true,
+  connectionLimit: Number(process.env.DB_POOL_LIMIT || 10),
+  queueLimit: 0,
+  multipleStatements: true,
+  charset: 'utf8mb4',
+  dateStrings: true,
 });
 
-pool.on('error', (error) => {
-  console.error('Unexpected PostgreSQL pool error:', error);
+const convertPostgresPlaceholders = (sql, params = []) => {
+  const translatedParams = [];
+
+  const translatedSql = sql.replace(/\$(\d+)/g, (_, rawIndex) => {
+    const index = Number(rawIndex) - 1;
+    translatedParams.push(params[index]);
+    return '?';
+  });
+
+  return {
+    sql: translatedSql,
+    params: translatedParams.length ? translatedParams : params,
+  };
+};
+
+const normalizeJsonValue = (value) => {
+  if (value === null || value === undefined || value === '') {
+    return {};
+  }
+
+  if (typeof value !== 'string') {
+    return value;
+  }
+
+  try {
+    return JSON.parse(value);
+  } catch {
+    return value;
+  }
+};
+
+const normalizeRow = (row = {}) => {
+  const normalized = {};
+
+  Object.entries(row).forEach(([key, value]) => {
+    if (JSON_COLUMNS.has(key)) {
+      normalized[key] = normalizeJsonValue(value);
+      return;
+    }
+
+    if (BOOLEAN_COLUMNS.has(key)) {
+      normalized[key] = value === null ? null : Boolean(value);
+      return;
+    }
+
+    normalized[key] = value;
+  });
+
+  return normalized;
+};
+
+const executeQuery = async (connection, sql, params = []) => {
+  const { sql: translatedSql, params: translatedParams } = convertPostgresPlaceholders(sql, params);
+  const [result] = await connection.query(translatedSql, translatedParams);
+
+  if (Array.isArray(result)) {
+    return {
+      rows: result.map((row) => normalizeRow(row)),
+      rowCount: result.length,
+    };
+  }
+
+  return {
+    rows: [],
+    rowCount: Number(result.affectedRows || 0),
+    insertId: result.insertId ? Number(result.insertId) : null,
+  };
+};
+
+const wrapConnection = (connection) => ({
+  query: (sql, params = []) => executeQuery(connection, sql, params),
+  beginTransaction: () => connection.beginTransaction(),
+  commit: () => connection.commit(),
+  rollback: () => connection.rollback(),
+  release: () => connection.release(),
 });
 
-module.exports = pool;
+module.exports = {
+  query: (sql, params = []) => executeQuery(pool, sql, params),
+  connect: async () => wrapConnection(await pool.getConnection()),
+  end: () => pool.end(),
+  rawPool: pool,
+};

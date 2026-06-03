@@ -1,4 +1,7 @@
 .env
+.env.*
+!.env.example
+!.env.production.example
 
 # These are some examples of commonly ignored file patterns.
 # You should customize this list as applicable to your project.
@@ -51,3 +54,5 @@ Thumbs.db
 *.wmv
 
 backend/.env
+backend/.env.*
+!backend/.env.example
