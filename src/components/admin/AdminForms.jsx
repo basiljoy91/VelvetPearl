@@ -20,7 +20,7 @@ const submitLabelsByType = {
   },
 };
 
-export default function AdminForms({ type, isOpen, onClose, onSubmit }) {
+export default function AdminForms({ type, isOpen, onClose, onSubmit, presentation = 'modal' }) {
   const [formData, setFormData] = useState({});
   const [formError, setFormError] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -84,11 +84,17 @@ export default function AdminForms({ type, isOpen, onClose, onSubmit }) {
     loading: 'Saving Record...',
   };
 
+  const isMobileFullscreen = presentation === 'mobile-fullscreen';
+
   return (
-    <div className="fixed inset-0 z-[100] flex items-start justify-center overflow-y-auto p-3 md:items-center md:p-4">
+    <div className={`fixed inset-0 z-[100] flex overflow-y-auto ${isMobileFullscreen ? 'items-stretch justify-stretch p-0 md:items-center md:justify-center md:p-4' : 'items-start justify-center p-3 md:items-center md:p-4'}`}>
       <div className="absolute inset-0 bg-black/80 backdrop-blur-md" onClick={handleClose} />
-      <div className="relative flex w-full max-w-3xl flex-col overflow-hidden rounded-2xl border border-[#EFBF04]/20 bg-[#0F0F0F] shadow-2xl max-h-[calc(100vh-1.5rem)] md:max-h-[90vh]">
-        <div className="sticky top-0 z-10 flex items-center justify-between border-b border-white/10 bg-[#0F0F0F]/95 px-5 py-5 backdrop-blur md:px-8 md:py-6">
+      <div className={`relative flex w-full flex-col overflow-hidden border border-[#EFBF04]/20 bg-[#0F0F0F] shadow-2xl ${
+        isMobileFullscreen
+          ? 'min-h-screen rounded-none max-h-none md:min-h-0 md:max-w-3xl md:rounded-2xl md:max-h-[90vh]'
+          : 'max-w-3xl rounded-2xl max-h-[calc(100vh-1.5rem)] md:max-h-[90vh]'
+      }`}>
+        <div className={`sticky top-0 z-10 flex items-center justify-between border-b border-white/10 bg-[#0F0F0F]/95 backdrop-blur ${isMobileFullscreen ? 'px-5 py-4 pt-[calc(1rem+env(safe-area-inset-top))]' : 'px-5 py-5 md:px-8 md:py-6'}`}>
           <h3 className="text-2xl font-headline font-bold text-white capitalize">Add New {type}</h3>
           <button onClick={handleClose} className="p-2 hover:bg-white/5 rounded-full text-white transition-colors">
             <X className="w-6 h-6" />
@@ -96,7 +102,7 @@ export default function AdminForms({ type, isOpen, onClose, onSubmit }) {
         </div>
 
         <form aria-busy={isSubmitting} onSubmit={handleSubmit} className="flex min-h-0 flex-1 flex-col">
-          <div className="space-y-8 overflow-y-auto px-5 py-5 md:px-8 md:py-6">
+          <div className={`space-y-8 overflow-y-auto ${isMobileFullscreen ? 'px-5 py-5 pb-28' : 'px-5 py-5 md:px-8 md:py-6'}`}>
           {formError && (
             <div aria-live="assertive" className="rounded-xl border border-rose-500/30 bg-rose-500/10 px-4 py-3 text-sm text-rose-200" role="alert">
               {formError}
@@ -291,7 +297,7 @@ export default function AdminForms({ type, isOpen, onClose, onSubmit }) {
 
           </div>
 
-          <div className="sticky bottom-0 border-t border-white/10 bg-[#0F0F0F]/95 px-5 py-4 backdrop-blur md:px-8">
+          <div className={`sticky bottom-0 border-t border-white/10 bg-[#0F0F0F]/95 backdrop-blur ${isMobileFullscreen ? 'px-5 py-4 pb-[calc(1rem+env(safe-area-inset-bottom))]' : 'px-5 py-4 md:px-8'}`}>
           <LoadingButton
             className="bg-[#EFBF04] text-black hover:scale-[0.98] hover:brightness-100"
             idleLabel={submitLabels.idle}

@@ -1,46 +1,31 @@
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { X, Car, Home, Map, Calendar, ArrowRight } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { InlineSpinner } from '../ui/LoadingState';
 
 export default function BookingModal({ isOpen, onClose }) {
   const navigate = useNavigate();
-  const [shouldRender, setShouldRender] = useState(isOpen);
-  const [isVisible, setIsVisible] = useState(false);
   const [pendingServiceId, setPendingServiceId] = useState('');
 
-  useEffect(() => {
-    if (isOpen) {
-      setShouldRender(true);
-      const frame = window.requestAnimationFrame(() => setIsVisible(true));
-      return () => window.cancelAnimationFrame(frame);
-    }
-
-    if (!shouldRender) return undefined;
-
-    setIsVisible(false);
-    const timeout = window.setTimeout(() => {
-      setShouldRender(false);
-      setPendingServiceId('');
-    }, 220);
-
-    return () => window.clearTimeout(timeout);
-  }, [isOpen, shouldRender]);
+  const handleClose = useCallback(() => {
+    setPendingServiceId('');
+    onClose();
+  }, [onClose]);
 
   useEffect(() => {
-    if (!shouldRender) return undefined;
+    if (!isOpen) return undefined;
 
     const handleKeyDown = (event) => {
       if (event.key === 'Escape' && !pendingServiceId) {
-        onClose();
+        handleClose();
       }
     };
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [onClose, pendingServiceId, shouldRender]);
+  }, [handleClose, isOpen, pendingServiceId]);
 
-  if (!shouldRender) return null;
+  if (!isOpen) return null;
 
   const services = [
     {
@@ -81,10 +66,9 @@ export default function BookingModal({ isOpen, onClose }) {
     if (pendingServiceId) return;
 
     setPendingServiceId(service.id);
-    setIsVisible(false);
 
     window.setTimeout(() => {
-      onClose();
+      handleClose();
       navigate(service.path);
     }, 130);
   };
@@ -93,14 +77,14 @@ export default function BookingModal({ isOpen, onClose }) {
     <div className="fixed inset-0 z-[100] flex items-start justify-center overflow-y-auto p-3 pt-[max(0.75rem,env(safe-area-inset-top))] md:items-center md:p-8">
       {/* Backdrop */}
       <div 
-        className={`absolute inset-0 bg-black/60 backdrop-blur-2xl transition-opacity duration-300 ${isVisible ? 'opacity-100' : 'opacity-0'}`}
+        className="absolute inset-0 bg-black/60 backdrop-blur-2xl transition-opacity duration-300 opacity-100"
         onClick={() => {
-          if (!pendingServiceId) onClose();
+          if (!pendingServiceId) handleClose();
         }}
       />
 
       {/* Modal Content */}
-      <div className={`relative flex max-h-[calc(100vh-1.5rem)] w-full max-w-5xl flex-col overflow-hidden rounded-3xl border border-[#EFBF04]/20 bg-[#0F0F0F] shadow-2xl transition-all duration-300 ease-out md:max-h-[90vh] ${isVisible ? 'translate-y-0 scale-100 opacity-100' : 'translate-y-4 scale-[0.98] opacity-0'}`}>
+      <div className="relative flex max-h-[calc(100vh-1.5rem)] w-full max-w-5xl flex-col overflow-hidden rounded-3xl border border-[#EFBF04]/20 bg-[#0F0F0F] shadow-2xl transition-all duration-300 ease-out md:max-h-[90vh] translate-y-0 scale-100 opacity-100">
         {/* Header */}
         <div className="sticky top-0 z-10 flex items-start justify-between gap-4 border-b border-[#EFBF04]/10 bg-gradient-to-r from-black via-[#0F0F0F] to-[#0F0F0F]/95 px-5 py-5 backdrop-blur md:px-10 md:py-8">
           <div className="min-w-0">
@@ -108,7 +92,7 @@ export default function BookingModal({ isOpen, onClose }) {
             <p className="text-gray-400 font-body text-sm md:text-base">Choose the enquiry form that matches your requirement.</p>
           </div>
           <button 
-            onClick={onClose}
+            onClick={handleClose}
             disabled={Boolean(pendingServiceId)}
             aria-label="Close enquiry service selector"
             className="shrink-0 rounded-full bg-white/5 p-3 text-white transition-all duration-300 hover:bg-white/10 hover:rotate-90 disabled:cursor-not-allowed disabled:opacity-50"

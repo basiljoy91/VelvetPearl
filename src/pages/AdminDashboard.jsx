@@ -19,6 +19,7 @@ import {
   updateEnquiryStatus,
 } from '../services/dataService';
 import AdminForms from '../components/admin/AdminForms';
+import MobileAdminDashboard from '../components/admin/mobile/MobileAdminDashboard';
 import { LoadingButton, LoadingOverlay, SectionLoader, SkeletonBlock } from '../components/ui/LoadingState';
 import {
   changePassword,
@@ -883,11 +884,577 @@ function EnquiryDetailModal({
   );
 }
 
+function DesktopAdminDashboard({
+  navigate,
+  navItems,
+  activeTab,
+  setActiveTab,
+  adminProfile,
+  handleLogout,
+  showHeaderSearch,
+  headerSearchValue,
+  headerSearchPlaceholder,
+  setEnquiryFilters,
+  setSearchQuery,
+  openEntryModal,
+  dashboardError,
+  isLoading,
+  overviewCounts,
+  categoryCounts,
+  enquiries,
+  recentEnquiries,
+  markEnquiryContacted,
+  openEnquiryDetail,
+  filteredEnquiries,
+  filteredDrivers,
+  filteredFleet,
+  enquiryFilters,
+  oldPassword,
+  setOldPassword,
+  newPassword,
+  setNewPassword,
+  confirmPassword,
+  setConfirmPassword,
+  isPwdLoading,
+  handlePasswordChange,
+  pwdError,
+  pwdMessage,
+  handleGenerateSetupKey,
+  isSetupKeyLoading,
+  setupKeyData,
+}) {
+  return (
+    <div className="hidden min-h-screen w-full bg-[#050505] text-white lg:flex lg:h-screen lg:overflow-hidden">
+      <aside className="hidden w-72 shrink-0 border-r border-white/5 bg-[#0F0F0F] lg:sticky lg:top-0 lg:flex lg:h-screen lg:flex-col">
+        <div className="border-b border-white/5 px-8 py-8">
+          <button type="button" onClick={() => navigate('/')} className="text-left">
+            <p className="text-xl font-bold text-[#EFBF04]">Velvet Pearl</p>
+            <p className="mt-2 text-[10px] font-bold uppercase tracking-[0.28em] text-gray-500">Manual travel operations</p>
+          </button>
+        </div>
+
+        <nav className="min-h-0 flex-1 space-y-2 overflow-y-auto px-4 py-6">
+          {navItems.map((item) => (
+            <button
+              key={item.id}
+              type="button"
+              onClick={() => setActiveTab(item.id)}
+              className={`flex w-full items-center gap-4 rounded-2xl px-4 py-3 text-left transition ${
+                activeTab === item.id
+                  ? 'bg-[#EFBF04]/10 text-[#EFBF04]'
+                  : 'text-gray-300 hover:bg-white/5 hover:text-white'
+              }`}
+            >
+              <span className="material-symbols-outlined text-xl">{item.icon}</span>
+              <span className="text-sm font-medium">{item.label}</span>
+            </button>
+          ))}
+        </nav>
+
+        <div className="sticky bottom-0 mt-auto border-t border-white/5 bg-[#0F0F0F] p-6">
+          <button
+            type="button"
+            onClick={handleLogout}
+            className="flex w-full items-center gap-3 rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-left transition hover:bg-white/10"
+          >
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#EFBF04]/15 text-[#EFBF04]">
+              <span className="material-symbols-outlined">person</span>
+            </div>
+            <div>
+              <p className="text-sm font-semibold text-white">{adminProfile?.isMainAdmin ? 'Main Admin' : 'Admin Panel'}</p>
+              <p className="text-[10px] font-bold uppercase tracking-[0.22em] text-red-400">Logout</p>
+            </div>
+          </button>
+        </div>
+      </aside>
+
+      <main className="min-w-0 flex-1 lg:h-screen lg:overflow-y-auto">
+        <header className="sticky top-0 z-20 border-b border-white/5 bg-[#050505]/90 backdrop-blur">
+          <div className="flex flex-col gap-5 px-6 py-6 xl:flex-row xl:items-center xl:justify-between xl:px-10">
+            <div>
+              <p className="text-[11px] font-bold uppercase tracking-[0.28em] text-gray-500">Operational control center</p>
+              <h1 className="mt-2 text-3xl font-bold text-white">
+                {activeTab === 'dashboard' ? 'Enquiry Overview' : navItems.find((item) => item.id === activeTab)?.label}
+              </h1>
+              <p className="mt-2 text-sm text-gray-400">
+                Manual review, assignment, notes, quotes, and customer follow-up in one place.
+              </p>
+            </div>
+
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+              {showHeaderSearch && (
+                <div className="flex items-center gap-2 rounded-2xl border border-white/10 bg-white/5 px-4 py-3">
+                  <span className="material-symbols-outlined text-gray-500">search</span>
+                  <input
+                    type="text"
+                    value={headerSearchValue}
+                    onChange={(event) => {
+                      if (activeTab === 'bookings') {
+                        setEnquiryFilters((current) => ({ ...current, search: event.target.value }));
+                      } else {
+                        setSearchQuery(event.target.value);
+                      }
+                    }}
+                    className="w-full min-w-0 bg-transparent text-sm text-white outline-none placeholder:text-gray-600 sm:w-64"
+                    placeholder={headerSearchPlaceholder}
+                  />
+                </div>
+              )}
+              <button
+                type="button"
+                onClick={() => ['bookings', 'fleet', 'drivers'].includes(activeTab) && openEntryModal(activeTab === 'bookings' ? 'bookings' : activeTab)}
+                disabled={!['bookings', 'fleet', 'drivers'].includes(activeTab)}
+                className="rounded-2xl bg-[#EFBF04] px-5 py-3 text-sm font-bold text-black disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                New Entry
+              </button>
+            </div>
+          </div>
+        </header>
+
+        <div className="space-y-8 px-6 py-8 xl:px-10">
+          {dashboardError && (
+            <div aria-live="assertive" className="rounded-2xl border border-rose-500/25 bg-rose-500/10 px-4 py-3 text-sm text-rose-200" role="alert">
+              {dashboardError}
+            </div>
+          )}
+
+          {activeTab === 'dashboard' && (
+            <div className="space-y-8">
+              <section>
+                <h2 className="text-xl font-semibold text-white">Overview</h2>
+                <div className="mt-4 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+                  {isLoading
+                    ? Array.from({ length: 8 }).map((_, index) => <AdminMetricSkeletonCard key={`overview-skeleton-${index}`} />)
+                    : Object.entries(overviewCounts).map(([label, value]) => (
+                      <div key={label} className="rounded-3xl border border-white/10 bg-white/5 p-5">
+                        <p className="text-[11px] font-bold uppercase tracking-[0.22em] text-gray-500">{label}</p>
+                        <p className="mt-3 text-3xl font-bold text-white">{value}</p>
+                      </div>
+                    ))}
+                </div>
+              </section>
+
+              <section>
+                <h2 className="text-xl font-semibold text-white">Enquiry categories</h2>
+                <div className="mt-4 grid gap-4 md:grid-cols-2 xl:grid-cols-5">
+                  {isLoading
+                    ? Array.from({ length: 5 }).map((_, index) => <AdminMetricSkeletonCard key={`category-skeleton-${index}`} />)
+                    : Object.entries(TYPE_LABELS).map(([key, label]) => (
+                      <button
+                        key={key}
+                        type="button"
+                        onClick={() => {
+                          setActiveTab('bookings');
+                          setEnquiryFilters((current) => ({ ...current, type: key }));
+                        }}
+                        className="rounded-3xl border border-white/10 bg-white/5 p-5 text-left transition hover:border-[#EFBF04]/40 hover:bg-[#EFBF04]/5"
+                      >
+                        <p className="text-[11px] font-bold uppercase tracking-[0.22em] text-gray-500">{label}</p>
+                        <p className="mt-3 text-3xl font-bold text-white">{categoryCounts[key]}</p>
+                      </button>
+                    ))}
+                </div>
+              </section>
+
+              <section className="rounded-[32px] border border-white/10 bg-white/5">
+                <div className="flex flex-col gap-3 border-b border-white/10 px-6 py-5 lg:flex-row lg:items-center lg:justify-between">
+                  <div>
+                    <h2 className="text-xl font-semibold text-white">Recent enquiries</h2>
+                    <p className="mt-1 text-sm text-gray-400">Latest customer requirements waiting in the manual workflow.</p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setActiveTab('bookings')}
+                    className="rounded-full border border-white/10 bg-white/5 px-4 py-2 text-xs font-bold uppercase tracking-[0.2em] text-gray-200"
+                  >
+                    Open enquiry table
+                  </button>
+                </div>
+
+                {!isLoading && enquiries.length === 0 ? (
+                  <div className="px-6 py-12 text-center text-sm text-gray-300">
+                    No enquiries yet. New customer enquiries will appear here after form submission.
+                  </div>
+                ) : (
+                  <div className="hidden overflow-x-auto md:block">
+                    <table className="min-w-full text-left text-sm">
+                      <thead className="bg-black/30 text-[11px] uppercase tracking-[0.22em] text-gray-500">
+                        <tr>
+                          <th className="px-6 py-4">Reference</th>
+                          <th className="px-4 py-4">Customer</th>
+                          <th className="px-4 py-4">Type</th>
+                          <th className="px-4 py-4">Travel date</th>
+                          <th className="px-4 py-4">Status</th>
+                          <th className="px-6 py-4 text-right">Action</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-white/5">
+                        {isLoading ? Array.from({ length: 5 }).map((_, index) => (
+                          <tr key={`recent-table-skeleton-${index}`}>
+                            <td className="px-6 py-4"><SkeletonBlock className="h-4 w-24" /></td>
+                            <td className="px-4 py-4">
+                              <SkeletonBlock className="h-5 w-28" />
+                              <SkeletonBlock className="mt-2 h-4 w-20" />
+                            </td>
+                            <td className="px-4 py-4"><SkeletonBlock className="h-4 w-24" /></td>
+                            <td className="px-4 py-4"><SkeletonBlock className="h-4 w-20" /></td>
+                            <td className="px-4 py-4"><SkeletonBlock className="h-7 w-24 rounded-full" /></td>
+                            <td className="px-6 py-4 text-right">
+                              <div className="flex justify-end gap-2">
+                                <SkeletonBlock className="h-10 w-20 rounded-full" />
+                                <SkeletonBlock className="h-10 w-28 rounded-full" />
+                              </div>
+                            </td>
+                          </tr>
+                        )) : recentEnquiries.map((enquiry) => (
+                          <tr key={enquiry.id} className="hover:bg-white/5">
+                            <td className="px-6 py-4 font-mono text-xs text-[#EFBF04]">{enquiry.reference_id || enquiry.id}</td>
+                            <td className="px-4 py-4">
+                              <p className="font-semibold text-white">{getCustomerName(enquiry)}</p>
+                              <p className="text-xs text-gray-500">{getPhoneNumber(enquiry)}</p>
+                            </td>
+                            <td className="px-4 py-4 text-gray-200">{getServiceLabel(enquiry)}</td>
+                            <td className="px-4 py-4 text-gray-300">{formatDate(getTravelDateLabel(enquiry))}</td>
+                            <td className="px-4 py-4">
+                              <span className={`rounded-full px-3 py-1 text-[10px] font-bold ${getStatusClasses(enquiry.status)}`}>
+                                {enquiry.status}
+                              </span>
+                            </td>
+                            <td className="px-6 py-4 text-right">
+                              <EnquiryQuickActions enquiry={enquiry} onMarkContacted={markEnquiryContacted} onOpenDetail={openEnquiryDetail} align="end" />
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                )}
+              </section>
+            </div>
+          )}
+
+          {activeTab === 'bookings' && (
+            <section className="space-y-6">
+              <div className="rounded-[32px] border border-white/10 bg-white/5 p-5">
+                <div className="flex flex-col gap-4 xl:flex-row xl:items-end xl:justify-between">
+                  <div>
+                    <h2 className="text-xl font-semibold text-white">Enquiry table</h2>
+                    <p className="mt-1 text-sm text-gray-400">
+                      Reference ID, customer details, status, assignment, and quick WhatsApp actions for manual fulfilment.
+                    </p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setEnquiryFilters({ type: 'all', status: 'all', submittedFrom: '', submittedTo: '', travelDate: '', search: '' })}
+                    className="rounded-full border border-white/10 bg-white/5 px-4 py-2 text-xs font-bold uppercase tracking-[0.2em] text-gray-200"
+                  >
+                    Reset filters
+                  </button>
+                </div>
+
+                <div className="mt-5 hidden gap-4 md:grid md:grid-cols-2 xl:grid-cols-6">
+                  <div>
+                    <label className={labelClassName}>Enquiry type</label>
+                    <select
+                      className={`${inputClassName} mt-2`}
+                      value={enquiryFilters.type}
+                      onChange={(event) => setEnquiryFilters((current) => ({ ...current, type: event.target.value }))}
+                    >
+                      {TYPE_OPTIONS.map((option) => (
+                        <option key={option} value={option} className="bg-[#0A0A0A]">
+                          {option === 'all' ? 'All enquiry types' : TYPE_LABELS[option]}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                  <div>
+                    <label className={labelClassName}>Status</label>
+                    <select
+                      className={`${inputClassName} mt-2`}
+                      value={enquiryFilters.status}
+                      onChange={(event) => setEnquiryFilters((current) => ({ ...current, status: event.target.value }))}
+                    >
+                      <option value="all" className="bg-[#0A0A0A]">All statuses</option>
+                      {STATUS_OPTIONS.map((status) => (
+                        <option key={status} value={status} className="bg-[#0A0A0A]">
+                          {status}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                  <div>
+                    <label className={labelClassName}>Submitted from</label>
+                    <input
+                      type="date"
+                      className={`${inputClassName} mt-2`}
+                      value={enquiryFilters.submittedFrom}
+                      onChange={(event) => setEnquiryFilters((current) => ({ ...current, submittedFrom: event.target.value }))}
+                    />
+                  </div>
+                  <div>
+                    <label className={labelClassName}>Submitted to</label>
+                    <input
+                      type="date"
+                      className={`${inputClassName} mt-2`}
+                      value={enquiryFilters.submittedTo}
+                      onChange={(event) => setEnquiryFilters((current) => ({ ...current, submittedTo: event.target.value }))}
+                    />
+                  </div>
+                  <div>
+                    <label className={labelClassName}>Travel date</label>
+                    <input
+                      type="date"
+                      className={`${inputClassName} mt-2`}
+                      value={enquiryFilters.travelDate}
+                      onChange={(event) => setEnquiryFilters((current) => ({ ...current, travelDate: event.target.value }))}
+                    />
+                  </div>
+                  <div>
+                    <label className={labelClassName}>Name / phone / reference</label>
+                    <input
+                      type="text"
+                      className={`${inputClassName} mt-2`}
+                      value={enquiryFilters.search}
+                      onChange={(event) => setEnquiryFilters((current) => ({ ...current, search: event.target.value }))}
+                      placeholder="Search enquiry"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              <div className="flex flex-wrap gap-3">
+                {Object.entries(TYPE_LABELS).map(([key, label]) => (
+                  <button
+                    key={key}
+                    type="button"
+                    onClick={() => setEnquiryFilters((current) => ({ ...current, type: key }))}
+                    className={`rounded-full border px-4 py-2 text-xs font-bold uppercase tracking-[0.2em] ${
+                      enquiryFilters.type === key
+                        ? 'border-[#EFBF04] bg-[#EFBF04]/10 text-[#EFBF04]'
+                        : 'border-white/10 bg-white/5 text-gray-200'
+                    }`}
+                  >
+                    {label} ({categoryCounts[key]})
+                  </button>
+                ))}
+              </div>
+
+              <div className="overflow-hidden rounded-[32px] border border-white/10 bg-white/5">
+                <div className="hidden overflow-x-auto md:block">
+                  <table className="min-w-full text-left text-sm">
+                    <thead className="bg-black/30 text-[11px] uppercase tracking-[0.22em] text-gray-500">
+                      <tr>
+                        <th className="px-6 py-4">Reference ID</th>
+                        <th className="px-4 py-4">Customer name</th>
+                        <th className="px-4 py-4">Phone</th>
+                        <th className="px-4 py-4">WhatsApp</th>
+                        <th className="px-4 py-4">Enquiry type</th>
+                        <th className="px-4 py-4">Travel date</th>
+                        <th className="px-4 py-4">Submitted</th>
+                        <th className="px-4 py-4">Status</th>
+                        <th className="px-4 py-4">Assigned resource</th>
+                        <th className="px-6 py-4 text-right">Quick actions</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-white/5">
+                      {isLoading ? <EnquiryTableSkeletonRows count={6} /> : filteredEnquiries.map((enquiry) => (
+                        <tr key={enquiry.id} className="align-top hover:bg-white/5">
+                          <td className="px-6 py-5 font-mono text-xs text-[#EFBF04]">{enquiry.reference_id || enquiry.id}</td>
+                          <td className="px-4 py-5">
+                            <p className="font-semibold text-white">{getCustomerName(enquiry)}</p>
+                            <p className="mt-1 max-w-[240px] text-xs text-gray-500">{summarizeEnquiry(enquiry)}</p>
+                          </td>
+                          <td className="px-4 py-5 text-gray-200">{getPhoneNumber(enquiry)}</td>
+                          <td className="px-4 py-5 text-gray-200">{getWhatsAppNumber(enquiry) || 'Not shared'}</td>
+                          <td className="px-4 py-5 text-gray-200">{getServiceLabel(enquiry)}</td>
+                          <td className="px-4 py-5 text-gray-300">{formatDate(getTravelDateLabel(enquiry))}</td>
+                          <td className="px-4 py-5 text-gray-300">{formatDateTime(enquiry.submitted_at || enquiry.created_at)}</td>
+                          <td className="px-4 py-5">
+                            <span className={`rounded-full px-3 py-1 text-[10px] font-bold ${getStatusClasses(enquiry.status)}`}>
+                              {enquiry.status}
+                            </span>
+                          </td>
+                          <td className="px-4 py-5 text-gray-300">{getAssignedResourceSummary(enquiry)}</td>
+                          <td className="px-6 py-5">
+                            <EnquiryQuickActions enquiry={enquiry} onMarkContacted={markEnquiryContacted} onOpenDetail={openEnquiryDetail} align="end" />
+                          </td>
+                        </tr>
+                      ))}
+                      {!isLoading && filteredEnquiries.length === 0 && (
+                        <tr>
+                          <td colSpan="10" className="px-6 py-12 text-center text-sm text-gray-300">
+                            {enquiries.length === 0
+                              ? 'No enquiries yet. New customer enquiries will appear here after form submission.'
+                              : 'No enquiries match the current filters.'}
+                          </td>
+                        </tr>
+                      )}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </section>
+          )}
+
+          {activeTab === 'drivers' && (
+            <section className="grid gap-6 lg:grid-cols-2">
+              {isLoading ? Array.from({ length: 4 }).map((_, index) => (
+                <AdminEntityCardSkeleton key={`driver-skeleton-${index}`} />
+              )) : filteredDrivers.map((driver) => (
+                <article key={driver.id} className="rounded-[28px] border border-white/10 bg-white/5 p-6">
+                  <div className="flex items-start justify-between gap-4">
+                    <div>
+                      <p className="text-xl font-semibold text-white">{driver.name}</p>
+                      <p className="mt-1 text-sm text-gray-400">{driver.phone}</p>
+                    </div>
+                    <span className={`rounded-full px-3 py-1 text-[10px] font-bold ${getStatusClasses(driver.status)}`}>
+                      {driver.status}
+                    </span>
+                  </div>
+                  <div className="mt-5 grid gap-3 sm:grid-cols-2">
+                    <div className="rounded-2xl bg-black/20 p-4">
+                      <p className={labelClassName}>Driver ID</p>
+                      <p className="mt-2 text-sm text-white">{driver.id}</p>
+                    </div>
+                    <div className="rounded-2xl bg-black/20 p-4">
+                      <p className={labelClassName}>Assigned vehicle</p>
+                      <p className="mt-2 text-sm text-white">{driver.assigned_vehicle || 'Not assigned'}</p>
+                    </div>
+                    <div className="rounded-2xl bg-black/20 p-4">
+                      <p className={labelClassName}>Experience</p>
+                      <p className="mt-2 text-sm text-white">{driver.experience || 'Not shared'}</p>
+                    </div>
+                    <div className="rounded-2xl bg-black/20 p-4">
+                      <p className={labelClassName}>Licence status</p>
+                      <p className="mt-2 text-sm text-white">{driver.licence_status || 'Pending'}</p>
+                    </div>
+                  </div>
+                </article>
+              ))}
+              {!isLoading && filteredDrivers.length === 0 && (
+                <div className="rounded-[28px] border border-white/10 bg-white/5 p-10 text-sm text-gray-300">
+                  No drivers match the current search.
+                </div>
+              )}
+            </section>
+          )}
+
+          {activeTab === 'fleet' && (
+            <section className="grid gap-6 lg:grid-cols-2 xl:grid-cols-3">
+              {isLoading ? Array.from({ length: 6 }).map((_, index) => (
+                <AdminEntityCardSkeleton key={`fleet-skeleton-${index}`} compact />
+              )) : filteredFleet.map((vehicle) => (
+                <article key={vehicle.id} className="rounded-[28px] border border-white/10 bg-white/5 p-6">
+                  <div className="flex items-start justify-between gap-4">
+                    <div>
+                      <p className="text-xl font-semibold text-white">{vehicle.model}</p>
+                      <p className="mt-1 text-sm text-gray-400">{vehicle.plate}</p>
+                    </div>
+                    <span className={`rounded-full px-3 py-1 text-[10px] font-bold ${getStatusClasses(vehicle.status)}`}>
+                      {vehicle.status}
+                    </span>
+                  </div>
+                  <div className="mt-5 grid gap-3">
+                    <div className="rounded-2xl bg-black/20 p-4">
+                      <p className={labelClassName}>Vehicle ID</p>
+                      <p className="mt-2 text-sm text-white">{vehicle.id}</p>
+                    </div>
+                    <div className="rounded-2xl bg-black/20 p-4">
+                      <p className={labelClassName}>Type</p>
+                      <p className="mt-2 text-sm text-white">{vehicle.type || 'Not shared'}</p>
+                    </div>
+                    <div className="rounded-2xl bg-black/20 p-4">
+                      <p className={labelClassName}>Insurance expiry</p>
+                      <p className="mt-2 text-sm text-white">{formatDate(vehicle.insurance_expiry)}</p>
+                    </div>
+                  </div>
+                </article>
+              ))}
+              {!isLoading && filteredFleet.length === 0 && (
+                <div className="rounded-[28px] border border-white/10 bg-white/5 p-10 text-sm text-gray-300">
+                  No fleet records match the current search.
+                </div>
+              )}
+            </section>
+          )}
+
+          {activeTab === 'settings' && (
+            <div className="mx-auto max-w-4xl space-y-8">
+              <section className="rounded-[32px] border border-white/10 bg-white/5 p-8">
+                <h2 className="text-2xl font-semibold text-white">Security and authentication</h2>
+                <p className="mt-2 text-sm text-gray-400">Manage your admin password and onboarding access.</p>
+                <form aria-busy={isPwdLoading} onSubmit={handlePasswordChange} className="mt-6 space-y-5">
+                  {pwdError && <div aria-live="assertive" className="rounded-2xl border border-rose-500/20 bg-rose-500/10 px-4 py-3 text-sm text-rose-200" role="alert">{pwdError}</div>}
+                  {pwdMessage && <div aria-live="polite" className="rounded-2xl border border-emerald-500/20 bg-emerald-500/10 px-4 py-3 text-sm text-emerald-200" role="status">{pwdMessage}</div>}
+                  <div>
+                    <label className={labelClassName}>Current password</label>
+                    <input type="password" className={`${inputClassName} mt-2`} value={oldPassword} onChange={(event) => setOldPassword(event.target.value)} required />
+                  </div>
+                  <div className="grid gap-4 md:grid-cols-2">
+                    <div>
+                      <label className={labelClassName}>New password</label>
+                      <input type="password" className={`${inputClassName} mt-2`} value={newPassword} onChange={(event) => setNewPassword(event.target.value)} minLength={6} required />
+                    </div>
+                    <div>
+                      <label className={labelClassName}>Confirm password</label>
+                      <input type="password" className={`${inputClassName} mt-2`} value={confirmPassword} onChange={(event) => setConfirmPassword(event.target.value)} required />
+                    </div>
+                  </div>
+                  <LoadingButton
+                    type="submit"
+                    isLoading={isPwdLoading}
+                    idleLabel="Update password"
+                    loadingLabel="Updating Password..."
+                    className="w-auto rounded-2xl bg-[#EFBF04] px-5 py-3 normal-case tracking-normal text-sm text-black hover:brightness-100"
+                    spinnerClassName="text-black"
+                  />
+                </form>
+              </section>
+
+              <section className="rounded-[32px] border border-white/10 bg-white/5 p-8">
+                <h2 className="text-2xl font-semibold text-white">Admin onboarding keys</h2>
+                <p className="mt-2 text-sm text-gray-400">Generate a one-time setup key for another admin when needed.</p>
+                {adminProfile?.isMainAdmin ? (
+                  <div className="mt-6 space-y-5">
+                    <LoadingButton
+                      type="button"
+                      onClick={handleGenerateSetupKey}
+                      isLoading={isSetupKeyLoading}
+                      idleLabel="Generate setup key"
+                      loadingLabel="Generating Setup Key..."
+                      className="w-auto rounded-2xl bg-[#EFBF04] px-5 py-3 normal-case tracking-normal text-sm text-black hover:brightness-100"
+                      spinnerClassName="text-black"
+                    />
+                    {setupKeyData?.setupKey && (
+                      <div aria-live="polite" className="rounded-2xl border border-emerald-500/20 bg-emerald-500/10 p-4" role="status">
+                        <p className={labelClassName}>Generated setup key</p>
+                        <p className="mt-3 break-all font-mono text-lg text-white">{setupKeyData.setupKey}</p>
+                        <p className="mt-2 text-sm text-emerald-200">Expires: {formatDateTime(setupKeyData.expiresAt)}</p>
+                      </div>
+                    )}
+                  </div>
+                ) : (
+                  <div className="mt-6 rounded-2xl border border-white/10 bg-black/20 px-4 py-3 text-sm text-gray-300">
+                    Setup key generation is restricted to the main admin account.
+                  </div>
+                )}
+              </section>
+            </div>
+          )}
+        </div>
+      </main>
+    </div>
+  );
+}
+
 export default function AdminDashboard() {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('dashboard');
   const [searchQuery, setSearchQuery] = useState('');
   const [isEntryModalOpen, setIsEntryModalOpen] = useState(false);
+  const [entryModalType, setEntryModalType] = useState('bookings');
+  const [isMobileEntrySheetOpen, setIsMobileEntrySheetOpen] = useState(false);
 
   const [oldPassword, setOldPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
@@ -1032,15 +1599,21 @@ export default function AdminDashboard() {
     navigate('/admin');
   };
 
-  const handleAddEntry = async (newEntry) => {
+  const openEntryModal = (nextType) => {
+    setEntryModalType(nextType);
+    setIsEntryModalOpen(true);
+  };
+
+  const handleAddEntry = async (newEntry, forcedType = null) => {
     setDashboardError('');
+    const targetType = forcedType || entryModalType || (activeTab === 'bookings' ? 'bookings' : activeTab);
 
     try {
-      if (activeTab === 'bookings') {
+      if (targetType === 'bookings') {
         await addBooking(newEntry);
-      } else if (activeTab === 'fleet') {
+      } else if (targetType === 'fleet') {
         await addFleet(newEntry);
-      } else if (activeTab === 'drivers') {
+      } else if (targetType === 'drivers') {
         await addDriver(newEntry);
       }
 
@@ -1181,667 +1754,153 @@ export default function AdminDashboard() {
     }
   };
 
+  const helperBag = {
+    getEnquiryType,
+    getPhoneNumber,
+    getWhatsAppNumber,
+    getServiceDetailEntries,
+    buildCustomerReplyHref,
+    isNewEntrySheetOpen: isMobileEntrySheetOpen,
+    onCloseNewEntrySheet: () => setIsMobileEntrySheetOpen(false),
+  };
+
   return (
-    <div className="flex min-h-screen w-full bg-[#050505] pb-24 text-white lg:h-screen lg:overflow-hidden lg:pb-0">
-      <aside className="hidden w-72 shrink-0 border-r border-white/5 bg-[#0F0F0F] lg:sticky lg:top-0 lg:flex lg:h-screen lg:flex-col">
-        <div className="border-b border-white/5 px-8 py-8">
-          <button type="button" onClick={() => navigate('/')} className="text-left">
-            <p className="text-xl font-bold text-[#EFBF04]">Velvet Pearl</p>
-            <p className="mt-2 text-[10px] font-bold uppercase tracking-[0.28em] text-gray-500">Manual travel operations</p>
-          </button>
-        </div>
-
-        <nav className="min-h-0 flex-1 space-y-2 overflow-y-auto px-4 py-6">
-          {navItems.map((item) => (
-            <button
-              key={item.id}
-              type="button"
-              onClick={() => setActiveTab(item.id)}
-              className={`flex w-full items-center gap-4 rounded-2xl px-4 py-3 text-left transition ${
-                activeTab === item.id
-                  ? 'bg-[#EFBF04]/10 text-[#EFBF04]'
-                  : 'text-gray-300 hover:bg-white/5 hover:text-white'
-              }`}
-            >
-              <span className="material-symbols-outlined text-xl">{item.icon}</span>
-              <span className="text-sm font-medium">{item.label}</span>
-            </button>
-          ))}
-        </nav>
-
-        <div className="sticky bottom-0 mt-auto border-t border-white/5 bg-[#0F0F0F] p-6">
-          <button
-            type="button"
-            onClick={handleLogout}
-            className="flex w-full items-center gap-3 rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-left transition hover:bg-white/10"
-          >
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#EFBF04]/15 text-[#EFBF04]">
-              <span className="material-symbols-outlined">person</span>
-            </div>
-            <div>
-              <p className="text-sm font-semibold text-white">{adminProfile?.isMainAdmin ? 'Main Admin' : 'Admin Panel'}</p>
-              <p className="text-[10px] font-bold uppercase tracking-[0.22em] text-red-400">Logout</p>
-            </div>
-          </button>
-        </div>
-      </aside>
-
-      <main className="min-w-0 flex-1 lg:h-screen lg:overflow-y-auto">
-        <header className="sticky top-0 z-20 border-b border-white/5 bg-[#050505]/90 backdrop-blur">
-          <div className="flex flex-col gap-5 px-6 py-6 xl:flex-row xl:items-center xl:justify-between xl:px-10">
-            <div>
-              <p className="text-[11px] font-bold uppercase tracking-[0.28em] text-gray-500">Operational control center</p>
-              <h1 className="mt-2 text-3xl font-bold text-white">
-                {activeTab === 'dashboard' ? 'Enquiry Overview' : navItems.find((item) => item.id === activeTab)?.label}
-              </h1>
-              <p className="mt-2 text-sm text-gray-400">
-                Manual review, assignment, notes, quotes, and customer follow-up in one place.
-              </p>
-            </div>
-
-            <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
-              {showHeaderSearch && (
-                <div className="flex items-center gap-2 rounded-2xl border border-white/10 bg-white/5 px-4 py-3">
-                  <span className="material-symbols-outlined text-gray-500">search</span>
-                  <input
-                    type="text"
-                    value={headerSearchValue}
-                    onChange={(event) => {
-                      if (activeTab === 'bookings') {
-                        setEnquiryFilters((current) => ({ ...current, search: event.target.value }));
-                      } else {
-                        setSearchQuery(event.target.value);
-                      }
-                    }}
-                    className="w-full min-w-0 bg-transparent text-sm text-white outline-none placeholder:text-gray-600 sm:w-64"
-                    placeholder={headerSearchPlaceholder}
-                  />
-                </div>
-              )}
-              <button
-                type="button"
-                onClick={() => ['bookings', 'fleet', 'drivers'].includes(activeTab) && setIsEntryModalOpen(true)}
-                disabled={!['bookings', 'fleet', 'drivers'].includes(activeTab)}
-                className="rounded-2xl bg-[#EFBF04] px-5 py-3 text-sm font-bold text-black disabled:cursor-not-allowed disabled:opacity-50"
-              >
-                New Entry
-              </button>
-            </div>
-          </div>
-
-          <div className="flex gap-2 overflow-x-auto px-6 pb-4 lg:hidden">
-            {navItems.map((item) => (
-              <button
-                key={item.id}
-                type="button"
-                onClick={() => setActiveTab(item.id)}
-                className={`whitespace-nowrap rounded-full border px-4 py-2 text-xs font-bold uppercase tracking-[0.2em] transition ${
-                  activeTab === item.id
-                    ? 'border-[#EFBF04] bg-[#EFBF04]/10 text-[#EFBF04]'
-                    : 'border-white/10 bg-white/5 text-gray-200'
-                }`}
-              >
-                {item.label}
-              </button>
-            ))}
-          </div>
-        </header>
-
-        <div className="space-y-8 px-6 py-8 xl:px-10">
-          {dashboardError && (
-            <div aria-live="assertive" className="rounded-2xl border border-rose-500/25 bg-rose-500/10 px-4 py-3 text-sm text-rose-200" role="alert">
-              {dashboardError}
-            </div>
-          )}
-
-          {activeTab === 'dashboard' && (
-            <div className="space-y-8">
-              <section>
-                <h2 className="text-xl font-semibold text-white">Overview</h2>
-                <div className="mt-4 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-                  {isLoading
-                    ? Array.from({ length: 8 }).map((_, index) => <AdminMetricSkeletonCard key={`overview-skeleton-${index}`} />)
-                    : Object.entries(overviewCounts).map(([label, value]) => (
-                      <div key={label} className="rounded-3xl border border-white/10 bg-white/5 p-5">
-                        <p className="text-[11px] font-bold uppercase tracking-[0.22em] text-gray-500">{label}</p>
-                        <p className="mt-3 text-3xl font-bold text-white">{value}</p>
-                      </div>
-                    ))}
-                </div>
-              </section>
-
-              <section>
-                <h2 className="text-xl font-semibold text-white">Enquiry categories</h2>
-                <div className="mt-4 grid gap-4 md:grid-cols-2 xl:grid-cols-5">
-                  {isLoading
-                    ? Array.from({ length: 5 }).map((_, index) => <AdminMetricSkeletonCard key={`category-skeleton-${index}`} />)
-                    : Object.entries(TYPE_LABELS).map(([key, label]) => (
-                      <button
-                        key={key}
-                        type="button"
-                        onClick={() => {
-                          setActiveTab('bookings');
-                          setEnquiryFilters((current) => ({ ...current, type: key }));
-                        }}
-                        className="rounded-3xl border border-white/10 bg-white/5 p-5 text-left transition hover:border-[#EFBF04]/40 hover:bg-[#EFBF04]/5"
-                      >
-                        <p className="text-[11px] font-bold uppercase tracking-[0.22em] text-gray-500">{label}</p>
-                        <p className="mt-3 text-3xl font-bold text-white">{categoryCounts[key]}</p>
-                      </button>
-                    ))}
-                </div>
-              </section>
-
-              <section className="rounded-[32px] border border-white/10 bg-white/5">
-                <div className="flex flex-col gap-3 border-b border-white/10 px-6 py-5 lg:flex-row lg:items-center lg:justify-between">
-                  <div>
-                    <h2 className="text-xl font-semibold text-white">Recent enquiries</h2>
-                    <p className="mt-1 text-sm text-gray-400">Latest customer requirements waiting in the manual workflow.</p>
-                  </div>
-                  <button
-                    type="button"
-                    onClick={() => setActiveTab('bookings')}
-                    className="rounded-full border border-white/10 bg-white/5 px-4 py-2 text-xs font-bold uppercase tracking-[0.2em] text-gray-200"
-                  >
-                    Open enquiry table
-                  </button>
-                </div>
-
-                {!isLoading && enquiries.length === 0 ? (
-                  <div className="px-6 py-12 text-center text-sm text-gray-300">
-                    No enquiries yet. New customer enquiries will appear here after form submission.
-                  </div>
-                ) : (
-                  <>
-                    <div className="space-y-4 px-6 py-6 md:hidden">
-                      {isLoading
-                        ? Array.from({ length: 4 }).map((_, index) => <EnquiryCardSkeleton key={`recent-card-skeleton-${index}`} />)
-                        : recentEnquiries.map((enquiry) => (
-                          <EnquiryCard
-                            key={enquiry.id}
-                            enquiry={enquiry}
-                            onMarkContacted={markEnquiryContacted}
-                            onOpenDetail={openEnquiryDetail}
-                          />
-                        ))}
-                    </div>
-                    <div className="hidden overflow-x-auto md:block">
-                    <table className="min-w-full text-left text-sm">
-                      <thead className="bg-black/30 text-[11px] uppercase tracking-[0.22em] text-gray-500">
-                        <tr>
-                          <th className="px-6 py-4">Reference</th>
-                          <th className="px-4 py-4">Customer</th>
-                          <th className="px-4 py-4">Type</th>
-                          <th className="px-4 py-4">Travel date</th>
-                          <th className="px-4 py-4">Status</th>
-                          <th className="px-6 py-4 text-right">Action</th>
-                        </tr>
-                      </thead>
-                      <tbody className="divide-y divide-white/5">
-                        {isLoading ? Array.from({ length: 5 }).map((_, index) => (
-                          <tr key={`recent-table-skeleton-${index}`}>
-                            <td className="px-6 py-4"><SkeletonBlock className="h-4 w-24" /></td>
-                            <td className="px-4 py-4">
-                              <SkeletonBlock className="h-5 w-28" />
-                              <SkeletonBlock className="mt-2 h-4 w-20" />
-                            </td>
-                            <td className="px-4 py-4"><SkeletonBlock className="h-4 w-24" /></td>
-                            <td className="px-4 py-4"><SkeletonBlock className="h-4 w-20" /></td>
-                            <td className="px-4 py-4"><SkeletonBlock className="h-7 w-24 rounded-full" /></td>
-                            <td className="px-6 py-4 text-right">
-                              <div className="flex justify-end gap-2">
-                                <SkeletonBlock className="h-10 w-20 rounded-full" />
-                                <SkeletonBlock className="h-10 w-28 rounded-full" />
-                              </div>
-                            </td>
-                          </tr>
-                        )) : recentEnquiries.map((enquiry) => (
-                          <tr key={enquiry.id} className="hover:bg-white/5">
-                            <td className="px-6 py-4 font-mono text-xs text-[#EFBF04]">{enquiry.reference_id || enquiry.id}</td>
-                            <td className="px-4 py-4">
-                              <p className="font-semibold text-white">{getCustomerName(enquiry)}</p>
-                              <p className="text-xs text-gray-500">{getPhoneNumber(enquiry)}</p>
-                            </td>
-                            <td className="px-4 py-4 text-gray-200">{getServiceLabel(enquiry)}</td>
-                            <td className="px-4 py-4 text-gray-300">{formatDate(getTravelDateLabel(enquiry))}</td>
-                            <td className="px-4 py-4">
-                              <span className={`rounded-full px-3 py-1 text-[10px] font-bold ${getStatusClasses(enquiry.status)}`}>
-                                {enquiry.status}
-                              </span>
-                            </td>
-                            <td className="px-6 py-4 text-right">
-                              <EnquiryQuickActions enquiry={enquiry} onMarkContacted={markEnquiryContacted} onOpenDetail={openEnquiryDetail} align="end" />
-                            </td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                    </div>
-                  </>
-                )}
-              </section>
-            </div>
-          )}
-
-          {activeTab === 'bookings' && (
-            <section className="space-y-6">
-              <div className="rounded-[32px] border border-white/10 bg-white/5 p-5">
-                <div className="flex flex-col gap-4 xl:flex-row xl:items-end xl:justify-between">
-                  <div>
-                    <h2 className="text-xl font-semibold text-white">Enquiry table</h2>
-                    <p className="mt-1 text-sm text-gray-400">
-                      Reference ID, customer details, status, assignment, and quick WhatsApp actions for manual fulfilment.
-                    </p>
-                  </div>
-                  <button
-                    type="button"
-                    onClick={() => setEnquiryFilters({ type: 'all', status: 'all', submittedFrom: '', submittedTo: '', travelDate: '', search: '' })}
-                    className="rounded-full border border-white/10 bg-white/5 px-4 py-2 text-xs font-bold uppercase tracking-[0.2em] text-gray-200"
-                  >
-                    Reset filters
-                  </button>
-                </div>
-
-                <details className="mt-5 rounded-2xl border border-white/10 bg-black/20 p-4 md:hidden">
-                  <summary className="cursor-pointer list-none text-sm font-semibold text-white">
-                    Filters
-                  </summary>
-                  <div className="mt-4 grid gap-4">
-                    <div>
-                      <label className={labelClassName}>Enquiry type</label>
-                      <select
-                        className={`${inputClassName} mt-2`}
-                        value={enquiryFilters.type}
-                        onChange={(event) => setEnquiryFilters((current) => ({ ...current, type: event.target.value }))}
-                      >
-                        {TYPE_OPTIONS.map((option) => (
-                          <option key={option} value={option} className="bg-[#0A0A0A]">
-                            {option === 'all' ? 'All enquiry types' : TYPE_LABELS[option]}
-                          </option>
-                        ))}
-                      </select>
-                    </div>
-                    <div>
-                      <label className={labelClassName}>Status</label>
-                      <select
-                        className={`${inputClassName} mt-2`}
-                        value={enquiryFilters.status}
-                        onChange={(event) => setEnquiryFilters((current) => ({ ...current, status: event.target.value }))}
-                      >
-                        <option value="all" className="bg-[#0A0A0A]">All statuses</option>
-                        {STATUS_OPTIONS.map((status) => (
-                          <option key={status} value={status} className="bg-[#0A0A0A]">
-                            {status}
-                          </option>
-                        ))}
-                      </select>
-                    </div>
-                    <div>
-                      <label className={labelClassName}>Submitted from</label>
-                      <input
-                        type="date"
-                        className={`${inputClassName} mt-2`}
-                        value={enquiryFilters.submittedFrom}
-                        onChange={(event) => setEnquiryFilters((current) => ({ ...current, submittedFrom: event.target.value }))}
-                      />
-                    </div>
-                    <div>
-                      <label className={labelClassName}>Submitted to</label>
-                      <input
-                        type="date"
-                        className={`${inputClassName} mt-2`}
-                        value={enquiryFilters.submittedTo}
-                        onChange={(event) => setEnquiryFilters((current) => ({ ...current, submittedTo: event.target.value }))}
-                      />
-                    </div>
-                    <div>
-                      <label className={labelClassName}>Travel date</label>
-                      <input
-                        type="date"
-                        className={`${inputClassName} mt-2`}
-                        value={enquiryFilters.travelDate}
-                        onChange={(event) => setEnquiryFilters((current) => ({ ...current, travelDate: event.target.value }))}
-                      />
-                    </div>
-                    <div>
-                      <label className={labelClassName}>Name / phone / reference</label>
-                      <input
-                        type="text"
-                        className={`${inputClassName} mt-2`}
-                        value={enquiryFilters.search}
-                        onChange={(event) => setEnquiryFilters((current) => ({ ...current, search: event.target.value }))}
-                        placeholder="Search enquiry"
-                      />
-                    </div>
-                  </div>
-                </details>
-
-                <div className="mt-5 hidden gap-4 md:grid md:grid-cols-2 xl:grid-cols-6">
-                  <div>
-                    <label className={labelClassName}>Enquiry type</label>
-                    <select
-                      className={`${inputClassName} mt-2`}
-                      value={enquiryFilters.type}
-                      onChange={(event) => setEnquiryFilters((current) => ({ ...current, type: event.target.value }))}
-                    >
-                      {TYPE_OPTIONS.map((option) => (
-                        <option key={option} value={option} className="bg-[#0A0A0A]">
-                          {option === 'all' ? 'All enquiry types' : TYPE_LABELS[option]}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-                  <div>
-                    <label className={labelClassName}>Status</label>
-                    <select
-                      className={`${inputClassName} mt-2`}
-                      value={enquiryFilters.status}
-                      onChange={(event) => setEnquiryFilters((current) => ({ ...current, status: event.target.value }))}
-                    >
-                      <option value="all" className="bg-[#0A0A0A]">All statuses</option>
-                      {STATUS_OPTIONS.map((status) => (
-                        <option key={status} value={status} className="bg-[#0A0A0A]">
-                          {status}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-                  <div>
-                    <label className={labelClassName}>Submitted from</label>
-                    <input
-                      type="date"
-                      className={`${inputClassName} mt-2`}
-                      value={enquiryFilters.submittedFrom}
-                      onChange={(event) => setEnquiryFilters((current) => ({ ...current, submittedFrom: event.target.value }))}
-                    />
-                  </div>
-                  <div>
-                    <label className={labelClassName}>Submitted to</label>
-                    <input
-                      type="date"
-                      className={`${inputClassName} mt-2`}
-                      value={enquiryFilters.submittedTo}
-                      onChange={(event) => setEnquiryFilters((current) => ({ ...current, submittedTo: event.target.value }))}
-                    />
-                  </div>
-                  <div>
-                    <label className={labelClassName}>Travel date</label>
-                    <input
-                      type="date"
-                      className={`${inputClassName} mt-2`}
-                      value={enquiryFilters.travelDate}
-                      onChange={(event) => setEnquiryFilters((current) => ({ ...current, travelDate: event.target.value }))}
-                    />
-                  </div>
-                  <div>
-                    <label className={labelClassName}>Name / phone / reference</label>
-                    <input
-                      type="text"
-                      className={`${inputClassName} mt-2`}
-                      value={enquiryFilters.search}
-                      onChange={(event) => setEnquiryFilters((current) => ({ ...current, search: event.target.value }))}
-                      placeholder="Search enquiry"
-                    />
-                  </div>
-                </div>
-              </div>
-
-              <div className="flex flex-wrap gap-3">
-                {Object.entries(TYPE_LABELS).map(([key, label]) => (
-                  <button
-                    key={key}
-                    type="button"
-                    onClick={() => setEnquiryFilters((current) => ({ ...current, type: key }))}
-                    className={`rounded-full border px-4 py-2 text-xs font-bold uppercase tracking-[0.2em] ${
-                      enquiryFilters.type === key
-                        ? 'border-[#EFBF04] bg-[#EFBF04]/10 text-[#EFBF04]'
-                        : 'border-white/10 bg-white/5 text-gray-200'
-                    }`}
-                  >
-                    {label} ({categoryCounts[key]})
-                  </button>
-                ))}
-              </div>
-
-              <div className="overflow-hidden rounded-[32px] border border-white/10 bg-white/5">
-                <div className="space-y-4 p-4 md:hidden">
-                  {isLoading ? Array.from({ length: 5 }).map((_, index) => (
-                    <EnquiryCardSkeleton key={`mobile-enquiry-skeleton-${index}`} />
-                  )) : filteredEnquiries.length > 0 ? filteredEnquiries.map((enquiry) => (
-                    <EnquiryCard
-                      key={enquiry.id}
-                      enquiry={enquiry}
-                      onMarkContacted={markEnquiryContacted}
-                      onOpenDetail={openEnquiryDetail}
-                    />
-                  )) : (
-                    <div className="px-2 py-6 text-center text-sm text-gray-300">
-                      {enquiries.length === 0
-                        ? 'No enquiries yet. New customer enquiries will appear here after form submission.'
-                        : 'No enquiries match the current filters.'}
-                    </div>
-                  )}
-                </div>
-                <div className="hidden overflow-x-auto md:block">
-                  <table className="min-w-full text-left text-sm">
-                    <thead className="bg-black/30 text-[11px] uppercase tracking-[0.22em] text-gray-500">
-                      <tr>
-                        <th className="px-6 py-4">Reference ID</th>
-                        <th className="px-4 py-4">Customer name</th>
-                        <th className="px-4 py-4">Phone</th>
-                        <th className="px-4 py-4">WhatsApp</th>
-                        <th className="px-4 py-4">Enquiry type</th>
-                        <th className="px-4 py-4">Travel date</th>
-                        <th className="px-4 py-4">Submitted</th>
-                        <th className="px-4 py-4">Status</th>
-                        <th className="px-4 py-4">Assigned resource</th>
-                        <th className="px-6 py-4 text-right">Quick actions</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-white/5">
-                      {isLoading ? <EnquiryTableSkeletonRows count={6} /> : filteredEnquiries.map((enquiry) => {
-                        return (
-                          <tr key={enquiry.id} className="align-top hover:bg-white/5">
-                            <td className="px-6 py-5 font-mono text-xs text-[#EFBF04]">{enquiry.reference_id || enquiry.id}</td>
-                            <td className="px-4 py-5">
-                              <p className="font-semibold text-white">{getCustomerName(enquiry)}</p>
-                              <p className="mt-1 max-w-[240px] text-xs text-gray-500">{summarizeEnquiry(enquiry)}</p>
-                            </td>
-                            <td className="px-4 py-5 text-gray-200">{getPhoneNumber(enquiry)}</td>
-                            <td className="px-4 py-5 text-gray-200">{getWhatsAppNumber(enquiry) || 'Not shared'}</td>
-                            <td className="px-4 py-5 text-gray-200">{getServiceLabel(enquiry)}</td>
-                            <td className="px-4 py-5 text-gray-300">{formatDate(getTravelDateLabel(enquiry))}</td>
-                            <td className="px-4 py-5 text-gray-300">{formatDateTime(enquiry.submitted_at || enquiry.created_at)}</td>
-                            <td className="px-4 py-5">
-                              <span className={`rounded-full px-3 py-1 text-[10px] font-bold ${getStatusClasses(enquiry.status)}`}>
-                                {enquiry.status}
-                              </span>
-                            </td>
-                            <td className="px-4 py-5 text-gray-300">{getAssignedResourceSummary(enquiry)}</td>
-                            <td className="px-6 py-5">
-                              <EnquiryQuickActions enquiry={enquiry} onMarkContacted={markEnquiryContacted} onOpenDetail={openEnquiryDetail} align="end" />
-                            </td>
-                          </tr>
-                        );
-                      })}
-
-                      {!isLoading && filteredEnquiries.length === 0 && (
-                        <tr>
-                          <td colSpan="10" className="px-6 py-12 text-center text-sm text-gray-300">
-                            {enquiries.length === 0
-                              ? 'No enquiries yet. New customer enquiries will appear here after form submission.'
-                              : 'No enquiries match the current filters.'}
-                          </td>
-                        </tr>
-                      )}
-                    </tbody>
-                  </table>
-                </div>
-              </div>
-            </section>
-          )}
-
-          {activeTab === 'drivers' && (
-            <section className="grid gap-6 lg:grid-cols-2">
-              {isLoading ? Array.from({ length: 4 }).map((_, index) => (
-                <AdminEntityCardSkeleton key={`driver-skeleton-${index}`} />
-              )) : filteredDrivers.map((driver) => (
-                <article key={driver.id} className="rounded-[28px] border border-white/10 bg-white/5 p-6">
-                  <div className="flex items-start justify-between gap-4">
-                    <div>
-                      <p className="text-xl font-semibold text-white">{driver.name}</p>
-                      <p className="mt-1 text-sm text-gray-400">{driver.phone}</p>
-                    </div>
-                    <span className={`rounded-full px-3 py-1 text-[10px] font-bold ${getStatusClasses(driver.status)}`}>
-                      {driver.status}
-                    </span>
-                  </div>
-                  <div className="mt-5 grid gap-3 sm:grid-cols-2">
-                    <div className="rounded-2xl bg-black/20 p-4">
-                      <p className={labelClassName}>Driver ID</p>
-                      <p className="mt-2 text-sm text-white">{driver.id}</p>
-                    </div>
-                    <div className="rounded-2xl bg-black/20 p-4">
-                      <p className={labelClassName}>Assigned vehicle</p>
-                      <p className="mt-2 text-sm text-white">{driver.assigned_vehicle || 'Not assigned'}</p>
-                    </div>
-                    <div className="rounded-2xl bg-black/20 p-4">
-                      <p className={labelClassName}>Experience</p>
-                      <p className="mt-2 text-sm text-white">{driver.experience || 'Not shared'}</p>
-                    </div>
-                    <div className="rounded-2xl bg-black/20 p-4">
-                      <p className={labelClassName}>Licence status</p>
-                      <p className="mt-2 text-sm text-white">{driver.licence_status || 'Pending'}</p>
-                    </div>
-                  </div>
-                </article>
-              ))}
-
-              {!isLoading && filteredDrivers.length === 0 && (
-                <div className="rounded-[28px] border border-white/10 bg-white/5 p-10 text-sm text-gray-300">
-                  No drivers match the current search.
-                </div>
-              )}
-            </section>
-          )}
-
-          {activeTab === 'fleet' && (
-            <section className="grid gap-6 lg:grid-cols-2 xl:grid-cols-3">
-              {isLoading ? Array.from({ length: 6 }).map((_, index) => (
-                <AdminEntityCardSkeleton key={`fleet-skeleton-${index}`} compact />
-              )) : filteredFleet.map((vehicle) => (
-                <article key={vehicle.id} className="rounded-[28px] border border-white/10 bg-white/5 p-6">
-                  <div className="flex items-start justify-between gap-4">
-                    <div>
-                      <p className="text-xl font-semibold text-white">{vehicle.model}</p>
-                      <p className="mt-1 text-sm text-gray-400">{vehicle.plate}</p>
-                    </div>
-                    <span className={`rounded-full px-3 py-1 text-[10px] font-bold ${getStatusClasses(vehicle.status)}`}>
-                      {vehicle.status}
-                    </span>
-                  </div>
-                  <div className="mt-5 grid gap-3">
-                    <div className="rounded-2xl bg-black/20 p-4">
-                      <p className={labelClassName}>Vehicle ID</p>
-                      <p className="mt-2 text-sm text-white">{vehicle.id}</p>
-                    </div>
-                    <div className="rounded-2xl bg-black/20 p-4">
-                      <p className={labelClassName}>Type</p>
-                      <p className="mt-2 text-sm text-white">{vehicle.type || 'Not shared'}</p>
-                    </div>
-                    <div className="rounded-2xl bg-black/20 p-4">
-                      <p className={labelClassName}>Insurance expiry</p>
-                      <p className="mt-2 text-sm text-white">{formatDate(vehicle.insurance_expiry)}</p>
-                    </div>
-                  </div>
-                </article>
-              ))}
-
-              {!isLoading && filteredFleet.length === 0 && (
-                <div className="rounded-[28px] border border-white/10 bg-white/5 p-10 text-sm text-gray-300">
-                  No fleet records match the current search.
-                </div>
-              )}
-            </section>
-          )}
-
-          {activeTab === 'settings' && (
-            <div className="mx-auto max-w-4xl space-y-8">
-              <section className="rounded-[32px] border border-white/10 bg-white/5 p-8">
-                <h2 className="text-2xl font-semibold text-white">Security and authentication</h2>
-                <p className="mt-2 text-sm text-gray-400">Manage your admin password and onboarding access.</p>
-
-                <form aria-busy={isPwdLoading} onSubmit={handlePasswordChange} className="mt-6 space-y-5">
-                  {pwdError && <div aria-live="assertive" className="rounded-2xl border border-rose-500/20 bg-rose-500/10 px-4 py-3 text-sm text-rose-200" role="alert">{pwdError}</div>}
-                  {pwdMessage && <div aria-live="polite" className="rounded-2xl border border-emerald-500/20 bg-emerald-500/10 px-4 py-3 text-sm text-emerald-200" role="status">{pwdMessage}</div>}
-
-                  <div>
-                    <label className={labelClassName}>Current password</label>
-                    <input type="password" className={`${inputClassName} mt-2`} value={oldPassword} onChange={(event) => setOldPassword(event.target.value)} required />
-                  </div>
-                  <div className="grid gap-4 md:grid-cols-2">
-                    <div>
-                      <label className={labelClassName}>New password</label>
-                      <input type="password" className={`${inputClassName} mt-2`} value={newPassword} onChange={(event) => setNewPassword(event.target.value)} minLength={6} required />
-                    </div>
-                    <div>
-                      <label className={labelClassName}>Confirm password</label>
-                      <input type="password" className={`${inputClassName} mt-2`} value={confirmPassword} onChange={(event) => setConfirmPassword(event.target.value)} required />
-                    </div>
-                  </div>
-
-                  <LoadingButton
-                    type="submit"
-                    isLoading={isPwdLoading}
-                    idleLabel="Update password"
-                    loadingLabel="Updating Password..."
-                    className="w-auto rounded-2xl bg-[#EFBF04] px-5 py-3 normal-case tracking-normal text-sm text-black hover:brightness-100"
-                    spinnerClassName="text-black"
-                  />
-                </form>
-              </section>
-
-              <section className="rounded-[32px] border border-white/10 bg-white/5 p-8">
-                <h2 className="text-2xl font-semibold text-white">Admin onboarding keys</h2>
-                <p className="mt-2 text-sm text-gray-400">Generate a one-time setup key for another admin when needed.</p>
-
-                {adminProfile?.isMainAdmin ? (
-                  <div className="mt-6 space-y-5">
-                    <LoadingButton
-                      type="button"
-                      onClick={handleGenerateSetupKey}
-                      isLoading={isSetupKeyLoading}
-                      idleLabel="Generate setup key"
-                      loadingLabel="Generating Setup Key..."
-                      className="w-auto rounded-2xl bg-[#EFBF04] px-5 py-3 normal-case tracking-normal text-sm text-black hover:brightness-100"
-                      spinnerClassName="text-black"
-                    />
-                    {setupKeyData?.setupKey && (
-                      <div aria-live="polite" className="rounded-2xl border border-emerald-500/20 bg-emerald-500/10 p-4" role="status">
-                        <p className={labelClassName}>Generated setup key</p>
-                        <p className="mt-3 break-all font-mono text-lg text-white">{setupKeyData.setupKey}</p>
-                        <p className="mt-2 text-sm text-emerald-200">Expires: {formatDateTime(setupKeyData.expiresAt)}</p>
-                      </div>
-                    )}
-                  </div>
-                ) : (
-                  <div className="mt-6 rounded-2xl border border-white/10 bg-black/20 px-4 py-3 text-sm text-gray-300">
-                    Setup key generation is restricted to the main admin account.
-                  </div>
-                )}
-              </section>
-            </div>
-          )}
-        </div>
-      </main>
-
-      <AdminForms
-        type={activeTab === 'bookings' ? 'bookings' : activeTab}
-        isOpen={isEntryModalOpen}
-        onClose={() => setIsEntryModalOpen(false)}
-        onSubmit={handleAddEntry}
+    <>
+      <MobileAdminDashboard
+        activeTab={activeTab}
+        setActiveTab={setActiveTab}
+        navItems={navItems}
+        enquiries={enquiries}
+        drivers={drivers}
+        fleet={fleet}
+        isLoading={isLoading}
+        dashboardError={dashboardError}
+        overviewCounts={overviewCounts}
+        categoryCounts={categoryCounts}
+        recentEnquiries={recentEnquiries}
+        filteredEnquiries={filteredEnquiries}
+        filteredDrivers={filteredDrivers}
+        filteredFleet={filteredFleet}
+        enquiryFilters={enquiryFilters}
+        setEnquiryFilters={setEnquiryFilters}
+        searchQuery={searchQuery}
+        setSearchQuery={setSearchQuery}
+        selectedEnquiry={selectedEnquiry}
+        detailDraft={detailDraft}
+        isDetailLoading={isDetailLoading}
+        savingAction={savingAction}
+        openEnquiryDetail={openEnquiryDetail}
+        markEnquiryContacted={markEnquiryContacted}
+        onCloseDetail={() => {
+          setSelectedEnquiry(null);
+          setDetailDraft(null);
+          setIsDetailLoading(false);
+        }}
+        onDraftChange={(field, value) => setDetailDraft((current) => ({ ...current, [field]: value }))}
+        onSaveStatus={() => runEnquiryAction('status', () => updateEnquiryStatus(selectedEnquiry.id, detailDraft.status))}
+        onSaveNotes={() => runEnquiryAction('notes', () => updateEnquiryNotes(selectedEnquiry.id, detailDraft.admin_notes))}
+        onSaveQuote={() => runEnquiryAction('quote', () => updateEnquiryQuote(selectedEnquiry.id, detailDraft.quote_amount))}
+        onSaveFollowUp={() => runEnquiryAction('follow_up', () => updateEnquiry(selectedEnquiry.id, {
+          last_contacted_at: detailDraft.last_contacted_at || null,
+          follow_up_at: detailDraft.follow_up_at || null,
+          assigned_owner_id: detailDraft.assigned_owner_id || '',
+        }))}
+        onSaveDriver={() => runEnquiryAction('driver', () => assignDriverToEnquiry(selectedEnquiry.id, {
+          driver_id: detailDraft.assigned_driver_id,
+        }))}
+        onSaveVehicle={() => runEnquiryAction('vehicle', () => assignVehicleToEnquiry(selectedEnquiry.id, {
+          vehicle_id: detailDraft.assigned_vehicle_id,
+        }))}
+        onSaveRoom={() => runEnquiryAction('room', () => assignRoomToEnquiry(selectedEnquiry.id, {
+          room_id: detailDraft.assigned_room_id || '',
+          hotel_option: detailDraft.assigned_hotel_option || '',
+        }))}
+        onSavePackage={() => runEnquiryAction('package', () => assignPackageToEnquiry(selectedEnquiry.id, {
+          package_id: detailDraft.assigned_package_id,
+        }))}
+        onArchive={() => runEnquiryAction('archive', () => archiveEnquiryRecord(selectedEnquiry.id, 'Archived from admin dashboard'), { closeAfter: true })}
+        getStatusClasses={getStatusClasses}
+        getCustomerName={getCustomerName}
+        getServiceLabel={getServiceLabel}
+        getTravelDateLabel={getTravelDateLabel}
+        formatDate={formatDate}
+        formatDateTime={formatDateTime}
+        typeLabels={TYPE_LABELS}
+        typeOptions={TYPE_OPTIONS}
+        statusOptions={STATUS_OPTIONS}
+        handleLogout={handleLogout}
+        adminProfile={adminProfile}
+        oldPassword={oldPassword}
+        newPassword={newPassword}
+        confirmPassword={confirmPassword}
+        setOldPassword={setOldPassword}
+        setNewPassword={setNewPassword}
+        setConfirmPassword={setConfirmPassword}
+        handlePasswordChange={handlePasswordChange}
+        pwdError={pwdError}
+        pwdMessage={pwdMessage}
+        isPwdLoading={isPwdLoading}
+        handleGenerateSetupKey={handleGenerateSetupKey}
+        isSetupKeyLoading={isSetupKeyLoading}
+        setupKeyData={setupKeyData}
+        onOpenNewEntrySheet={() => setIsMobileEntrySheetOpen(true)}
+        onSubmitMobileEntry={handleAddEntry}
+        helpers={helperBag}
+        onGoHome={() => setActiveTab('dashboard')}
       />
 
+      <DesktopAdminDashboard
+        navigate={navigate}
+        navItems={navItems}
+        activeTab={activeTab}
+        setActiveTab={setActiveTab}
+        adminProfile={adminProfile}
+        handleLogout={handleLogout}
+        showHeaderSearch={showHeaderSearch}
+        headerSearchValue={headerSearchValue}
+        headerSearchPlaceholder={headerSearchPlaceholder}
+        setEnquiryFilters={setEnquiryFilters}
+        setSearchQuery={setSearchQuery}
+        openEntryModal={openEntryModal}
+        dashboardError={dashboardError}
+        isLoading={isLoading}
+        overviewCounts={overviewCounts}
+        categoryCounts={categoryCounts}
+        enquiries={enquiries}
+        recentEnquiries={recentEnquiries}
+        markEnquiryContacted={markEnquiryContacted}
+        openEnquiryDetail={openEnquiryDetail}
+        filteredEnquiries={filteredEnquiries}
+        filteredDrivers={filteredDrivers}
+        filteredFleet={filteredFleet}
+        enquiryFilters={enquiryFilters}
+        oldPassword={oldPassword}
+        setOldPassword={setOldPassword}
+        newPassword={newPassword}
+        setNewPassword={setNewPassword}
+        confirmPassword={confirmPassword}
+        setConfirmPassword={setConfirmPassword}
+        isPwdLoading={isPwdLoading}
+        handlePasswordChange={handlePasswordChange}
+        pwdError={pwdError}
+        pwdMessage={pwdMessage}
+        handleGenerateSetupKey={handleGenerateSetupKey}
+        isSetupKeyLoading={isSetupKeyLoading}
+        setupKeyData={setupKeyData}
+      />
+
+      <AdminForms
+        type={entryModalType}
+        isOpen={isEntryModalOpen}
+        onClose={() => {
+          setIsEntryModalOpen(false);
+          setEntryModalType(activeTab === 'bookings' ? 'bookings' : activeTab);
+        }}
+        onSubmit={handleAddEntry}
+        presentation="mobile-fullscreen"
+      />
+
+      <div className="hidden lg:block">
       <EnquiryDetailModal
         enquiry={selectedEnquiry}
         draft={detailDraft}
@@ -1878,6 +1937,7 @@ export default function AdminDashboard() {
         }))}
         onArchive={() => runEnquiryAction('archive', () => archiveEnquiryRecord(selectedEnquiry.id, 'Archived from admin dashboard'), { closeAfter: true })}
       />
-    </div>
+      </div>
+    </>
   );
 }

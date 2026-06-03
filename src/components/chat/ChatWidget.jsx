@@ -4,28 +4,12 @@ import { buildWhatsAppLink, DEFAULT_WHATSAPP_PHONE } from '../../utils/whatsapp'
 
 export default function ChatWidget() {
   const [isOpen, setIsOpen] = useState(false);
-  const [shouldRenderPanel, setShouldRenderPanel] = useState(false);
-  const [isPanelVisible, setIsPanelVisible] = useState(false);
   const { pathname } = useLocation();
   const showMobileContactDock = !pathname.startsWith('/admin') && !pathname.startsWith('/book/') && !pathname.startsWith('/packages/') && pathname !== '/contact';
   const whatsappHref = buildWhatsAppLink({
     phone: DEFAULT_WHATSAPP_PHONE,
     message: 'Hi, I would like to know more about your travel services. Please help me plan my trip.',
   });
-
-  useEffect(() => {
-    if (isOpen) {
-      setShouldRenderPanel(true);
-      const frame = window.requestAnimationFrame(() => setIsPanelVisible(true));
-      return () => window.cancelAnimationFrame(frame);
-    }
-
-    if (!shouldRenderPanel) return undefined;
-
-    setIsPanelVisible(false);
-    const timeout = window.setTimeout(() => setShouldRenderPanel(false), 180);
-    return () => window.clearTimeout(timeout);
-  }, [isOpen, shouldRenderPanel]);
 
   useEffect(() => {
     if (!isOpen) return undefined;
@@ -42,8 +26,8 @@ export default function ChatWidget() {
 
   return (
     <>
-      {shouldRenderPanel && (
-        <div className={`fixed bottom-24 right-4 z-[110] hidden w-[350px] overflow-hidden rounded-2xl border border-white/10 shadow-[0_20px_60px_rgba(0,0,0,0.6)] glass-panel transition-all duration-300 ease-out md:block md:bottom-28 md:right-8 md:w-[380px] ${isPanelVisible ? 'translate-y-0 scale-100 opacity-100' : 'translate-y-3 scale-[0.98] opacity-0'}`}>
+      {isOpen && (
+        <div className="fixed bottom-24 right-4 z-[110] hidden w-[350px] translate-y-0 scale-100 overflow-hidden rounded-2xl border border-white/10 opacity-100 shadow-[0_20px_60px_rgba(0,0,0,0.6)] glass-panel transition-all duration-300 ease-out md:bottom-28 md:right-8 md:block md:w-[380px]">
           <div className="bg-primary-container px-6 py-4 flex items-center justify-between">
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center border border-white/20">
