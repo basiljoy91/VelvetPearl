@@ -1,24 +1,45 @@
 import React, { useState } from 'react';
 import { X } from 'lucide-react';
+import { LoadingButton } from '../ui/LoadingState';
 
 const inputClassName = 'w-full bg-white/5 border border-white/10 rounded-lg p-3 text-white outline-none focus:border-[#EFBF04]/40';
 const labelClassName = 'text-[10px] uppercase tracking-widest text-[#EFBF04] font-bold';
 
+const submitLabelsByType = {
+  bookings: {
+    idle: 'Add Enquiry',
+    loading: 'Adding Enquiry...',
+  },
+  fleet: {
+    idle: 'Add Fleet Record',
+    loading: 'Adding Fleet Record...',
+  },
+  drivers: {
+    idle: 'Add Driver',
+    loading: 'Adding Driver...',
+  },
+};
+
 export default function AdminForms({ type, isOpen, onClose, onSubmit }) {
   const [formData, setFormData] = useState({});
+  const [formError, setFormError] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   if (!isOpen) return null;
 
   const handleClose = () => {
     setFormData({});
+    setFormError('');
+    setIsSubmitting(false);
     onClose();
   };
 
   const handleChange = (e) => {
+    if (formError) setFormError('');
     setFormData((current) => ({ ...current, [e.target.name]: e.target.value }));
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
 
     let defaultValues = {};
@@ -45,22 +66,42 @@ export default function AdminForms({ type, isOpen, onClose, onSubmit }) {
       };
     }
 
-    onSubmit({ ...formData, ...defaultValues });
-    handleClose();
+    setFormError('');
+    setIsSubmitting(true);
+
+    try {
+      await onSubmit({ ...formData, ...defaultValues });
+      handleClose();
+    } catch (error) {
+      setFormError(error.message || 'Unable to save the record. Please review the form and try again.');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const submitLabels = submitLabelsByType[type] || {
+    idle: 'Save Record',
+    loading: 'Saving Record...',
   };
 
   return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+    <div className="fixed inset-0 z-[100] flex items-start justify-center overflow-y-auto p-3 md:items-center md:p-4">
       <div className="absolute inset-0 bg-black/80 backdrop-blur-md" onClick={handleClose} />
-      <div className="relative w-full max-w-3xl bg-[#0F0F0F] border border-[#EFBF04]/20 rounded-2xl shadow-2xl p-8 overflow-hidden max-h-[90vh] overflow-y-auto">
-        <div className="flex justify-between items-center mb-8">
+      <div className="relative flex w-full max-w-3xl flex-col overflow-hidden rounded-2xl border border-[#EFBF04]/20 bg-[#0F0F0F] shadow-2xl max-h-[calc(100vh-1.5rem)] md:max-h-[90vh]">
+        <div className="sticky top-0 z-10 flex items-center justify-between border-b border-white/10 bg-[#0F0F0F]/95 px-5 py-5 backdrop-blur md:px-8 md:py-6">
           <h3 className="text-2xl font-headline font-bold text-white capitalize">Add New {type}</h3>
           <button onClick={handleClose} className="p-2 hover:bg-white/5 rounded-full text-white transition-colors">
             <X className="w-6 h-6" />
           </button>
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-8">
+        <form aria-busy={isSubmitting} onSubmit={handleSubmit} className="flex min-h-0 flex-1 flex-col">
+          <div className="space-y-8 overflow-y-auto px-5 py-5 md:px-8 md:py-6">
+          {formError && (
+            <div aria-live="assertive" className="rounded-xl border border-rose-500/30 bg-rose-500/10 px-4 py-3 text-sm text-rose-200" role="alert">
+              {formError}
+            </div>
+          )}
           {type === 'bookings' && (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="space-y-2">
@@ -248,9 +289,18 @@ export default function AdminForms({ type, isOpen, onClose, onSubmit }) {
             </div>
           )}
 
-          <button type="submit" className="w-full bg-[#EFBF04] text-black py-4 rounded-xl font-bold uppercase tracking-widest text-sm hover:scale-[0.98] transition-all">
-            Save Record
-          </button>
+          </div>
+
+          <div className="sticky bottom-0 border-t border-white/10 bg-[#0F0F0F]/95 px-5 py-4 backdrop-blur md:px-8">
+          <LoadingButton
+            className="bg-[#EFBF04] text-black hover:scale-[0.98] hover:brightness-100"
+            idleLabel={submitLabels.idle}
+            isLoading={isSubmitting}
+            loadingLabel={submitLabels.loading}
+            spinnerClassName="text-black"
+            type="submit"
+          />
+          </div>
         </form>
       </div>
     </div>

@@ -37,6 +37,27 @@ const serializeAuditValue = (value) => {
   }
 };
 
+const parseDurationDays = (value) => {
+  if (value === undefined || value === null || value === '') return null;
+
+  if (typeof value === 'number' && Number.isFinite(value) && value > 0) {
+    return Math.round(value);
+  }
+
+  const normalized = String(value).trim().toLowerCase();
+  if (!normalized) return null;
+
+  const directNumber = normalized.match(/^(\d+)$/);
+  if (directNumber) {
+    return Number(directNumber[1]);
+  }
+
+  const numberMatches = [...normalized.matchAll(/\d+/g)].map(([match]) => Number(match));
+  if (!numberMatches.length) return null;
+
+  return numberMatches[0] > 0 ? numberMatches[0] : null;
+};
+
 const insertServiceDetails = async (client, enquiryId, enquiryType, details) => {
   if (enquiryType === 'cab') {
     await client.query(
@@ -95,6 +116,9 @@ const insertServiceDetails = async (client, enquiryId, enquiryType, details) => 
   }
 
   if (enquiryType === 'tour') {
+    const durationLabel = details.duration_label || details.trip_duration || details.duration || null;
+    const durationDays = parseDurationDays(details.duration_days ?? durationLabel);
+
     await client.query(
       `
         INSERT INTO tour_enquiry_details (
@@ -103,21 +127,23 @@ const insertServiceDetails = async (client, enquiryId, enquiryType, details) => 
           travel_window_start,
           travel_window_end,
           duration_days,
+          duration_label,
           group_size,
           pickup_required,
           hotel_preference,
           budget
         )
-        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
       `,
       [
         enquiryId,
-        details.destination || null,
+        details.destination || details.package_name || null,
         details.travel_window_start || null,
         details.travel_window_end || null,
-        details.duration || null,
+        durationDays,
+        durationLabel,
         details.group_size || null,
-        details.pickup_required || null,
+        details.pickup_required || details.cab_required || null,
         details.hotel_preference || null,
         details.budget || null,
       ]

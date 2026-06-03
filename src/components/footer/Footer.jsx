@@ -24,7 +24,6 @@ export default function Footer() {
             <ul className="space-y-3">
               <li><a className="text-sm text-gray-500 hover:text-[#2249DB] transition-all" href={buildWhatsAppLink({ phone: DEFAULT_WHATSAPP_PHONE, message: 'Hi, I would like to know more about your travel services.' })} rel="noreferrer" target="_blank">WhatsApp Support</a></li>
               <li><Link className="text-sm text-gray-500 hover:text-[#2249DB] transition-all" to="/contact">Contact Us</Link></li>
-              <li><Link className="text-sm text-gray-500 hover:text-[#2249DB] transition-all" to="/admin">Admin Access</Link></li>
             </ul>
           </div>
           <div>
@@ -35,9 +34,9 @@ export default function Footer() {
               <a className="w-10 h-10 rounded-full border border-outline-variant/30 flex items-center justify-center hover:bg-primary-container transition-all group cursor-pointer" href={buildWhatsAppLink({ phone: DEFAULT_WHATSAPP_PHONE, message: 'Hi, I would like to know more about your travel services.' })} rel="noreferrer" target="_blank">
                 <span className="material-symbols-outlined text-sm text-gray-400 group-hover:text-white">forum</span>
               </a>
-              <a className="w-10 h-10 rounded-full border border-outline-variant/30 flex items-center justify-center hover:bg-primary-container transition-all group cursor-pointer" href="tel:+919943139353">
+              <Link className="w-10 h-10 rounded-full border border-outline-variant/30 flex items-center justify-center hover:bg-primary-container transition-all group cursor-pointer" to="/contact">
                 <span className="material-symbols-outlined text-sm text-gray-400 group-hover:text-white">call</span>
-              </a>
+              </Link>
             </div>
           </div>
         </div>

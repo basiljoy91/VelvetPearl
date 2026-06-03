@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useMemo, useRef, useState } from 'react';
 import { useLocation } from 'react-router-dom';
 import { addEnquiry } from '../services/dataService';
 import {
@@ -6,9 +6,12 @@ import {
   CustomerDetailsFields,
   EnquirySuccess,
   FieldError,
+  focusFirstInvalidField,
+  FormErrorSummary,
   FormShell,
   inputClassName,
   labelClassName,
+  LoadingButton,
   SectionHeading,
   validateCommonFields,
 } from '../components/forms/EnquiryFormParts';
@@ -46,6 +49,7 @@ export default function EventBooking() {
   const [apiError, setApiError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [submittedEnquiry, setSubmittedEnquiry] = useState(null);
+  const formRef = useRef(null);
 
   const handleChange = (e) => {
     const { name, type, value, checked } = e.target;
@@ -92,7 +96,10 @@ export default function EventBooking() {
     setErrors(nextErrors);
     setApiError('');
 
-    if (Object.keys(nextErrors).length > 0) return;
+    if (Object.keys(nextErrors).length > 0) {
+      focusFirstInvalidField(formRef.current, nextErrors);
+      return;
+    }
 
     setIsLoading(true);
 
@@ -106,7 +113,6 @@ export default function EventBooking() {
         consent_to_contact: formData.consent_to_contact,
         service_type: 'custom',
         source_page: 'custom',
-        travel_date: formData.travel_date_window,
         requirement_notes: formData.full_requirement_details,
         enquiry_details: {
           custom_category: formData.requirement_type,
@@ -155,12 +161,13 @@ export default function EventBooking() {
           whatsappHref={whatsappHref}
         />
       ) : (
-        <form className="space-y-10" noValidate onSubmit={handleSubmit}>
+        <form ref={formRef} aria-busy={isLoading} className="space-y-10" noValidate onSubmit={handleSubmit}>
           {apiError && (
-            <div className="rounded-xl border border-rose-500/30 bg-rose-500/10 px-4 py-3 text-sm text-rose-200">
+            <div aria-live="assertive" className="rounded-xl border border-rose-500/30 bg-rose-500/10 px-4 py-3 text-sm text-rose-200" role="alert">
               {apiError}
             </div>
           )}
+          <FormErrorSummary errors={errors} />
 
           <SectionHeading
             description="Tell us how you want us to follow up once we review this custom requirement."
@@ -236,9 +243,11 @@ export default function EventBooking() {
             </div>
           </div>
 
-          <button className="w-full rounded-xl bg-primary-container px-6 py-4 text-sm font-bold uppercase tracking-[0.2em] text-white transition-all hover:brightness-110 disabled:opacity-60" disabled={isLoading} type="submit">
-            {isLoading ? 'Submitting...' : 'Submit Custom Enquiry'}
-          </button>
+          <LoadingButton
+            idleLabel="Submit Custom Enquiry"
+            isLoading={isLoading}
+            loadingLabel="Submitting Enquiry..."
+          />
         </form>
       )}
     </FormShell>

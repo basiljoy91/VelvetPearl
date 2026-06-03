@@ -1,10 +1,13 @@
-import React, { useMemo, useState } from 'react';
+import React, { useMemo, useRef, useState } from 'react';
 import { addEnquiry } from '../../services/dataService';
 import {
   buildWhatsAppHref,
   CustomerDetailsFields,
   EnquirySuccess,
   FieldError,
+  focusFirstInvalidField,
+  FormErrorSummary,
+  LoadingButton,
   SectionHeading,
   inputClassName,
   labelClassName,
@@ -40,6 +43,7 @@ export default function TourPackageEnquiryForm({ packageData }) {
   const [apiError, setApiError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [submittedEnquiry, setSubmittedEnquiry] = useState(null);
+  const formRef = useRef(null);
 
   const handleChange = (e) => {
     const { name, type, value, checked } = e.target;
@@ -79,7 +83,10 @@ export default function TourPackageEnquiryForm({ packageData }) {
     setErrors(nextErrors);
     setApiError('');
 
-    if (Object.keys(nextErrors).length > 0) return;
+    if (Object.keys(nextErrors).length > 0) {
+      focusFirstInvalidField(formRef.current, nextErrors);
+      return;
+    }
 
     setIsLoading(true);
 
@@ -137,12 +144,13 @@ export default function TourPackageEnquiryForm({ packageData }) {
   }
 
   return (
-    <form className="space-y-8" noValidate onSubmit={handleSubmit}>
+    <form aria-busy={isLoading} ref={formRef} className="space-y-8" noValidate onSubmit={handleSubmit}>
       {apiError && (
-        <div className="rounded-xl border border-rose-500/30 bg-rose-500/10 px-4 py-3 text-sm text-rose-200">
+        <div aria-live="assertive" className="rounded-xl border border-rose-500/30 bg-rose-500/10 px-4 py-3 text-sm text-rose-200" role="alert">
           {apiError}
         </div>
       )}
+      <FormErrorSummary errors={errors} />
 
       <SectionHeading
         description="Use this form to request this package or a close variation of it. Final route, timing, and pricing are always reviewed manually."
@@ -164,6 +172,7 @@ export default function TourPackageEnquiryForm({ packageData }) {
         <div>
           <label className={labelClassName}>Trip Duration</label>
           <input className={inputClassName({}, 'trip_duration')} disabled type="text" value={formData.trip_duration} />
+          <p className="mt-2 text-xs text-on-surface-variant">Package duration is shown for reference. Final timing can still be reviewed manually.</p>
         </div>
         <div>
           <label className={labelClassName}>Travel Start Date <span className="text-secondary">*</span></label>
@@ -217,9 +226,11 @@ export default function TourPackageEnquiryForm({ packageData }) {
         </div>
       </div>
 
-      <button className="w-full rounded-xl bg-primary-container px-6 py-4 text-sm font-bold uppercase tracking-[0.2em] text-white transition-all hover:brightness-110 disabled:opacity-60" disabled={isLoading} type="submit">
-        {isLoading ? 'Submitting...' : 'Submit Tour Enquiry'}
-      </button>
+      <LoadingButton
+        idleLabel="Submit Tour Enquiry"
+        isLoading={isLoading}
+        loadingLabel="Submitting Enquiry..."
+      />
     </form>
   );
 }

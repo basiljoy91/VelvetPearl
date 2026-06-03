@@ -114,9 +114,9 @@ export default function Services() {
               Reach us on WhatsApp for quick follow-up after you submit an enquiry.
             </p>
           </div>
-          <a href="tel:+919943139353" className="w-full bg-primary-container text-white px-6 py-3 font-label text-xs uppercase tracking-widest rounded-md border border-white/5 hover:brightness-110 transition-all text-center font-bold">
+          <Link to="/contact" className="w-full bg-primary-container text-white px-6 py-3 font-label text-xs uppercase tracking-widest rounded-md border border-white/5 hover:brightness-110 transition-all text-center font-bold">
             Contact Us
-          </a>
+          </Link>
         </section>
       </div>
 

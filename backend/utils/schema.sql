@@ -95,11 +95,14 @@ CREATE TABLE IF NOT EXISTS tour_enquiry_details (
     travel_window_start DATE,
     travel_window_end DATE,
     duration_days INTEGER,
+    duration_label VARCHAR(120),
     group_size INTEGER,
     pickup_required VARCHAR(50),
     hotel_preference VARCHAR(255),
     budget VARCHAR(100)
 );
+ALTER TABLE tour_enquiry_details
+    ADD COLUMN IF NOT EXISTS duration_label VARCHAR(120);
 
 CREATE TABLE IF NOT EXISTS custom_trip_details (
     enquiry_id BIGINT PRIMARY KEY REFERENCES enquiries(id) ON DELETE CASCADE,
@@ -132,9 +135,12 @@ CREATE TABLE IF NOT EXISTS drivers (
     phone VARCHAR(50),
     rating VARCHAR(10) DEFAULT '5.0',
     experience VARCHAR(50),
-    status VARCHAR(20) NOT NULL DEFAULT 'Active' CHECK (status IN ('Active', 'Inactive')),
+    status VARCHAR(20) NOT NULL DEFAULT 'Active' CHECK (status IN ('Active', 'Unavailable')),
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
+UPDATE drivers
+SET status = 'Unavailable'
+WHERE status = 'Inactive';
 
 -- 4. Fleet Table
 CREATE TABLE IF NOT EXISTS fleet (

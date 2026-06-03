@@ -19,6 +19,7 @@ import {
   updateEnquiryStatus,
 } from '../services/dataService';
 import AdminForms from '../components/admin/AdminForms';
+import { LoadingButton, LoadingOverlay, SectionLoader, SkeletonBlock } from '../components/ui/LoadingState';
 import {
   changePassword,
   generateAdminSetupKey,
@@ -214,8 +215,8 @@ const getServiceDetailEntries = (enquiry = {}) => {
         ['Flexible dates', details.flexible_dates || 'Not shared'],
         ['Adults', details.adults || 'Not shared'],
         ['Children', details.children || 'Not shared'],
-        ['Trip duration', details.trip_duration || 'Not shared'],
-        ['Pickup city', details.pickup_location || 'Not shared'],
+        ['Trip duration', details.trip_duration || details.duration_label || details.duration || 'Not shared'],
+        ['Pickup city', details.pickup_location || details.pickup_city || 'Not shared'],
         ['Cab required', details.cab_required || 'Not shared'],
         ['Hotel level', details.hotel_preference || 'Not shared'],
         ['Budget range', details.budget || 'Not shared'],
@@ -350,6 +351,134 @@ function EnquiryCard({ enquiry, onOpenDetail, onMarkContacted }) {
   );
 }
 
+function AdminMetricSkeletonCard() {
+  return (
+    <div className="rounded-3xl border border-white/10 bg-white/5 p-5">
+      <SkeletonBlock className="h-3 w-28" />
+      <SkeletonBlock className="mt-4 h-10 w-16" />
+    </div>
+  );
+}
+
+function EnquiryCardSkeleton() {
+  return (
+    <article className="rounded-[28px] border border-white/10 bg-white/5 p-5">
+      <div className="flex flex-col gap-4">
+        <div className="flex items-start justify-between gap-4">
+          <div className="min-w-0 flex-1">
+            <SkeletonBlock className="h-3 w-28" />
+            <SkeletonBlock className="mt-3 h-7 w-40" />
+            <SkeletonBlock className="mt-2 h-4 w-32" />
+          </div>
+          <SkeletonBlock className="h-7 w-24 rounded-full" />
+        </div>
+        <div className="grid gap-3 sm:grid-cols-2">
+          {Array.from({ length: 4 }).map((_, index) => (
+            <div key={index} className="rounded-2xl bg-black/20 p-4">
+              <SkeletonBlock className="h-3 w-20" />
+              <SkeletonBlock className="mt-3 h-4 w-28" />
+            </div>
+          ))}
+        </div>
+        <div className="rounded-2xl bg-black/20 p-4">
+          <SkeletonBlock className="h-3 w-24" />
+          <SkeletonBlock className="mt-3 h-4 w-full" />
+          <SkeletonBlock className="mt-2 h-4 w-3/4" />
+        </div>
+        <div className="flex flex-wrap gap-2">
+          <SkeletonBlock className="h-10 w-24 rounded-full" />
+          <SkeletonBlock className="h-10 w-28 rounded-full" />
+          <SkeletonBlock className="h-10 w-36 rounded-full" />
+        </div>
+      </div>
+    </article>
+  );
+}
+
+function EnquiryTableSkeletonRows({ count = 5 }) {
+  return Array.from({ length: count }).map((_, index) => (
+    <tr key={`skeleton-${index}`} className="align-top">
+      <td className="px-6 py-5"><SkeletonBlock className="h-4 w-24" /></td>
+      <td className="px-4 py-5">
+        <SkeletonBlock className="h-5 w-32" />
+        <SkeletonBlock className="mt-2 h-4 w-48" />
+      </td>
+      <td className="px-4 py-5"><SkeletonBlock className="h-4 w-24" /></td>
+      <td className="px-4 py-5"><SkeletonBlock className="h-4 w-28" /></td>
+      <td className="px-4 py-5"><SkeletonBlock className="h-4 w-24" /></td>
+      <td className="px-4 py-5"><SkeletonBlock className="h-4 w-20" /></td>
+      <td className="px-4 py-5"><SkeletonBlock className="h-4 w-28" /></td>
+      <td className="px-4 py-5"><SkeletonBlock className="h-7 w-24 rounded-full" /></td>
+      <td className="px-4 py-5"><SkeletonBlock className="h-4 w-40" /></td>
+      <td className="px-6 py-5">
+        <div className="flex justify-end gap-2">
+          <SkeletonBlock className="h-10 w-20 rounded-full" />
+          <SkeletonBlock className="h-10 w-28 rounded-full" />
+        </div>
+      </td>
+    </tr>
+  ));
+}
+
+function AdminEntityCardSkeleton({ compact = false }) {
+  return (
+    <article className="rounded-[28px] border border-white/10 bg-white/5 p-6">
+      <div className="flex items-start justify-between gap-4">
+        <div className="min-w-0 flex-1">
+          <SkeletonBlock className="h-7 w-40" />
+          <SkeletonBlock className="mt-2 h-4 w-28" />
+        </div>
+        <SkeletonBlock className="h-7 w-24 rounded-full" />
+      </div>
+      <div className={`mt-5 grid gap-3 ${compact ? '' : 'sm:grid-cols-2'}`}>
+        {Array.from({ length: compact ? 3 : 4 }).map((_, index) => (
+          <div key={index} className="rounded-2xl bg-black/20 p-4">
+            <SkeletonBlock className="h-3 w-24" />
+            <SkeletonBlock className="mt-3 h-4 w-32" />
+          </div>
+        ))}
+      </div>
+    </article>
+  );
+}
+
+function DetailModalSkeletonContent() {
+  return (
+    <div className="grid gap-6 xl:grid-cols-[1.2fr_0.8fr]">
+      <section className="space-y-6">
+        {Array.from({ length: 4 }).map((_, sectionIndex) => (
+          <div key={sectionIndex} className="rounded-3xl border border-white/10 bg-white/5 p-5">
+            <SkeletonBlock className="h-7 w-48" />
+            <div className="mt-4 grid gap-4 md:grid-cols-2">
+              {Array.from({ length: sectionIndex === 1 ? 8 : 4 }).map((__, itemIndex) => (
+                <div key={itemIndex}>
+                  <SkeletonBlock className="h-3 w-24" />
+                  <SkeletonBlock className="mt-2 h-4 w-full" />
+                </div>
+              ))}
+            </div>
+          </div>
+        ))}
+      </section>
+      <section className="space-y-6">
+        {Array.from({ length: 3 }).map((_, sectionIndex) => (
+          <div key={sectionIndex} className="rounded-3xl border border-white/10 bg-white/5 p-5">
+            <SkeletonBlock className="h-7 w-40" />
+            <div className="mt-4 space-y-4">
+              {Array.from({ length: sectionIndex === 0 ? 5 : 4 }).map((__, itemIndex) => (
+                <div key={itemIndex}>
+                  <SkeletonBlock className="h-3 w-24" />
+                  <SkeletonBlock className="mt-2 h-4 w-full" />
+                </div>
+              ))}
+            </div>
+          </div>
+        ))}
+      </section>
+    </div>
+  );
+}
+
 function EnquiryDetailModal({
   enquiry,
   draft,
@@ -381,9 +510,9 @@ function EnquiryDetailModal({
   const showPackageFields = ['tour', 'custom'].includes(enquiryType);
 
   return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+    <div className="fixed inset-0 z-[100] flex items-start justify-center overflow-y-auto p-3 md:items-center md:p-4">
       <div className="absolute inset-0 bg-black/80 backdrop-blur-md" onClick={onClose} />
-      <div className="relative max-h-[90vh] w-full max-w-6xl overflow-y-auto rounded-[32px] border border-white/10 bg-[#0A0A0A] shadow-2xl">
+      <div className="relative flex max-h-[calc(100vh-1.5rem)] w-full max-w-6xl flex-col overflow-hidden rounded-[32px] border border-white/10 bg-[#0A0A0A] shadow-2xl md:max-h-[90vh]">
         <div className="sticky top-0 z-10 border-b border-white/10 bg-[#0A0A0A]/95 px-6 py-5 backdrop-blur">
           <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
             <div>
@@ -416,13 +545,11 @@ function EnquiryDetailModal({
           </div>
         </div>
 
-        <div className="space-y-6 px-6 py-6">
-          {isLoading && (
-            <div className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-gray-300">
-              Loading enquiry details...
-            </div>
-          )}
+        <div className="relative space-y-6 overflow-y-auto px-6 py-6">
+          {isLoading && <LoadingOverlay label="Loading enquiry details..." />}
+          {isLoading && <SectionLoader label="Loading enquiry details..." />}
 
+          {isLoading ? <DetailModalSkeletonContent /> : (
           <div className="grid gap-6 xl:grid-cols-[1.2fr_0.8fr]">
             <section className="space-y-6">
               <div className="rounded-3xl border border-white/10 bg-white/5 p-5">
@@ -483,14 +610,15 @@ function EnquiryDetailModal({
                         </option>
                       ))}
                     </select>
-                    <button
+                    <LoadingButton
                       type="button"
                       onClick={onSaveStatus}
-                      disabled={savingAction === 'status'}
-                      className="mt-3 rounded-xl bg-[#EFBF04] px-4 py-2 text-xs font-bold uppercase tracking-[0.2em] text-black disabled:opacity-60"
-                    >
-                      {savingAction === 'status' ? 'Saving...' : 'Save status'}
-                    </button>
+                      isLoading={savingAction === 'status'}
+                      idleLabel="Save status"
+                      loadingLabel="Saving Status..."
+                      className="mt-3 w-auto bg-[#EFBF04] px-4 py-2 text-xs text-black hover:brightness-100"
+                      spinnerClassName="text-black"
+                    />
                   </div>
                   <div>
                     <label className={labelClassName}>Internal owner</label>
@@ -521,14 +649,14 @@ function EnquiryDetailModal({
                     />
                   </div>
                 </div>
-                <button
+                <LoadingButton
                   type="button"
                   onClick={onSaveFollowUp}
-                  disabled={savingAction === 'follow_up'}
-                  className="mt-4 rounded-xl border border-white/10 bg-white/10 px-4 py-2 text-xs font-bold uppercase tracking-[0.2em] text-white disabled:opacity-60"
-                >
-                  {savingAction === 'follow_up' ? 'Saving...' : 'Save follow-up details'}
-                </button>
+                  isLoading={savingAction === 'follow_up'}
+                  idleLabel="Save follow-up details"
+                  loadingLabel="Saving Follow-up..."
+                  className="mt-4 w-auto border border-white/10 bg-white/10 px-4 py-2 text-xs text-white hover:brightness-100"
+                />
               </div>
 
               <div className="rounded-3xl border border-white/10 bg-white/5 p-5">
@@ -539,14 +667,14 @@ function EnquiryDetailModal({
                       Example: Customer wants SUV, pickup at 7 AM, budget around 5000. Waiting for confirmation.
                     </p>
                   </div>
-                  <button
+                  <LoadingButton
                     type="button"
                     onClick={onSaveNotes}
-                    disabled={savingAction === 'notes'}
-                    className="rounded-xl border border-white/10 bg-white/10 px-4 py-2 text-xs font-bold uppercase tracking-[0.2em] text-white disabled:opacity-60"
-                  >
-                    {savingAction === 'notes' ? 'Saving...' : 'Save notes'}
-                  </button>
+                    isLoading={savingAction === 'notes'}
+                    idleLabel="Save notes"
+                    loadingLabel="Saving Notes..."
+                    className="w-auto border border-white/10 bg-white/10 px-4 py-2 text-xs text-white hover:brightness-100"
+                  />
                 </div>
                 <textarea
                   rows="5"
@@ -613,14 +741,15 @@ function EnquiryDetailModal({
                           </option>
                         ))}
                       </select>
-                      <button
+                      <LoadingButton
                         type="button"
                         onClick={onSaveDriver}
-                        disabled={savingAction === 'driver' || !draft.assigned_driver_id}
-                        className="mt-3 rounded-xl border border-white/10 bg-white/10 px-4 py-2 text-xs font-bold uppercase tracking-[0.2em] text-white disabled:opacity-60"
-                      >
-                        {savingAction === 'driver' ? 'Saving...' : 'Assign driver'}
-                      </button>
+                        disabled={!draft.assigned_driver_id}
+                        isLoading={savingAction === 'driver'}
+                        idleLabel="Assign driver"
+                        loadingLabel="Assigning Driver..."
+                        className="mt-3 w-auto border border-white/10 bg-white/10 px-4 py-2 text-xs text-white hover:brightness-100"
+                      />
                     </div>
                   )}
 
@@ -640,14 +769,15 @@ function EnquiryDetailModal({
                           <option key={vehicleId} value={vehicleId} />
                         ))}
                       </datalist>
-                      <button
+                      <LoadingButton
                         type="button"
                         onClick={onSaveVehicle}
-                        disabled={savingAction === 'vehicle' || !draft.assigned_vehicle_id}
-                        className="mt-3 rounded-xl border border-white/10 bg-white/10 px-4 py-2 text-xs font-bold uppercase tracking-[0.2em] text-white disabled:opacity-60"
-                      >
-                        {savingAction === 'vehicle' ? 'Saving...' : 'Assign vehicle'}
-                      </button>
+                        disabled={!draft.assigned_vehicle_id}
+                        isLoading={savingAction === 'vehicle'}
+                        idleLabel="Assign vehicle"
+                        loadingLabel="Assigning Vehicle..."
+                        className="mt-3 w-auto border border-white/10 bg-white/10 px-4 py-2 text-xs text-white hover:brightness-100"
+                      />
                     </div>
                   )}
 
@@ -673,14 +803,15 @@ function EnquiryDetailModal({
                           placeholder="Hotel name, resort, or stay option"
                         />
                       </div>
-                      <button
+                      <LoadingButton
                         type="button"
                         onClick={onSaveRoom}
-                        disabled={savingAction === 'room' || (!draft.assigned_room_id && !draft.assigned_hotel_option)}
-                        className="rounded-xl border border-white/10 bg-white/10 px-4 py-2 text-xs font-bold uppercase tracking-[0.2em] text-white disabled:opacity-60"
-                      >
-                        {savingAction === 'room' ? 'Saving...' : 'Save room/stay assignment'}
-                      </button>
+                        disabled={!draft.assigned_room_id && !draft.assigned_hotel_option}
+                        isLoading={savingAction === 'room'}
+                        idleLabel="Save room/stay assignment"
+                        loadingLabel="Saving Stay Assignment..."
+                        className="w-auto border border-white/10 bg-white/10 px-4 py-2 text-xs text-white hover:brightness-100"
+                      />
                     </div>
                   )}
 
@@ -694,14 +825,15 @@ function EnquiryDetailModal({
                         onChange={(event) => onDraftChange('assigned_package_id', event.target.value)}
                         placeholder="Package ID or package label"
                       />
-                      <button
+                      <LoadingButton
                         type="button"
                         onClick={onSavePackage}
-                        disabled={savingAction === 'package' || !draft.assigned_package_id}
-                        className="mt-3 rounded-xl border border-white/10 bg-white/10 px-4 py-2 text-xs font-bold uppercase tracking-[0.2em] text-white disabled:opacity-60"
-                      >
-                        {savingAction === 'package' ? 'Saving...' : 'Assign package'}
-                      </button>
+                        disabled={!draft.assigned_package_id}
+                        isLoading={savingAction === 'package'}
+                        idleLabel="Assign package"
+                        loadingLabel="Assigning Package..."
+                        className="mt-3 w-auto border border-white/10 bg-white/10 px-4 py-2 text-xs text-white hover:brightness-100"
+                      />
                     </div>
                   )}
 
@@ -714,14 +846,16 @@ function EnquiryDetailModal({
                       onChange={(event) => onDraftChange('quote_amount', event.target.value)}
                       placeholder="Final quote after review"
                     />
-                    <button
+                    <LoadingButton
                       type="button"
                       onClick={onSaveQuote}
-                      disabled={savingAction === 'quote' || !draft.quote_amount}
-                      className="mt-3 rounded-xl bg-[#EFBF04] px-4 py-2 text-xs font-bold uppercase tracking-[0.2em] text-black disabled:opacity-60"
-                    >
-                      {savingAction === 'quote' ? 'Saving...' : 'Save quote'}
-                    </button>
+                      disabled={!draft.quote_amount}
+                      isLoading={savingAction === 'quote'}
+                      idleLabel="Save quote"
+                      loadingLabel="Saving Quote..."
+                      className="mt-3 w-auto bg-[#EFBF04] px-4 py-2 text-xs text-black hover:brightness-100"
+                      spinnerClassName="text-black"
+                    />
                   </div>
                 </div>
               </div>
@@ -731,17 +865,18 @@ function EnquiryDetailModal({
                 <p className="mt-1 text-sm text-rose-100/80">
                   Use archive when the enquiry is no longer active in the manual workflow.
                 </p>
-                <button
+                <LoadingButton
                   type="button"
                   onClick={onArchive}
-                  disabled={savingAction === 'archive'}
-                  className="mt-4 rounded-xl border border-rose-500/30 bg-rose-500/10 px-4 py-2 text-xs font-bold uppercase tracking-[0.2em] text-rose-200 disabled:opacity-60"
-                >
-                  {savingAction === 'archive' ? 'Archiving...' : 'Archive enquiry'}
-                </button>
+                  isLoading={savingAction === 'archive'}
+                  idleLabel="Archive enquiry"
+                  loadingLabel="Archiving Enquiry..."
+                  className="mt-4 w-auto border border-rose-500/30 bg-rose-500/10 px-4 py-2 text-xs text-rose-200 hover:brightness-100"
+                />
               </div>
             </section>
           </div>
+          )}
         </div>
       </div>
     </div>
@@ -911,7 +1046,9 @@ export default function AdminDashboard() {
 
       await syncOperationalData();
     } catch (error) {
-      setDashboardError(error.message || 'Unable to save the new record.');
+      const message = error.message || 'Unable to save the new record.';
+      setDashboardError(message);
+      throw new Error(message);
     }
   };
 
@@ -1029,8 +1166,9 @@ export default function AdminDashboard() {
     [enquiries]
   );
 
-  const headerSearchValue = ['dashboard', 'bookings'].includes(activeTab) ? enquiryFilters.search : searchQuery;
-  const headerSearchPlaceholder = ['dashboard', 'bookings'].includes(activeTab)
+  const showHeaderSearch = activeTab !== 'dashboard';
+  const headerSearchValue = activeTab === 'bookings' ? enquiryFilters.search : searchQuery;
+  const headerSearchPlaceholder = activeTab === 'bookings'
     ? 'Search name, phone, or reference ID'
     : `Search ${activeTab}`;
 
@@ -1044,8 +1182,8 @@ export default function AdminDashboard() {
   };
 
   return (
-    <div className="flex min-h-screen w-full bg-[#050505] pb-24 text-white lg:pb-0">
-      <aside className="hidden w-72 shrink-0 border-r border-white/5 bg-[#0F0F0F] lg:flex lg:flex-col">
+    <div className="flex min-h-screen w-full bg-[#050505] pb-24 text-white lg:h-screen lg:overflow-hidden lg:pb-0">
+      <aside className="hidden w-72 shrink-0 border-r border-white/5 bg-[#0F0F0F] lg:sticky lg:top-0 lg:flex lg:h-screen lg:flex-col">
         <div className="border-b border-white/5 px-8 py-8">
           <button type="button" onClick={() => navigate('/')} className="text-left">
             <p className="text-xl font-bold text-[#EFBF04]">Velvet Pearl</p>
@@ -1053,7 +1191,7 @@ export default function AdminDashboard() {
           </button>
         </div>
 
-        <nav className="flex-1 space-y-2 px-4 py-6">
+        <nav className="min-h-0 flex-1 space-y-2 overflow-y-auto px-4 py-6">
           {navItems.map((item) => (
             <button
               key={item.id}
@@ -1071,7 +1209,7 @@ export default function AdminDashboard() {
           ))}
         </nav>
 
-        <div className="border-t border-white/5 p-6">
+        <div className="sticky bottom-0 mt-auto border-t border-white/5 bg-[#0F0F0F] p-6">
           <button
             type="button"
             onClick={handleLogout}
@@ -1088,7 +1226,7 @@ export default function AdminDashboard() {
         </div>
       </aside>
 
-      <main className="flex-1">
+      <main className="min-w-0 flex-1 lg:h-screen lg:overflow-y-auto">
         <header className="sticky top-0 z-20 border-b border-white/5 bg-[#050505]/90 backdrop-blur">
           <div className="flex flex-col gap-5 px-6 py-6 xl:flex-row xl:items-center xl:justify-between xl:px-10">
             <div>
@@ -1102,22 +1240,24 @@ export default function AdminDashboard() {
             </div>
 
             <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
-              <div className="flex items-center gap-2 rounded-2xl border border-white/10 bg-white/5 px-4 py-3">
-                <span className="material-symbols-outlined text-gray-500">search</span>
-                <input
-                  type="text"
-                  value={headerSearchValue}
-                  onChange={(event) => {
-                    if (['dashboard', 'bookings'].includes(activeTab)) {
-                      setEnquiryFilters((current) => ({ ...current, search: event.target.value }));
-                    } else {
-                      setSearchQuery(event.target.value);
-                    }
-                  }}
-                  className="w-full min-w-0 bg-transparent text-sm text-white outline-none placeholder:text-gray-600 sm:w-64"
-                  placeholder={headerSearchPlaceholder}
-                />
-              </div>
+              {showHeaderSearch && (
+                <div className="flex items-center gap-2 rounded-2xl border border-white/10 bg-white/5 px-4 py-3">
+                  <span className="material-symbols-outlined text-gray-500">search</span>
+                  <input
+                    type="text"
+                    value={headerSearchValue}
+                    onChange={(event) => {
+                      if (activeTab === 'bookings') {
+                        setEnquiryFilters((current) => ({ ...current, search: event.target.value }));
+                      } else {
+                        setSearchQuery(event.target.value);
+                      }
+                    }}
+                    className="w-full min-w-0 bg-transparent text-sm text-white outline-none placeholder:text-gray-600 sm:w-64"
+                    placeholder={headerSearchPlaceholder}
+                  />
+                </div>
+              )}
               <button
                 type="button"
                 onClick={() => ['bookings', 'fleet', 'drivers'].includes(activeTab) && setIsEntryModalOpen(true)}
@@ -1149,7 +1289,7 @@ export default function AdminDashboard() {
 
         <div className="space-y-8 px-6 py-8 xl:px-10">
           {dashboardError && (
-            <div className="rounded-2xl border border-rose-500/25 bg-rose-500/10 px-4 py-3 text-sm text-rose-200">
+            <div aria-live="assertive" className="rounded-2xl border border-rose-500/25 bg-rose-500/10 px-4 py-3 text-sm text-rose-200" role="alert">
               {dashboardError}
             </div>
           )}
@@ -1159,32 +1299,36 @@ export default function AdminDashboard() {
               <section>
                 <h2 className="text-xl font-semibold text-white">Overview</h2>
                 <div className="mt-4 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-                  {Object.entries(overviewCounts).map(([label, value]) => (
-                    <div key={label} className="rounded-3xl border border-white/10 bg-white/5 p-5">
-                      <p className="text-[11px] font-bold uppercase tracking-[0.22em] text-gray-500">{label}</p>
-                      <p className="mt-3 text-3xl font-bold text-white">{isLoading ? '-' : value}</p>
-                    </div>
-                  ))}
+                  {isLoading
+                    ? Array.from({ length: 8 }).map((_, index) => <AdminMetricSkeletonCard key={`overview-skeleton-${index}`} />)
+                    : Object.entries(overviewCounts).map(([label, value]) => (
+                      <div key={label} className="rounded-3xl border border-white/10 bg-white/5 p-5">
+                        <p className="text-[11px] font-bold uppercase tracking-[0.22em] text-gray-500">{label}</p>
+                        <p className="mt-3 text-3xl font-bold text-white">{value}</p>
+                      </div>
+                    ))}
                 </div>
               </section>
 
               <section>
                 <h2 className="text-xl font-semibold text-white">Enquiry categories</h2>
                 <div className="mt-4 grid gap-4 md:grid-cols-2 xl:grid-cols-5">
-                  {Object.entries(TYPE_LABELS).map(([key, label]) => (
-                    <button
-                      key={key}
-                      type="button"
-                      onClick={() => {
-                        setActiveTab('bookings');
-                        setEnquiryFilters((current) => ({ ...current, type: key }));
-                      }}
-                      className="rounded-3xl border border-white/10 bg-white/5 p-5 text-left transition hover:border-[#EFBF04]/40 hover:bg-[#EFBF04]/5"
-                    >
-                      <p className="text-[11px] font-bold uppercase tracking-[0.22em] text-gray-500">{label}</p>
-                      <p className="mt-3 text-3xl font-bold text-white">{isLoading ? '-' : categoryCounts[key]}</p>
-                    </button>
-                  ))}
+                  {isLoading
+                    ? Array.from({ length: 5 }).map((_, index) => <AdminMetricSkeletonCard key={`category-skeleton-${index}`} />)
+                    : Object.entries(TYPE_LABELS).map(([key, label]) => (
+                      <button
+                        key={key}
+                        type="button"
+                        onClick={() => {
+                          setActiveTab('bookings');
+                          setEnquiryFilters((current) => ({ ...current, type: key }));
+                        }}
+                        className="rounded-3xl border border-white/10 bg-white/5 p-5 text-left transition hover:border-[#EFBF04]/40 hover:bg-[#EFBF04]/5"
+                      >
+                        <p className="text-[11px] font-bold uppercase tracking-[0.22em] text-gray-500">{label}</p>
+                        <p className="mt-3 text-3xl font-bold text-white">{categoryCounts[key]}</p>
+                      </button>
+                    ))}
                 </div>
               </section>
 
@@ -1203,21 +1347,23 @@ export default function AdminDashboard() {
                   </button>
                 </div>
 
-                {enquiries.length === 0 && !isLoading ? (
+                {!isLoading && enquiries.length === 0 ? (
                   <div className="px-6 py-12 text-center text-sm text-gray-300">
                     No enquiries yet. New customer enquiries will appear here after form submission.
                   </div>
                 ) : (
                   <>
                     <div className="space-y-4 px-6 py-6 md:hidden">
-                      {recentEnquiries.map((enquiry) => (
-                        <EnquiryCard
-                          key={enquiry.id}
-                          enquiry={enquiry}
-                          onMarkContacted={markEnquiryContacted}
-                          onOpenDetail={openEnquiryDetail}
-                        />
-                      ))}
+                      {isLoading
+                        ? Array.from({ length: 4 }).map((_, index) => <EnquiryCardSkeleton key={`recent-card-skeleton-${index}`} />)
+                        : recentEnquiries.map((enquiry) => (
+                          <EnquiryCard
+                            key={enquiry.id}
+                            enquiry={enquiry}
+                            onMarkContacted={markEnquiryContacted}
+                            onOpenDetail={openEnquiryDetail}
+                          />
+                        ))}
                     </div>
                     <div className="hidden overflow-x-auto md:block">
                     <table className="min-w-full text-left text-sm">
@@ -1232,7 +1378,24 @@ export default function AdminDashboard() {
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-white/5">
-                        {recentEnquiries.map((enquiry) => (
+                        {isLoading ? Array.from({ length: 5 }).map((_, index) => (
+                          <tr key={`recent-table-skeleton-${index}`}>
+                            <td className="px-6 py-4"><SkeletonBlock className="h-4 w-24" /></td>
+                            <td className="px-4 py-4">
+                              <SkeletonBlock className="h-5 w-28" />
+                              <SkeletonBlock className="mt-2 h-4 w-20" />
+                            </td>
+                            <td className="px-4 py-4"><SkeletonBlock className="h-4 w-24" /></td>
+                            <td className="px-4 py-4"><SkeletonBlock className="h-4 w-20" /></td>
+                            <td className="px-4 py-4"><SkeletonBlock className="h-7 w-24 rounded-full" /></td>
+                            <td className="px-6 py-4 text-right">
+                              <div className="flex justify-end gap-2">
+                                <SkeletonBlock className="h-10 w-20 rounded-full" />
+                                <SkeletonBlock className="h-10 w-28 rounded-full" />
+                              </div>
+                            </td>
+                          </tr>
+                        )) : recentEnquiries.map((enquiry) => (
                           <tr key={enquiry.id} className="hover:bg-white/5">
                             <td className="px-6 py-4 font-mono text-xs text-[#EFBF04]">{enquiry.reference_id || enquiry.id}</td>
                             <td className="px-4 py-4">
@@ -1442,7 +1605,9 @@ export default function AdminDashboard() {
 
               <div className="overflow-hidden rounded-[32px] border border-white/10 bg-white/5">
                 <div className="space-y-4 p-4 md:hidden">
-                  {filteredEnquiries.length > 0 ? filteredEnquiries.map((enquiry) => (
+                  {isLoading ? Array.from({ length: 5 }).map((_, index) => (
+                    <EnquiryCardSkeleton key={`mobile-enquiry-skeleton-${index}`} />
+                  )) : filteredEnquiries.length > 0 ? filteredEnquiries.map((enquiry) => (
                     <EnquiryCard
                       key={enquiry.id}
                       enquiry={enquiry}
@@ -1474,7 +1639,7 @@ export default function AdminDashboard() {
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-white/5">
-                      {filteredEnquiries.map((enquiry) => {
+                      {isLoading ? <EnquiryTableSkeletonRows count={6} /> : filteredEnquiries.map((enquiry) => {
                         return (
                           <tr key={enquiry.id} className="align-top hover:bg-white/5">
                             <td className="px-6 py-5 font-mono text-xs text-[#EFBF04]">{enquiry.reference_id || enquiry.id}</td>
@@ -1500,7 +1665,7 @@ export default function AdminDashboard() {
                         );
                       })}
 
-                      {filteredEnquiries.length === 0 && (
+                      {!isLoading && filteredEnquiries.length === 0 && (
                         <tr>
                           <td colSpan="10" className="px-6 py-12 text-center text-sm text-gray-300">
                             {enquiries.length === 0
@@ -1518,7 +1683,9 @@ export default function AdminDashboard() {
 
           {activeTab === 'drivers' && (
             <section className="grid gap-6 lg:grid-cols-2">
-              {filteredDrivers.map((driver) => (
+              {isLoading ? Array.from({ length: 4 }).map((_, index) => (
+                <AdminEntityCardSkeleton key={`driver-skeleton-${index}`} />
+              )) : filteredDrivers.map((driver) => (
                 <article key={driver.id} className="rounded-[28px] border border-white/10 bg-white/5 p-6">
                   <div className="flex items-start justify-between gap-4">
                     <div>
@@ -1550,7 +1717,7 @@ export default function AdminDashboard() {
                 </article>
               ))}
 
-              {filteredDrivers.length === 0 && (
+              {!isLoading && filteredDrivers.length === 0 && (
                 <div className="rounded-[28px] border border-white/10 bg-white/5 p-10 text-sm text-gray-300">
                   No drivers match the current search.
                 </div>
@@ -1560,7 +1727,9 @@ export default function AdminDashboard() {
 
           {activeTab === 'fleet' && (
             <section className="grid gap-6 lg:grid-cols-2 xl:grid-cols-3">
-              {filteredFleet.map((vehicle) => (
+              {isLoading ? Array.from({ length: 6 }).map((_, index) => (
+                <AdminEntityCardSkeleton key={`fleet-skeleton-${index}`} compact />
+              )) : filteredFleet.map((vehicle) => (
                 <article key={vehicle.id} className="rounded-[28px] border border-white/10 bg-white/5 p-6">
                   <div className="flex items-start justify-between gap-4">
                     <div>
@@ -1588,7 +1757,7 @@ export default function AdminDashboard() {
                 </article>
               ))}
 
-              {filteredFleet.length === 0 && (
+              {!isLoading && filteredFleet.length === 0 && (
                 <div className="rounded-[28px] border border-white/10 bg-white/5 p-10 text-sm text-gray-300">
                   No fleet records match the current search.
                 </div>
@@ -1602,9 +1771,9 @@ export default function AdminDashboard() {
                 <h2 className="text-2xl font-semibold text-white">Security and authentication</h2>
                 <p className="mt-2 text-sm text-gray-400">Manage your admin password and onboarding access.</p>
 
-                <form onSubmit={handlePasswordChange} className="mt-6 space-y-5">
-                  {pwdError && <div className="rounded-2xl border border-rose-500/20 bg-rose-500/10 px-4 py-3 text-sm text-rose-200">{pwdError}</div>}
-                  {pwdMessage && <div className="rounded-2xl border border-emerald-500/20 bg-emerald-500/10 px-4 py-3 text-sm text-emerald-200">{pwdMessage}</div>}
+                <form aria-busy={isPwdLoading} onSubmit={handlePasswordChange} className="mt-6 space-y-5">
+                  {pwdError && <div aria-live="assertive" className="rounded-2xl border border-rose-500/20 bg-rose-500/10 px-4 py-3 text-sm text-rose-200" role="alert">{pwdError}</div>}
+                  {pwdMessage && <div aria-live="polite" className="rounded-2xl border border-emerald-500/20 bg-emerald-500/10 px-4 py-3 text-sm text-emerald-200" role="status">{pwdMessage}</div>}
 
                   <div>
                     <label className={labelClassName}>Current password</label>
@@ -1621,9 +1790,14 @@ export default function AdminDashboard() {
                     </div>
                   </div>
 
-                  <button type="submit" disabled={isPwdLoading} className="rounded-2xl bg-[#EFBF04] px-5 py-3 text-sm font-bold text-black disabled:opacity-60">
-                    {isPwdLoading ? 'Updating...' : 'Update password'}
-                  </button>
+                  <LoadingButton
+                    type="submit"
+                    isLoading={isPwdLoading}
+                    idleLabel="Update password"
+                    loadingLabel="Updating Password..."
+                    className="w-auto rounded-2xl bg-[#EFBF04] px-5 py-3 normal-case tracking-normal text-sm text-black hover:brightness-100"
+                    spinnerClassName="text-black"
+                  />
                 </form>
               </section>
 
@@ -1633,16 +1807,17 @@ export default function AdminDashboard() {
 
                 {adminProfile?.isMainAdmin ? (
                   <div className="mt-6 space-y-5">
-                    <button
+                    <LoadingButton
                       type="button"
                       onClick={handleGenerateSetupKey}
-                      disabled={isSetupKeyLoading}
-                      className="rounded-2xl bg-[#EFBF04] px-5 py-3 text-sm font-bold text-black disabled:opacity-60"
-                    >
-                      {isSetupKeyLoading ? 'Generating...' : 'Generate setup key'}
-                    </button>
+                      isLoading={isSetupKeyLoading}
+                      idleLabel="Generate setup key"
+                      loadingLabel="Generating Setup Key..."
+                      className="w-auto rounded-2xl bg-[#EFBF04] px-5 py-3 normal-case tracking-normal text-sm text-black hover:brightness-100"
+                      spinnerClassName="text-black"
+                    />
                     {setupKeyData?.setupKey && (
-                      <div className="rounded-2xl border border-emerald-500/20 bg-emerald-500/10 p-4">
+                      <div aria-live="polite" className="rounded-2xl border border-emerald-500/20 bg-emerald-500/10 p-4" role="status">
                         <p className={labelClassName}>Generated setup key</p>
                         <p className="mt-3 break-all font-mono text-lg text-white">{setupKeyData.setupKey}</p>
                         <p className="mt-2 text-sm text-emerald-200">Expires: {formatDateTime(setupKeyData.expiresAt)}</p>

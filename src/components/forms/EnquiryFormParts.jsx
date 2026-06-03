@@ -1,8 +1,9 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
+import { InlineSpinner, LoadingButton } from '../ui/LoadingState';
 import { buildWhatsAppLink, DEFAULT_WHATSAPP_PHONE } from '../../utils/whatsapp';
 
-export const inputClassName = (errors, name) => `w-full rounded-xl border px-4 py-3 text-sm outline-none transition-all ${
+export const inputClassName = (errors, name) => `w-full min-w-0 max-w-full rounded-xl border px-4 py-3 text-base outline-none transition-all md:text-sm ${
   errors[name]
     ? 'border-rose-400/70 bg-rose-500/10 text-white'
     : 'border-white/10 bg-black/30 text-white focus:border-secondary'
@@ -12,7 +13,27 @@ export const labelClassName = 'mb-2 block text-[11px] font-bold uppercase tracki
 
 export function FieldError({ error }) {
   if (!error) return null;
-  return <p className="mt-2 text-xs text-rose-300">{error}</p>;
+  return <p aria-live="polite" className="mt-2 text-xs text-rose-300">{error}</p>;
+}
+
+export { InlineSpinner, LoadingButton };
+
+export function FormErrorSummary({ errors }) {
+  const errorCount = Object.keys(errors || {}).length;
+
+  if (!errorCount) return null;
+
+  return (
+    <div
+      aria-live="polite"
+      className="rounded-xl border border-rose-500/30 bg-rose-500/10 px-4 py-3 text-sm text-rose-100"
+      data-error-summary="true"
+      role="alert"
+      tabIndex={-1}
+    >
+      Please review the highlighted {errorCount === 1 ? 'field' : 'fields'} below. We&apos;ll take you to the first required fix automatically.
+    </div>
+  );
 }
 
 export function SectionHeading({ step, title, description }) {
@@ -28,11 +49,11 @@ export function SectionHeading({ step, title, description }) {
 export function FormShell({ eyebrow, title, description, children, aside }) {
   return (
     <main className="min-h-screen bg-background pb-36 pt-24 md:pb-24">
-      <section className="relative overflow-hidden px-4 sm:px-6">
+      <section className="relative overflow-x-hidden overflow-y-visible px-4 sm:px-6">
         <div className="absolute left-[-10%] top-0 h-80 w-80 rounded-full bg-primary-container/10 blur-[120px]"></div>
         <div className="absolute bottom-0 right-[-10%] h-80 w-80 rounded-full bg-secondary/10 blur-[120px]"></div>
         <div className="relative mx-auto grid max-w-7xl gap-10 lg:grid-cols-[0.9fr_1.1fr]">
-          <div className="space-y-8 lg:sticky lg:top-28 lg:h-fit">
+          <div className="min-w-0 space-y-8 lg:sticky lg:top-28 lg:h-fit">
             <div className="space-y-4">
               <p className="text-[10px] font-bold uppercase tracking-[0.3em] text-secondary">{eyebrow}</p>
               <h1 className="font-headline text-4xl font-black leading-none tracking-tight text-white sm:text-5xl md:text-7xl">{title}</h1>
@@ -40,7 +61,7 @@ export function FormShell({ eyebrow, title, description, children, aside }) {
             </div>
             {aside}
           </div>
-          <div className="glass-panel rounded-3xl border border-white/10 p-5 shadow-[0_24px_48px_rgba(0,0,0,0.45)] sm:p-6 md:p-10">
+          <div className="glass-panel min-w-0 overflow-x-hidden rounded-3xl border border-white/10 p-5 shadow-[0_24px_48px_rgba(0,0,0,0.45)] sm:p-6 md:p-10">
             {children}
           </div>
         </div>
@@ -105,7 +126,7 @@ export function CustomerDetailsFields({ formData, errors, onChange }) {
 
 export function EnquirySuccess({ referenceId, message, whatsappHref, onReset }) {
   return (
-    <div className="flex flex-col items-center text-center">
+    <div aria-live="polite" className="flex flex-col items-center text-center" role="status">
       <div className="mb-6 flex h-20 w-20 items-center justify-center rounded-full bg-green-500/20">
         <span className="material-symbols-outlined text-4xl text-green-400">check_circle</span>
       </div>
@@ -146,4 +167,30 @@ export function validateCommonFields(formData) {
 
 export function buildWhatsAppHref(message) {
   return buildWhatsAppLink({ phone: DEFAULT_WHATSAPP_PHONE, message });
+}
+
+const escapeSelectorValue = (value) => String(value).replace(/\\/g, '\\\\').replace(/"/g, '\\"');
+
+export function focusFirstInvalidField(formElement, errors) {
+  if (!formElement || !errors || Object.keys(errors).length === 0) return;
+
+  const [firstFieldName] = Object.keys(errors);
+  const selector = `[name="${escapeSelectorValue(firstFieldName)}"]`;
+
+  window.requestAnimationFrame(() => {
+    const summary = formElement.querySelector('[data-error-summary="true"]');
+    const field = formElement.querySelector(selector);
+
+    if (summary) {
+      summary.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+
+    if (!field) return;
+
+    field.scrollIntoView({ behavior: 'smooth', block: 'center' });
+
+    if (typeof field.focus === 'function') {
+      window.setTimeout(() => field.focus({ preventScroll: true }), 150);
+    }
+  });
 }

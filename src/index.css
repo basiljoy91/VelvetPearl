@@ -43,3 +43,23 @@
 input::placeholder, select::placeholder, textarea::placeholder {
   color: rgba(196, 197, 216, 0.5);
 }
+
+input,
+select,
+textarea {
+  max-width: 100%;
+}
+
+select,
+input[type="date"],
+input[type="time"] {
+  min-width: 0;
+}
+
+@media (max-width: 767px) {
+  input,
+  select,
+  textarea {
+    font-size: 16px;
+  }
+}

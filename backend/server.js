@@ -126,6 +126,39 @@ app.listen(PORT, async () => {
       ADD COLUMN IF NOT EXISTS assigned_vehicle VARCHAR(50),
       ADD COLUMN IF NOT EXISTS total_rides INT DEFAULT 0;
     `);
+
+    await db.query(`
+      UPDATE drivers
+      SET status = 'Unavailable'
+      WHERE status = 'Inactive';
+    `);
+
+    await db.query(`
+      DO $$
+      BEGIN
+        IF EXISTS (
+          SELECT 1
+          FROM information_schema.table_constraints
+          WHERE constraint_schema = current_schema()
+            AND table_name = 'drivers'
+            AND constraint_name = 'drivers_status_check'
+        ) THEN
+          ALTER TABLE drivers DROP CONSTRAINT drivers_status_check;
+        END IF;
+
+        IF NOT EXISTS (
+          SELECT 1
+          FROM information_schema.table_constraints
+          WHERE constraint_schema = current_schema()
+            AND table_name = 'drivers'
+            AND constraint_name = 'drivers_status_check'
+        ) THEN
+          ALTER TABLE drivers
+          ADD CONSTRAINT drivers_status_check
+          CHECK (status IN ('Active', 'Unavailable'));
+        END IF;
+      END $$;
+    `);
     
     // Auto-run DB migrations for fleet
     await db.query(`
@@ -229,11 +262,17 @@ app.listen(PORT, async () => {
         travel_window_start DATE,
         travel_window_end DATE,
         duration_days INTEGER,
+        duration_label VARCHAR(120),
         group_size INTEGER,
         pickup_required VARCHAR(50),
         hotel_preference VARCHAR(255),
         budget VARCHAR(100)
       );
+    `);
+
+    await db.query(`
+      ALTER TABLE tour_enquiry_details
+      ADD COLUMN IF NOT EXISTS duration_label VARCHAR(120);
     `);
 
     await db.query(`

@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { loginAdmin, signupAdmin } from '../services/authService';
+import { LoadingButton } from '../components/ui/LoadingState';
 
 export default function AdminLogin() {
   const navigate = useNavigate();
@@ -68,14 +69,14 @@ export default function AdminLogin() {
 
         {/* Glass Login Card */}
         <div className="glass-panel p-10 rounded-xl border border-white/10 shadow-2xl bg-surface-container-low/50 backdrop-blur-3xl">
-          <form className="space-y-6" onSubmit={handleAction}>
+          <form aria-busy={isLoading} className="space-y-6" onSubmit={handleAction}>
             {error && (
-              <div className="bg-red-500/20 border border-red-500/30 text-red-400 px-4 py-3 rounded-lg text-sm text-center font-body">
+              <div aria-live="assertive" className="bg-red-500/20 border border-red-500/30 text-red-400 px-4 py-3 rounded-lg text-sm text-center font-body" role="alert">
                 {error}
               </div>
             )}
             {message && (
-              <div className="bg-emerald-500/20 border border-emerald-500/30 text-emerald-400 px-4 py-3 rounded-lg text-sm text-center font-body">
+              <div aria-live="polite" className="bg-emerald-500/20 border border-emerald-500/30 text-emerald-400 px-4 py-3 rounded-lg text-sm text-center font-body" role="status">
                 {message}
               </div>
             )}
@@ -125,9 +126,13 @@ export default function AdminLogin() {
 
             {/* Primary Action */}
             <div className="pt-4">
-              <button disabled={isLoading} className="w-full bg-primary-container text-white font-headline font-bold py-4 rounded-lg shadow-xl shadow-primary-container/20 hover:brightness-110 active:scale-[0.98] transition-all duration-200 border-none uppercase tracking-widest text-sm disabled:opacity-50" type="submit">
-                {isLoading ? 'Processing...' : mode === 'login' ? 'Sign In' : 'Initialize Admin'}
-              </button>
+              <LoadingButton
+                className="rounded-lg font-headline shadow-xl shadow-primary-container/20 active:scale-[0.98] duration-200 disabled:opacity-50"
+                idleLabel={mode === 'login' ? 'Sign In' : 'Initialize Admin'}
+                isLoading={isLoading}
+                loadingLabel="Processing..."
+                type="submit"
+              />
             </div>
             
             {/* Secondary Action Toggles */}

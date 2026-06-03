@@ -46,8 +46,11 @@ const normalizeEnquiryType = (value) => {
   return 'general';
 };
 
+const isIsoDateString = (value) => /^\d{4}-\d{2}-\d{2}$/.test(String(value || '').trim());
+
 const buildTravelDate = (enquiryType, body, details) => {
-  if (body.travel_date) return body.travel_date;
+  if (isIsoDateString(body.travel_date)) return body.travel_date;
+  if (enquiryType === 'cab') return details.pickup_date || null;
   if (enquiryType === 'room') return details.check_in || null;
   if (enquiryType === 'tour') return details.travel_window_start || null;
   return null;
@@ -64,9 +67,76 @@ const parseBoolean = (value) => {
   return false;
 };
 
+const parseDurationDays = (value) => {
+  if (value === undefined || value === null || value === '') return null;
+
+  if (typeof value === 'number' && Number.isFinite(value) && value > 0) {
+    return Math.round(value);
+  }
+
+  const normalized = String(value).trim().toLowerCase();
+  if (!normalized) return null;
+
+  const directNumber = normalized.match(/^(\d+)$/);
+  if (directNumber) {
+    return Number(directNumber[1]);
+  }
+
+  const numberMatches = [...normalized.matchAll(/\d+/g)].map(([match]) => Number(match));
+  if (!numberMatches.length) return null;
+
+  return numberMatches[0] > 0 ? numberMatches[0] : null;
+};
+
+const formatDurationLabel = (rawValue, durationDays) => {
+  const normalized = String(rawValue || '').trim();
+  if (normalized) return normalized;
+  if (!durationDays) return null;
+  return `${durationDays} day${durationDays === 1 ? '' : 's'}`;
+};
+
+const normalizeTourDetails = (details = {}) => {
+  const durationDays = parseDurationDays(details.duration_days ?? details.duration ?? details.trip_duration);
+  const durationLabel = formatDurationLabel(
+    details.trip_duration ?? details.duration_label ?? details.duration,
+    durationDays
+  );
+  const adults = Number(details.adults || 0);
+  const children = Number(details.children || 0);
+  const computedGroupSize = adults > 0 || children > 0 ? String(adults + children) : '';
+
+  return {
+    ...details,
+    destination: details.destination || details.package_name || '',
+    package_name: details.package_name || details.destination || '',
+    travel_window_start: details.travel_window_start || details.travel_start_date || '',
+    travel_window_end: details.travel_window_end || details.travel_end_date || '',
+    trip_duration: durationLabel || '',
+    duration_label: durationLabel || '',
+    duration: durationLabel || '',
+    duration_days: durationDays,
+    pickup_location: details.pickup_location || details.pickup_city || details.pickup_city_location || '',
+    pickup_city: details.pickup_city || details.pickup_location || details.pickup_city_location || '',
+    pickup_required: details.pickup_required || details.cab_required || '',
+    cab_required: details.cab_required || details.pickup_required || '',
+    group_size: details.group_size || computedGroupSize || '',
+  };
+};
+
+const normalizeServiceDetails = (enquiryType, details = {}) => {
+  if (enquiryType === 'tour') {
+    return normalizeTourDetails(details);
+  }
+
+  return details;
+};
+
 const buildPublicCreatePayload = (body = {}) => {
   const enquiryType = normalizeEnquiryType(body.enquiry_type || body.service_type || body.service);
-  const details = body.service_details_json || body.enquiry_details || {};
+  const details = normalizeServiceDetails(
+    enquiryType,
+    body.service_details_json || body.enquiry_details || {}
+  );
   const phone = body.phone_number || body.phone || '';
   const whatsappNumber = body.whatsapp_number || phone;
 
@@ -253,6 +323,29 @@ const queueWhatsAppNotifications = (enquiry) => {
   });
 };
 
+const buildSubmissionErrorLog = (body = {}, error) => {
+  const details = body.service_details_json || body.enquiry_details || {};
+
+  return {
+    message: error.message,
+    code: error.code,
+    detail: error.detail,
+    hint: error.hint,
+    constraint: error.constraint,
+    table: error.table,
+    column: error.column,
+    enquiry_type: body.enquiry_type || body.service_type || body.service || null,
+    source_page: body.source_page || null,
+    customer_name: body.customer_name || body.customer || body.full_name || null,
+    phone_number: body.phone_number || body.phone || null,
+    travel_date: body.travel_date || details.travel_window_start || details.pickup_date || details.check_in || null,
+    package_name: details.package_name || details.destination || null,
+    duration_value: details.duration || details.trip_duration || null,
+    duration_value_type: typeof (details.duration || details.trip_duration),
+    detail_keys: Object.keys(details),
+  };
+};
+
 const listEnquiries = async (req, res) => {
   try {
     const enquiries = await Booking.getAll({
@@ -306,7 +399,7 @@ const submitEnquiry = async (req, res) => {
     res.status(201).json({ success: true, data: responseData });
     queueWhatsAppNotifications(responseData);
   } catch (error) {
-    console.error('Error creating enquiry:', error);
+    console.error('Error creating enquiry:', buildSubmissionErrorLog(req.body, error));
     res.status(500).json({
       success: false,
       message: 'Sorry, we could not submit your enquiry. Please try again or contact us on WhatsApp.',
