@@ -349,24 +349,23 @@ const Booking = {
     const client = await db.connect();
 
     try {
-      await client.query('BEGIN');
+      await client.beginTransaction();
 
       const enquiryType = normalizeEnquiryType(enquiryData.enquiry_type);
       const { prefix } = ENQUIRY_TYPE_CONFIG[enquiryType];
       const year = new Date().getFullYear();
 
-      const counterResult = await client.query(
+      await client.query(
         `
           INSERT INTO enquiry_counters (enquiry_type, enquiry_year, last_number)
-          VALUES ($1, $2, 1)
-          ON CONFLICT (enquiry_type, enquiry_year)
-          DO UPDATE SET last_number = enquiry_counters.last_number + 1
-          RETURNING last_number
+          VALUES ($1, $2, LAST_INSERT_ID(1))
+          ON DUPLICATE KEY UPDATE last_number = LAST_INSERT_ID(last_number + 1)
         `,
         [enquiryType, year]
       );
 
-      const sequence = counterResult.rows[0].last_number;
+      const counterResult = await client.query('SELECT LAST_INSERT_ID() AS last_number');
+      const sequence = Number(counterResult.rows[0]?.last_number || 1);
       const referenceId = buildReferenceId(prefix, year, sequence);
 
       const insertResult = await client.query(
@@ -409,10 +408,9 @@ const Booking = {
           )
           VALUES (
             $1, $2, $3, $4, $5, $6, $7, $8, $9, $10,
-            $11, $12, $13::jsonb, $14, $15, $16, $17, $18, $19, $20,
+            $11, $12, $13, $14, $15, $16, $17, $18, $19, $20,
             $21, $22, $23, $24, $25, false, NULL, NULL, $26, $27, $28, $29, 'pending', NULL
           )
-          RETURNING *
         `,
         [
           referenceId,
@@ -447,13 +445,14 @@ const Booking = {
         ]
       );
 
-      const enquiry = insertResult.rows[0];
-      await insertServiceDetails(client, enquiry.id, enquiryType, enquiryData.service_details_json || {});
+      const enquiryId = insertResult.insertId;
+      await insertServiceDetails(client, enquiryId, enquiryType, enquiryData.service_details_json || {});
+      const createdResult = await client.query('SELECT * FROM enquiries WHERE id = $1', [enquiryId]);
 
-      await client.query('COMMIT');
-      return enquiry;
+      await client.commit();
+      return createdResult.rows[0];
     } catch (error) {
-      await client.query('ROLLBACK');
+      await client.rollback();
       throw error;
     } finally {
       client.release();
@@ -478,7 +477,7 @@ const Booking = {
     const client = await db.connect();
 
     try {
-      await client.query('BEGIN');
+      await client.beginTransaction();
 
       const currentResult = await client.query(
         'SELECT enquiry_type, service_details_json FROM enquiries WHERE id = $1',
@@ -486,7 +485,7 @@ const Booking = {
       );
 
       if (currentResult.rowCount === 0) {
-        await client.query('ROLLBACK');
+        await client.rollback();
         return { rowCount: 0 };
       }
 
@@ -509,7 +508,7 @@ const Booking = {
             quote_amount = COALESCE($10, quote_amount),
             last_contacted_at = $11,
             follow_up_at = $12,
-            service_details_json = $13::jsonb,
+            service_details_json = $13,
             requirement_notes = COALESCE($14, requirement_notes),
             updated_at = CURRENT_TIMESTAMP
           WHERE id = $15
@@ -540,10 +539,10 @@ const Booking = {
         nextDetails
       );
 
-      await client.query('COMMIT');
+      await client.commit();
       return result;
     } catch (error) {
-      await client.query('ROLLBACK');
+      await client.rollback();
       throw error;
     } finally {
       client.release();
@@ -697,7 +696,7 @@ const Booking = {
         next_value,
         metadata_json
       )
-      VALUES ($1, $2, $3, $4, $5, $6, $7, $8::jsonb)
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
     `,
     [
       enquiryId,

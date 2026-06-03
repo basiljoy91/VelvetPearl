@@ -8,8 +8,13 @@ const __dirname = path.dirname(__filename);
 const projectRoot = path.resolve(__dirname, '..');
 const publicDir = path.join(projectRoot, 'public');
 const siteUrl = (process.env.VITE_SITE_URL || 'http://localhost:4173').replace(/\/$/, '');
+const isDefaultLocalSiteUrl = siteUrl === 'http://localhost:4173';
 const now = new Date();
 const today = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+
+if (isDefaultLocalSiteUrl) {
+  console.warn('[seo] VITE_SITE_URL is not set. sitemap.xml and robots.txt will use http://localhost:4173.');
+}
 
 const publicRoutes = [
   '/',

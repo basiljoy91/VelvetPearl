@@ -3,15 +3,7 @@ const db = require('./config/db');
 
 (async () => {
   try {
-    console.log('Running migration: Adding driver_id and driver_name to bookings table...');
-    
-    await db.query(`
-      ALTER TABLE bookings 
-      ADD COLUMN IF NOT EXISTS driver_id VARCHAR(50),
-      ADD COLUMN IF NOT EXISTS driver_name VARCHAR(255);
-    `);
-    
-    console.log('✅ Migration successful!');
+    console.log('Legacy bookings migrations are no longer required. The app now uses the enquiries tables in MySQL.');
   } catch (error) {
     console.error('❌ Migration failed:', error.message);
   } finally {

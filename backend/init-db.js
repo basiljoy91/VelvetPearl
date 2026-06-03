@@ -5,7 +5,7 @@ const db = require('./config/db');
 
 (async () => {
   try {
-    console.log('Connecting to database:', process.env.DB_NAME || process.env.PGDATABASE || 'postgres');
+    console.log('Connecting to database:', process.env.DB_NAME || 'mysql');
 
     const schemaPath = path.join(__dirname, 'utils', 'schema.sql');
     const schemaSql = fs.readFileSync(schemaPath, 'utf8');
@@ -13,7 +13,7 @@ const db = require('./config/db');
     console.log('Executing schema.sql...');
     await db.query(schemaSql);
 
-    console.log('✅ Tables created successfully!');
+    console.log('✅ MySQL tables created successfully!');
     await db.end();
     process.exit(0);
   } catch (err) {
