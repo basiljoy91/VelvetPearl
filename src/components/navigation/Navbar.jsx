@@ -1,4 +1,5 @@
 import { Link, useLocation } from 'react-router-dom';
+import BrandMark from '../branding/BrandMark';
 
 export default function Navbar({ onBookClick }) {
   const location = useLocation();
@@ -22,8 +23,14 @@ export default function Navbar({ onBookClick }) {
 
         {/* Logo */}
         <Link to="/" onClick={handleScrollTop}>
-          <div className="text-lg md:text-2xl font-headline font-bold text-white tracking-wide cursor-pointer hover:text-[#EFBF04] transition-colors duration-300">
-            Velvet Pearl
+          <div className="cursor-pointer transition-transform duration-300 hover:scale-[1.02]">
+            <BrandMark
+              className="gap-2.5"
+              logoClassName="w-10 md:w-12"
+              mobileMonogramOnly
+              priority
+              titleClassName="text-lg md:text-2xl tracking-wide transition-colors duration-300 hover:text-[#EFBF04]"
+            />
           </div>
         </Link>
 

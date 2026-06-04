@@ -1,4 +1,4 @@
-export const DEFAULT_WHATSAPP_PHONE = '919943139353';
+export const DEFAULT_WHATSAPP_PHONE = '917845039353';
 
 export function normalizeWhatsAppPhone(phone = '') {
   return String(phone).replace(/\D/g, '');

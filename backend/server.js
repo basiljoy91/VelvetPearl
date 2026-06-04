@@ -14,9 +14,10 @@ const driverRoutes = require('./routes/driverRoutes');
 const fleetRoutes = require('./routes/fleetRoutes');
 const analyticsRoutes = require('./routes/analyticsRoutes');
 const tripRoutes = require('./routes/tripRoutes');
+const chatbotRoutes = require('./routes/chatbotRoutes');
 
 const app = express();
-const PORT = process.env.PORT || 5000;
+const PORT = process.env.PORT || 3000;
 app.disable('x-powered-by');
 app.set('trust proxy', 1);
 const shouldServeFrontend = String(process.env.SERVE_FRONTEND || '').toLowerCase() === 'true';
@@ -65,6 +66,7 @@ app.use('/api/drivers', driverRoutes);
 app.use('/api/fleet', fleetRoutes);
 app.use('/api/admin', analyticsRoutes);
 app.use('/api/trips', tripRoutes);
+app.use('/api/chatbot', chatbotRoutes);
 
 if (shouldServeFrontend) {
   if (fs.existsSync(frontendDistPath)) {
@@ -111,6 +113,7 @@ async function ensureDatabaseReady() {
   const schemaPath = path.join(__dirname, 'utils', 'schema.sql');
   const schemaSql = fs.readFileSync(schemaPath, 'utf8');
 
+  console.log('Preparing database schema using config:', db.connectionSummary);
   await db.query(schemaSql);
   await db.query(`UPDATE drivers SET status = 'Unavailable' WHERE status = 'Inactive'`);
   await db.query(`UPDATE admins SET role = 'admin' WHERE role IS NULL OR role = ''`);
@@ -129,9 +132,28 @@ async function startServer() {
     await ensureDatabaseReady();
     app.listen(PORT, () => {
       console.log(`Server is running on port ${PORT}`);
+      if (shouldServeFrontend) {
+        console.log(`Serving frontend from ${frontendDistPath}`);
+      }
     });
   } catch (error) {
-    console.error('Failed to initialize the database schema or start the server.', error.message);
+    console.error('Failed to initialize the database schema or start the server.');
+    console.error('Startup config summary:', {
+      port: PORT,
+      shouldServeFrontend,
+      frontendDistPath,
+      database: db.connectionSummary,
+    });
+    console.error('Startup error details:', {
+      message: error.message,
+      code: error.code,
+      errno: error.errno,
+      sqlState: error.sqlState,
+      sqlMessage: error.sqlMessage,
+    });
+    if (error.stack) {
+      console.error(error.stack);
+    }
     process.exit(1);
   }
 }

@@ -165,7 +165,7 @@ export default function Routes() {
           </div>
           <div className="pt-8">
             <p className="font-label text-[10px] uppercase tracking-widest text-primary-fixed-dim opacity-70 mb-1">WhatsApp concierge</p>
-            <p className="text-xl font-bold font-headline tracking-tighter">+91-9943139353</p>
+            <p className="text-xl font-bold font-headline tracking-tighter">+91-7845039353</p>
           </div>
         </div>
       </section>

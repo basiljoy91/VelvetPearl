@@ -111,7 +111,7 @@ export default function About() {
           </Link>
           <div className="flex flex-col items-center md:items-start">
             <span className="text-[10px] font-label uppercase tracking-widest text-on-surface-variant mb-1">Direct Assistance</span>
-            <a className="text-2xl font-headline font-bold text-secondary hover:text-white transition-colors tracking-tight" href="tel:+919943139353">+91-9943139353</a>
+            <a className="text-2xl font-headline font-bold text-secondary hover:text-white transition-colors tracking-tight" href="tel:+917845039353">+91-7845039353</a>
           </div>
         </div>
       </section>

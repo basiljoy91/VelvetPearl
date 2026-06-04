@@ -28,7 +28,7 @@ export function createTravelAgencySchema() {
     '@type': 'TravelAgency',
     name: SITE_NAME,
     url: buildAbsoluteUrl('/'),
-    telephone: '+91 9943139353',
+    telephone: '+91 78450 39353',
     image: buildAbsoluteUrl(DEFAULT_SEO_IMAGE_PATH),
     description: DEFAULT_SEO_DESCRIPTION,
   };
