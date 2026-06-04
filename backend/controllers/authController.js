@@ -91,9 +91,19 @@ const signupAdmin = async (req, res) => {
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(password, salt);
 
-    const newAdminId = await Admin.create(email, hashedPassword);
+    const newAdminId = await Admin.create(email, hashedPassword, true, 'main_admin');
 
-    res.status(201).json({ success: true, message: 'Admin created successfully', adminId: newAdminId });
+    res.status(201).json({
+      success: true,
+      message: 'Main admin created successfully',
+      adminId: newAdminId,
+      admin: {
+        id: newAdminId,
+        email,
+        role: 'main_admin',
+        is_main_admin: true,
+      },
+    });
   } catch (error) {
     console.error('Signup error:', error);
     res.status(500).json({ success: false, message: 'Server error during signup' });

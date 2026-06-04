@@ -2,9 +2,11 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { loginAdmin, signupAdmin } from '../services/authService';
 import { LoadingButton } from '../components/ui/LoadingState';
+import BrandMark from '../components/branding/BrandMark';
 
 export default function AdminLogin() {
   const navigate = useNavigate();
+  const currentYear = new Date().getFullYear();
   const [mode, setMode] = useState('login'); // 'login', 'signup'
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -55,11 +57,13 @@ export default function AdminLogin() {
       <div className="w-full max-w-md relative z-10">
         {/* Brand Anchor */}
         <div className="mb-12 text-center">
-          <div className="inline-flex items-center gap-3 mb-6">
-            <div className="w-10 h-10 rounded-lg bg-primary-container flex items-center justify-center shadow-lg shadow-primary-container/20">
-              <span className="material-symbols-outlined text-white" style={{fontVariationSettings: "'FILL' 1"}}>diamond</span>
-            </div>
-            <span className="font-headline font-bold text-2xl text-on-surface tracking-tight">Velvet Pearl</span>
+          <div className="mb-6 inline-flex rounded-2xl border border-white/8 bg-white/[0.03] px-5 py-3 shadow-lg shadow-black/25">
+            <BrandMark
+              className="gap-3"
+              logoClassName="w-11"
+              priority
+              titleClassName="text-2xl text-on-surface"
+            />
           </div>
           <h1 className="font-headline font-light text-4xl tracking-tighter text-on-surface mb-2">
             {mode === 'login' ? 'Admin Login' : 'Admin Initialization'}
@@ -160,7 +164,7 @@ export default function AdminLogin() {
         {/* Footer Meta */}
         <div className="mt-12 text-center">
           <p className="font-label text-[10px] uppercase tracking-widest text-on-surface-variant/40">
-            © 2024 Velvet Pearl Tours. Protected Environment.
+            © {currentYear} Velvet Pearl Tours and Travels. Protected Environment.
           </p>
         </div>
       </div>

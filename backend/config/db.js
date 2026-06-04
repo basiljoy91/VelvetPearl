@@ -3,6 +3,7 @@ const mysql = require('mysql2/promise');
 
 const JSON_COLUMNS = new Set(['service_details_json', 'metadata_json']);
 const BOOLEAN_COLUMNS = new Set(['is_main_admin', 'used', 'consent_to_contact', 'is_archived']);
+const normalizeMysqlHost = (host) => (host === 'localhost' ? '127.0.0.1' : host);
 
 const parseDatabaseUrl = (value) => {
   const url = new URL(value);
@@ -12,7 +13,7 @@ const parseDatabaseUrl = (value) => {
   }
 
   return {
-    host: url.hostname,
+    host: normalizeMysqlHost(url.hostname),
     port: Number(url.port || 3306),
     user: decodeURIComponent(url.username),
     password: decodeURIComponent(url.password),
@@ -23,7 +24,7 @@ const parseDatabaseUrl = (value) => {
 const connectionConfig = process.env.DATABASE_URL
   ? parseDatabaseUrl(process.env.DATABASE_URL)
   : {
-      host: process.env.DB_HOST || '127.0.0.1',
+      host: normalizeMysqlHost(process.env.DB_HOST || '127.0.0.1'),
       user: process.env.DB_USER,
       password: process.env.DB_PASSWORD,
       database: process.env.DB_NAME,
@@ -33,6 +34,27 @@ const connectionConfig = process.env.DATABASE_URL
 if (String(process.env.DB_SSL || '').toLowerCase() === 'true') {
   connectionConfig.ssl = { rejectUnauthorized: false };
 }
+
+const connectionSummary = {
+  source: process.env.DATABASE_URL ? 'DATABASE_URL' : 'DB_*',
+  host: connectionConfig.host,
+  port: connectionConfig.port,
+  user: connectionConfig.user || '(missing)',
+  database: connectionConfig.database || '(missing)',
+  ssl: Boolean(connectionConfig.ssl),
+};
+
+const validateConnectionConfig = () => {
+  if (!connectionConfig.user) {
+    throw new Error('Database user is missing. Set DATABASE_URL or DB_USER.');
+  }
+
+  if (!connectionConfig.database) {
+    throw new Error('Database name is missing. Set DATABASE_URL or DB_NAME.');
+  }
+};
+
+validateConnectionConfig();
 
 const pool = mysql.createPool({
   ...connectionConfig,
@@ -126,4 +148,5 @@ module.exports = {
   connect: async () => wrapConnection(await pool.getConnection()),
   end: () => pool.end(),
   rawPool: pool,
+  connectionSummary,
 };

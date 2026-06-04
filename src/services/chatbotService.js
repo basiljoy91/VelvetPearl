@@ -1,7 +1,7 @@
 const CHATBOT_SESSION_STORAGE_KEY = 'velvet_pearl_chatbot_session_id';
 
-const N8N_CHATBOT_WEBHOOK_URL = String(import.meta.env.VITE_N8N_CHATBOT_WEBHOOK_URL || '').trim();
-const N8N_CHATBOT_EVENTS_WEBHOOK_URL = String(import.meta.env.VITE_N8N_CHATBOT_EVENTS_WEBHOOK_URL || '').trim();
+const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL || '').replace(/\/$/, '');
+const CHATBOT_API_URL = `${API_BASE_URL}/api/chatbot`;
 const CHATBOT_USE_N8N = String(import.meta.env.VITE_CHATBOT_USE_N8N || '').toLowerCase() === 'true';
 const CHATBOT_AI_ENABLED = String(import.meta.env.VITE_CHATBOT_AI_ENABLED || '').toLowerCase() === 'true';
 
@@ -21,7 +21,7 @@ const safeJsonParse = async (response) => {
 };
 
 export function isN8nChatbotEnabled() {
-  return CHATBOT_USE_N8N && Boolean(N8N_CHATBOT_WEBHOOK_URL);
+  return CHATBOT_USE_N8N;
 }
 
 export function isChatbotAiEnabled() {
@@ -56,7 +56,7 @@ export async function requestChatbotAssistantHint({
   if (!isChatbotAiEnabled()) return null;
 
   try {
-    const response = await fetch(N8N_CHATBOT_WEBHOOK_URL, {
+    const response = await fetch(`${CHATBOT_API_URL}/assistant`, {
       method: 'POST',
       headers: jsonHeaders,
       body: JSON.stringify({
@@ -85,10 +85,10 @@ export async function requestChatbotAssistantHint({
 }
 
 export async function trackChatbotEvent(eventName, payload = {}) {
-  if (!N8N_CHATBOT_EVENTS_WEBHOOK_URL) return;
+  if (!CHATBOT_USE_N8N) return;
 
   try {
-    await fetch(N8N_CHATBOT_EVENTS_WEBHOOK_URL, {
+    await fetch(`${CHATBOT_API_URL}/events`, {
       method: 'POST',
       headers: jsonHeaders,
       keepalive: true,

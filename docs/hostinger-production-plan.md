@@ -126,6 +126,7 @@ In the Hostinger Node.js app dashboard, open **Environment Variables** and add:
 
 ```env
 NODE_ENV=production
+PORT=3000
 JWT_SECRET=replace_with_a_long_random_secret
 JWT_EXPIRES_IN=12h
 SETUP_SECRET=replace_with_a_long_random_setup_secret
