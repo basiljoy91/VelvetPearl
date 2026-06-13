@@ -1,5 +1,5 @@
 export const SITE_NAME = 'Velvet Pearl';
-export const DEFAULT_SEO_IMAGE_PATH = '/og-cover.svg';
+export const DEFAULT_SEO_IMAGE_PATH = '/og-cover.png';
 export const DEFAULT_SEO_DESCRIPTION = 'Submit your travel enquiry for cab booking, room assistance, tour packages, airport transfers, and custom trip planning. Manual confirmation after review.';
 export const DEFAULT_SITE_URL = 'http://localhost:4173';
 

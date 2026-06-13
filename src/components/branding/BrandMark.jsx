@@ -17,8 +17,10 @@ export default function BrandMark({
         className={`h-auto shrink-0 object-contain ${logoClassName}`}
         decoding={priority ? 'sync' : 'async'}
         fetchPriority={priority ? 'high' : 'auto'}
+        height="1254"
         loading={priority ? 'eager' : 'lazy'}
         src={monogram}
+        width="1254"
       />
 
       <div className={`${mobileMonogramOnly ? 'hidden sm:flex' : 'flex'} min-w-0 flex-col`}>

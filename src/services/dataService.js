@@ -1,4 +1,6 @@
-const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL || '').replace(/\/$/, '');
+import { getApiBaseUrl } from './apiBase';
+
+const API_BASE_URL = getApiBaseUrl();
 const API = `${API_BASE_URL}/api`;
 
 // Helper: adds JWT token for admin-protected routes
