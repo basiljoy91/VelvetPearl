@@ -1,22 +1,20 @@
-const assetUrl = (path) => new URL(path, import.meta.url).href;
-
-const southIndiaHero = assetUrl('../assets/travel/south-india-hero.webp');
-const waterfallDestination = assetUrl('../assets/travel/waterfall-destination.webp');
-const familySightseeing = assetUrl('../assets/travel/family-sightseeing.webp');
-const airportTransfer = assetUrl('../assets/travel/airport-transfer.webp');
-const resortStay = assetUrl('../assets/travel/resort-stay.webp');
-const groupTravel = assetUrl('../assets/travel/group-travel.webp');
-const sedanCab = assetUrl('../assets/travel/sedan-cab.webp');
-const suvCab = assetUrl('../assets/travel/suv-cab.webp');
-const tempoTraveller = assetUrl('../assets/travel/tempo-traveller.webp');
-const chennaiDestination = assetUrl('../assets/travel/destinations/chennai.webp');
-const mahabalipuramDestination = assetUrl('../assets/travel/destinations/mahabalipuram.webp');
-const puducherryDestination = assetUrl('../assets/travel/destinations/puducherry.webp');
-const ootyDestination = assetUrl('../assets/travel/destinations/ooty.webp');
-const kodaikanalDestination = assetUrl('../assets/travel/destinations/kodaikanal.webp');
-const coimbatoreDestination = assetUrl('../assets/travel/destinations/coimbatore.webp');
-const mysuruDestination = assetUrl('../assets/travel/destinations/mysuru.webp');
-const maduraiDestination = assetUrl('../assets/travel/destinations/madurai.webp');
+const southIndiaHero = '/travel/south-india-hero.webp';
+const waterfallDestination = '/travel/waterfall-destination.webp';
+const familySightseeing = '/travel/family-sightseeing.webp';
+const airportTransfer = '/travel/airport-transfer.webp';
+const resortStay = '/travel/resort-stay.webp';
+const groupTravel = '/travel/group-travel.webp';
+const sedanCab = '/travel/sedan-cab.webp';
+const suvCab = '/travel/suv-cab.webp';
+const tempoTraveller = '/travel/tempo-traveller.webp';
+const chennaiDestination = '/travel/destinations/chennai.webp';
+const mahabalipuramDestination = '/travel/destinations/mahabalipuram.webp';
+const puducherryDestination = '/travel/destinations/puducherry.webp';
+const ootyDestination = '/travel/destinations/ooty.webp';
+const kodaikanalDestination = '/travel/destinations/kodaikanal.webp';
+const coimbatoreDestination = '/travel/destinations/coimbatore.webp';
+const mysuruDestination = '/travel/destinations/mysuru.webp';
+const maduraiDestination = '/travel/destinations/madurai.webp';
 
 const optimizeUnsplashUrl = (url, width = 1200) => {
   if (!url.includes('images.unsplash.com')) return url;
