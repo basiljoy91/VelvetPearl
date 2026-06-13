@@ -150,6 +150,9 @@ export default function RouteSeo() {
     setMetaName('description', description);
     setMetaName('robots', robotsValue);
     setMetaName('twitter:card', 'summary_large_image');
+    setMetaName('twitter:title', title);
+    setMetaName('twitter:description', description);
+    setMetaName('twitter:image', imageUrl);
     setMetaProperty('og:title', title);
     setMetaProperty('og:description', description);
     setMetaProperty('og:image', imageUrl);

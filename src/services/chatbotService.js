@@ -1,6 +1,8 @@
 const CHATBOT_SESSION_STORAGE_KEY = 'velvet_pearl_chatbot_session_id';
 
-const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL || '').replace(/\/$/, '');
+import { getApiBaseUrl } from './apiBase';
+
+const API_BASE_URL = getApiBaseUrl();
 const CHATBOT_API_URL = `${API_BASE_URL}/api/chatbot`;
 const CHATBOT_USE_N8N = String(import.meta.env.VITE_CHATBOT_USE_N8N || '').toLowerCase() === 'true';
 const CHATBOT_AI_ENABLED = String(import.meta.env.VITE_CHATBOT_AI_ENABLED || '').toLowerCase() === 'true';

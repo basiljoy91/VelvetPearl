@@ -7,8 +7,8 @@ export default function Footer() {
 
     return (
       <footer className="bg-[#0E0E0F] w-full px-6 py-12 pb-32 md:px-8 md:pb-12">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-8 max-w-7xl mx-auto">
-          <div className="md:col-span-2">
+        <div className="grid max-w-7xl grid-cols-1 gap-8 md:grid-cols-2 xl:grid-cols-4 xl:gap-10 mx-auto">
+          <div className="xl:col-span-2">
             <Link
               className="group block overflow-hidden rounded-[28px] border border-white/8 bg-gradient-to-br from-white/[0.04] to-white/[0.02] p-4 shadow-[0_18px_48px_rgba(0,0,0,0.28)] transition-transform duration-300 hover:-translate-y-1"
               to="/"

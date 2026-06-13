@@ -19,6 +19,7 @@ import {
   updateEnquiryStatus,
 } from '../services/dataService';
 import AdminForms from '../components/admin/AdminForms';
+import BrandMark from '../components/branding/BrandMark';
 import MobileAdminDashboard from '../components/admin/mobile/MobileAdminDashboard';
 import { LoadingButton, LoadingOverlay, SectionLoader, SkeletonBlock } from '../components/ui/LoadingState';
 import {
@@ -928,7 +929,12 @@ function DesktopAdminDashboard({
       <aside className="hidden w-72 shrink-0 border-r border-white/5 bg-[#0F0F0F] lg:sticky lg:top-0 lg:flex lg:h-screen lg:flex-col">
         <div className="border-b border-white/5 px-8 py-8">
           <button type="button" onClick={() => navigate('/')} className="text-left">
-            <p className="text-xl font-bold text-[#EFBF04]">Velvet Pearl</p>
+            <BrandMark
+              className="gap-3"
+              logoClassName="w-11"
+              priority
+              titleClassName="text-xl text-[#EFBF04]"
+            />
             <p className="mt-2 text-[10px] font-bold uppercase tracking-[0.28em] text-gray-500">Manual travel operations</p>
           </button>
         </div>

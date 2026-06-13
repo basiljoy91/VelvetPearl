@@ -29,17 +29,38 @@ const allowedOrigins = (process.env.CORS_ORIGIN || 'http://localhost:5173,http:/
   .map((origin) => origin.trim())
   .filter(Boolean);
 
-// Middleware
-app.use(cors({
-  origin(origin, callback) {
-    if (!origin || allowedOrigins.includes(origin)) {
-      return callback(null, true);
-    }
+function getNormalizedOriginHost(value = '') {
+  try {
+    return new URL(value).host.toLowerCase();
+  } catch {
+    return '';
+  }
+}
 
-    return callback(new Error(`CORS blocked for origin: ${origin}`));
-  },
-  methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization']
+function getNormalizedRequestHost(req) {
+  return String(req.headers['x-forwarded-host'] || req.headers.host || '')
+    .split(',')[0]
+    .trim()
+    .toLowerCase();
+}
+
+// Middleware
+app.use(cors((req, callback) => {
+  const origin = req.header('Origin');
+  const requestHost = getNormalizedRequestHost(req);
+  const originHost = getNormalizedOriginHost(origin);
+  const isConfiguredOrigin = origin && allowedOrigins.includes(origin);
+  const isSameHostOrigin = originHost && requestHost && originHost === requestHost;
+
+  if (!origin || isConfiguredOrigin || isSameHostOrigin) {
+    return callback(null, {
+      origin: true,
+      methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+      allowedHeaders: ['Content-Type', 'Authorization'],
+    });
+  }
+
+  return callback(new Error(`CORS blocked for origin: ${origin}`));
 }));
 app.options('*', cors());
 app.use((req, res, next) => {
@@ -72,14 +93,34 @@ if (shouldServeFrontend) {
   if (fs.existsSync(frontendDistPath)) {
     app.use(express.static(frontendDistPath, {
       index: false,
-      maxAge: process.env.NODE_ENV === 'production' ? '1h' : 0,
+      etag: true,
+      maxAge: 0,
+      setHeaders(res, servedPath) {
+        const lowerPath = servedPath.toLowerCase();
+
+        if (lowerPath.endsWith('.html')) {
+          res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate');
+          return;
+        }
+
+        if (process.env.NODE_ENV === 'production') {
+          res.setHeader('Cache-Control', 'public, max-age=31536000, immutable');
+          return;
+        }
+
+        res.setHeader('Cache-Control', 'no-cache');
+      },
     }));
 
     app.get('*', (req, res, next) => {
       if (req.path.startsWith('/api')) return next();
       if (req.method !== 'GET') return next();
       if (!req.accepts('html')) return next();
-      return res.sendFile(path.join(frontendDistPath, 'index.html'));
+      return res.sendFile(path.join(frontendDistPath, 'index.html'), {
+        headers: {
+          'Cache-Control': 'no-store, no-cache, must-revalidate',
+        },
+      });
     });
   } else {
     console.warn(`SERVE_FRONTEND=true but no frontend build was found at ${frontendDistPath}`);

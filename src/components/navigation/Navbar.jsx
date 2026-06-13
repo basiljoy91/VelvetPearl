@@ -1,5 +1,6 @@
 import { Link, useLocation } from 'react-router-dom';
-import BrandMark from '../branding/BrandMark';
+import monogram from '../../assets/branding/velvet-pearl/velvet-pearl-monogram-transparent.png';
+import navWordmark from '../../assets/branding/velvet-pearl/velvet-pearl-nav-wordmark.png';
 
 export default function Navbar({ onBookClick }) {
   const location = useLocation();
@@ -23,13 +24,26 @@ export default function Navbar({ onBookClick }) {
 
         {/* Logo */}
         <Link to="/" onClick={handleScrollTop}>
-          <div className="cursor-pointer transition-transform duration-300 hover:scale-[1.02]">
-            <BrandMark
-              className="gap-2.5"
-              logoClassName="w-10 md:w-12"
-              mobileMonogramOnly
-              priority
-              titleClassName="text-lg md:text-2xl tracking-wide transition-colors duration-300 hover:text-[#EFBF04]"
+          <div className="group flex items-center transition-transform duration-300 hover:scale-[1.02]">
+            <img
+              alt="Velvet Pearl monogram"
+              className="h-10 w-10 shrink-0 object-contain sm:hidden"
+              decoding="sync"
+              fetchPriority="high"
+              height="1254"
+              loading="eager"
+              src={monogram}
+              width="1254"
+            />
+            <img
+              alt="Velvet Pearl wordmark"
+              className="hidden h-10 w-auto max-w-[240px] object-contain sm:block md:h-11 md:max-w-[290px]"
+              decoding="sync"
+              fetchPriority="high"
+              height="162"
+              loading="eager"
+              src={navWordmark}
+              width="840"
             />
           </div>
         </Link>
