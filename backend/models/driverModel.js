@@ -4,7 +4,10 @@ const Driver = {
   getAll: async () => {
     try {
       const { rows } = await db.query('SELECT * FROM drivers ORDER BY created_at DESC');
-      return rows;
+      return rows.map((row) => ({
+        ...row,
+        status: row.status === 'Inactive' ? 'Unavailable' : row.status,
+      }));
     } catch (error) {
       throw error;
     }

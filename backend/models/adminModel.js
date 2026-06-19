@@ -23,21 +23,21 @@ const Admin = {
   // Count total admins
   countAdmins: async () => {
     try {
-      const { rows } = await db.query('SELECT COUNT(*)::int AS count FROM admins');
-      return rows[0].count;
+      const { rows } = await db.query('SELECT COUNT(*) AS count FROM admins');
+      return Number(rows[0]?.count || 0);
     } catch (error) {
       throw error;
     }
   },
 
   // Create an admin
-  create: async (email, hashedPassword, isMainAdmin = false) => {
+  create: async (email, hashedPassword, isMainAdmin = false, role = null) => {
     try {
       const { rows } = await db.query(
-        'INSERT INTO admins (email, password, is_main_admin) VALUES ($1, $2, $3) RETURNING id',
-        [email, hashedPassword, isMainAdmin]
+        'INSERT INTO admins (email, password, is_main_admin, role) VALUES ($1, $2, $3, $4) RETURNING id',
+        [email, hashedPassword, isMainAdmin, role || (isMainAdmin ? 'main_admin' : 'admin')]
       );
-      return rows[0].id;
+      return rows[0]?.id ?? null;
     } catch (error) {
       throw error;
     }

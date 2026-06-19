@@ -1,9 +1,12 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { loginAdmin, signupAdmin } from '../services/authService';
+import { LoadingButton } from '../components/ui/LoadingState';
+import BrandMark from '../components/branding/BrandMark';
 
 export default function AdminLogin() {
   const navigate = useNavigate();
+  const currentYear = new Date().getFullYear();
   const [mode, setMode] = useState('login'); // 'login', 'signup'
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -54,11 +57,13 @@ export default function AdminLogin() {
       <div className="w-full max-w-md relative z-10">
         {/* Brand Anchor */}
         <div className="mb-12 text-center">
-          <div className="inline-flex items-center gap-3 mb-6">
-            <div className="w-10 h-10 rounded-lg bg-primary-container flex items-center justify-center shadow-lg shadow-primary-container/20">
-              <span className="material-symbols-outlined text-white" style={{fontVariationSettings: "'FILL' 1"}}>diamond</span>
-            </div>
-            <span className="font-headline font-bold text-2xl text-on-surface tracking-tight">Velvet Pearl</span>
+          <div className="mb-6 inline-flex rounded-2xl border border-white/8 bg-white/[0.03] px-5 py-3 shadow-lg shadow-black/25">
+            <BrandMark
+              className="gap-3"
+              logoClassName="w-11"
+              priority
+              titleClassName="text-2xl text-on-surface"
+            />
           </div>
           <h1 className="font-headline font-light text-4xl tracking-tighter text-on-surface mb-2">
             {mode === 'login' ? 'Admin Login' : 'Admin Initialization'}
@@ -68,14 +73,14 @@ export default function AdminLogin() {
 
         {/* Glass Login Card */}
         <div className="glass-panel p-10 rounded-xl border border-white/10 shadow-2xl bg-surface-container-low/50 backdrop-blur-3xl">
-          <form className="space-y-6" onSubmit={handleAction}>
+          <form aria-busy={isLoading} className="space-y-6" onSubmit={handleAction}>
             {error && (
-              <div className="bg-red-500/20 border border-red-500/30 text-red-400 px-4 py-3 rounded-lg text-sm text-center font-body">
+              <div aria-live="assertive" className="bg-red-500/20 border border-red-500/30 text-red-400 px-4 py-3 rounded-lg text-sm text-center font-body" role="alert">
                 {error}
               </div>
             )}
             {message && (
-              <div className="bg-emerald-500/20 border border-emerald-500/30 text-emerald-400 px-4 py-3 rounded-lg text-sm text-center font-body">
+              <div aria-live="polite" className="bg-emerald-500/20 border border-emerald-500/30 text-emerald-400 px-4 py-3 rounded-lg text-sm text-center font-body" role="status">
                 {message}
               </div>
             )}
@@ -125,9 +130,13 @@ export default function AdminLogin() {
 
             {/* Primary Action */}
             <div className="pt-4">
-              <button disabled={isLoading} className="w-full bg-primary-container text-white font-headline font-bold py-4 rounded-lg shadow-xl shadow-primary-container/20 hover:brightness-110 active:scale-[0.98] transition-all duration-200 border-none uppercase tracking-widest text-sm disabled:opacity-50" type="submit">
-                {isLoading ? 'Processing...' : mode === 'login' ? 'Sign In' : 'Initialize Admin'}
-              </button>
+              <LoadingButton
+                className="rounded-lg font-headline shadow-xl shadow-primary-container/20 active:scale-[0.98] duration-200 disabled:opacity-50"
+                idleLabel={mode === 'login' ? 'Sign In' : 'Initialize Admin'}
+                isLoading={isLoading}
+                loadingLabel="Processing..."
+                type="submit"
+              />
             </div>
             
             {/* Secondary Action Toggles */}
@@ -155,7 +164,7 @@ export default function AdminLogin() {
         {/* Footer Meta */}
         <div className="mt-12 text-center">
           <p className="font-label text-[10px] uppercase tracking-widest text-on-surface-variant/40">
-            © 2024 Velvet Pearl Tours. Protected Environment.
+            © {currentYear} Velvet Pearl Tours and Travels. Protected Environment.
           </p>
         </div>
       </div>

@@ -1,4 +1,6 @@
-const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL || '').replace(/\/$/, '');
+import { getApiBaseUrl } from './apiBase';
+
+const API_BASE_URL = getApiBaseUrl();
 const API = `${API_BASE_URL}/api`;
 
 // Helper: adds JWT token for admin-protected routes
@@ -23,51 +25,141 @@ const handleResponse = async (res) => {
   throw new Error(text || `Server returned a non-JSON response (${res.status}). Check backend status.`);
 };
 
+const buildQueryString = (params = {}) => {
+  const query = new URLSearchParams();
+
+  Object.entries(params).forEach(([key, value]) => {
+    if (value === undefined || value === null || value === '') return;
+    query.set(key, value);
+  });
+
+  const serialized = query.toString();
+  return serialized ? `?${serialized}` : '';
+};
+
 // ─────────────────────────────────────────────
-// BOOKINGS
+// ENQUIRIES
 // ─────────────────────────────────────────────
 
-export const getBookings = async () => {
-  const res = await fetch(`${API}/bookings`, { headers: authHeaders() });
+export const getEnquiries = async (filters = {}) => {
+  const res = await fetch(`${API}/admin/enquiries${buildQueryString(filters)}`, { headers: authHeaders() });
   const data = await handleResponse(res);
   return data.data || [];
 };
 
-export const addBooking = async (bookingData) => {
-  const res = await fetch(`${API}/bookings`, {
+export const getEnquiryById = async (id) => {
+  const res = await fetch(`${API}/admin/enquiries/${id}`, { headers: authHeaders() });
+  const data = await handleResponse(res);
+  return data.data;
+};
+
+export const addEnquiry = async (enquiryData) => {
+  const res = await fetch(`${API}/enquiries`, {
     method: 'POST',
     headers: authHeaders(),
-    body: JSON.stringify(bookingData),
+    body: JSON.stringify(enquiryData),
   });
   const data = await handleResponse(res);
   return data.data;
 };
 
-export const updateBookingStatus = async (id, status) => {
-  const res = await fetch(`${API}/bookings/${id}`, {
-    method: 'PUT',
+export const updateEnquiryStatus = async (id, status) => {
+  const res = await fetch(`${API}/admin/enquiries/${id}/status`, {
+    method: 'PATCH',
     headers: authHeaders(),
     body: JSON.stringify({ status }),
   });
   return handleResponse(res);
 };
 
-export const deleteBookingRecord = async (id) => {
-  const res = await fetch(`${API}/bookings/${id}`, {
-    method: 'DELETE',
+export const updateEnquiryNotes = async (id, adminNotes) => {
+  const res = await fetch(`${API}/admin/enquiries/${id}/notes`, {
+    method: 'PATCH',
     headers: authHeaders(),
+    body: JSON.stringify({ admin_notes: adminNotes }),
   });
   return handleResponse(res);
 };
 
-export const assignDriverToBooking = async (id, driverAssignment) => {
-  const res = await fetch(`${API}/bookings/${id}/assign-driver`, {
-    method: 'PUT',
+export const assignVehicleToEnquiry = async (id, vehicleAssignment) => {
+  const res = await fetch(`${API}/admin/enquiries/${id}/assign-vehicle`, {
+    method: 'PATCH',
+    headers: authHeaders(),
+    body: JSON.stringify(vehicleAssignment),
+  });
+  return handleResponse(res);
+};
+
+export const assignRoomToEnquiry = async (id, roomAssignment) => {
+  const res = await fetch(`${API}/admin/enquiries/${id}/assign-room`, {
+    method: 'PATCH',
+    headers: authHeaders(),
+    body: JSON.stringify(roomAssignment),
+  });
+  return handleResponse(res);
+};
+
+export const assignPackageToEnquiry = async (id, packageAssignment) => {
+  const res = await fetch(`${API}/admin/enquiries/${id}/assign-package`, {
+    method: 'PATCH',
+    headers: authHeaders(),
+    body: JSON.stringify(packageAssignment),
+  });
+  return handleResponse(res);
+};
+
+export const updateEnquiryQuote = async (id, quoteAmount) => {
+  const res = await fetch(`${API}/admin/enquiries/${id}/quote`, {
+    method: 'PATCH',
+    headers: authHeaders(),
+    body: JSON.stringify({ quote_amount: quoteAmount }),
+  });
+  return handleResponse(res);
+};
+
+export const updateEnquiry = async (id, enquiryData) => {
+  const res = await fetch(`${API}/admin/enquiries/${id}/enquiry`, {
+    method: 'PATCH',
+    headers: authHeaders(),
+    body: JSON.stringify(enquiryData),
+  });
+  return handleResponse(res);
+};
+
+export const deleteEnquiryRecord = async (id) => {
+  const res = await fetch(`${API}/admin/enquiries/${id}/archive`, {
+    method: 'PATCH',
+    headers: authHeaders(),
+    body: JSON.stringify({}),
+  });
+  return handleResponse(res);
+};
+
+export const archiveEnquiryRecord = async (id, archivedReason = '') => {
+  const res = await fetch(`${API}/admin/enquiries/${id}/archive`, {
+    method: 'PATCH',
+    headers: authHeaders(),
+    body: JSON.stringify({ archived_reason: archivedReason }),
+  });
+  return handleResponse(res);
+};
+
+export const assignDriverToEnquiry = async (id, driverAssignment) => {
+  const res = await fetch(`${API}/admin/enquiries/${id}/assign-driver`, {
+    method: 'PATCH',
     headers: authHeaders(),
     body: JSON.stringify(driverAssignment),
   });
   return handleResponse(res);
 };
+
+// Backward-compatible aliases while the rest of the UI catches up.
+export const getBookings = getEnquiries;
+export const addBooking = addEnquiry;
+export const updateBookingStatus = updateEnquiryStatus;
+export const updateBookingEnquiry = updateEnquiry;
+export const deleteBookingRecord = deleteEnquiryRecord;
+export const assignDriverToBooking = assignDriverToEnquiry;
 
 // ─────────────────────────────────────────────
 // DRIVERS

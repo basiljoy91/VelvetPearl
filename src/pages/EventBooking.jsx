@@ -1,204 +1,255 @@
-import React, { useState } from 'react';
-import { useLocation, useNavigate } from 'react-router-dom';
-import { addBooking } from '../services/dataService';
+import React, { useMemo, useRef, useState } from 'react';
+import { useLocation } from 'react-router-dom';
+import { addEnquiry } from '../services/dataService';
+import {
+  buildWhatsAppHref,
+  CustomerDetailsFields,
+  EnquirySuccess,
+  FieldError,
+  focusFirstInvalidField,
+  FormErrorSummary,
+  FormShell,
+  inputClassName,
+  labelClassName,
+  LoadingButton,
+  SectionHeading,
+  validateCommonFields,
+} from '../components/forms/EnquiryFormParts';
+
+const serviceOptions = [
+  'Cab',
+  'Room',
+  'Tour package',
+  'Guide',
+  'Airport transfer',
+  'Custom planning',
+];
 
 export default function EventBooking() {
   const { state } = useLocation();
-  const navigate = useNavigate();
-  const [isBooked, setIsBooked] = useState(false);
+
+  const initialFormData = useMemo(() => ({
+    customer_name: state?.name || '',
+    phone_number: state?.phone || '',
+    whatsapp_number: state?.phone || '',
+    email: state?.email || '',
+    preferred_contact_method: 'whatsapp',
+    consent_to_contact: false,
+    requirement_type: 'Custom trip',
+    destination_or_travel_area: '',
+    travel_date_window: '',
+    number_of_people: '1',
+    services_needed: [],
+    approximate_budget: '',
+    full_requirement_details: '',
+  }), [state?.email, state?.name, state?.phone]);
+
+  const [formData, setFormData] = useState(initialFormData);
+  const [errors, setErrors] = useState({});
+  const [apiError, setApiError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState(null);
+  const [submittedEnquiry, setSubmittedEnquiry] = useState(null);
+  const formRef = useRef(null);
 
-  const handleBookingSubmit = async (e) => {
+  const handleChange = (e) => {
+    const { name, type, value, checked } = e.target;
+    setFormData((current) => ({
+      ...current,
+      [name]: type === 'checkbox' ? checked : value,
+      ...(name === 'phone_number' && !current.whatsapp_number ? { whatsapp_number: value } : {}),
+    }));
+  };
+
+  const handleServiceToggle = (service) => {
+    setFormData((current) => ({
+      ...current,
+      services_needed: current.services_needed.includes(service)
+        ? current.services_needed.filter((item) => item !== service)
+        : [...current.services_needed, service],
+    }));
+  };
+
+  const validateForm = () => {
+    const nextErrors = {
+      ...validateCommonFields(formData),
+    };
+
+    if (!formData.requirement_type) nextErrors.requirement_type = 'Requirement type is required.';
+    if (!formData.destination_or_travel_area.trim()) nextErrors.destination_or_travel_area = 'Destination or travel area is required.';
+    if (!formData.travel_date_window.trim()) nextErrors.travel_date_window = 'Travel date or window is required.';
+    if (!formData.number_of_people || Number(formData.number_of_people) < 1) nextErrors.number_of_people = 'Enter the number of people.';
+    if (!formData.full_requirement_details.trim()) nextErrors.full_requirement_details = 'Please share the full requirement details.';
+
+    return nextErrors;
+  };
+
+  const resetForm = () => {
+    setFormData(initialFormData);
+    setErrors({});
+    setApiError('');
+    setSubmittedEnquiry(null);
+  };
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    setIsLoading(true);
-    setError(null);
+    const nextErrors = validateForm();
+    setErrors(nextErrors);
+    setApiError('');
 
-    const formData = new FormData(e.target);
-    const customer = formData.get('customer') || 'Guest';
-    const phone = formData.get('phone') || 'N/A';
-    const eventType = formData.get('eventType') || 'Event';
-    const date = formData.get('date') || '';
-    const guests = formData.get('guests') || '1';
+    if (Object.keys(nextErrors).length > 0) {
+      focusFirstInvalidField(formRef.current, nextErrors);
+      return;
+    }
+
+    setIsLoading(true);
 
     try {
-      await addBooking({
-        customer,
-        phone,
-        service: `Event: ${eventType}`,
-        details: `${guests} Guests`,
-        schedule: date
+      const createdEnquiry = await addEnquiry({
+        customer_name: formData.customer_name,
+        phone_number: formData.phone_number,
+        whatsapp_number: formData.whatsapp_number,
+        email: formData.email,
+        preferred_contact_method: formData.preferred_contact_method,
+        consent_to_contact: formData.consent_to_contact,
+        service_type: 'custom',
+        source_page: 'custom',
+        requirement_notes: formData.full_requirement_details,
+        enquiry_details: {
+          custom_category: formData.requirement_type,
+          location: formData.destination_or_travel_area,
+          travel_window: formData.travel_date_window,
+          group_size: formData.number_of_people,
+          services_needed: formData.services_needed,
+          budget: formData.approximate_budget,
+          notes: formData.full_requirement_details,
+        },
       });
-      setIsBooked(true);
-    } catch (err) {
-      setError(err.message || 'Failed to submit booking. Please try again.');
+
+      setSubmittedEnquiry(createdEnquiry);
+    } catch (error) {
+      setApiError(error.message || 'Sorry, we could not submit your enquiry. Please try again or contact us on WhatsApp.');
     } finally {
       setIsLoading(false);
     }
   };
 
+  const whatsappHref = buildWhatsAppHref(
+    `Hi, I submitted an enquiry. My reference ID is ${submittedEnquiry?.reference_id || 'CUSTOM-REF-PENDING'}. Please help me with the next steps.`
+  );
+
   return (
-    <main className="pt-20 pb-24 min-h-screen">
-      {/* Hero Section */}
-      <section className="relative h-[614px] flex items-center px-8 md:px-20 overflow-hidden">
-        <div className="absolute inset-0 z-0">
-          <img className="w-full h-full object-cover opacity-40" data-alt="Luxury gala event ballroom with golden lighting" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDW8JKcTCeHoTAUC6eZ0iDYXVKDstdSlSaBrTADlI1LNoC-uAR74wUx8PpfhINZy0ujycO89AcBDmdhq0C-MQLsXK8SZDsWQ_4DcPvw7SZ8WAZn_p8c0oZDro-iWb_cbiDHk34Jb0vDnmDaNL4F2I2tl5jW81U9atl0C9xzd8ccPX2m7KCr09Za7ItuoLEVPdNvk8RNeuUvBfo0itnkUxIwUJ2s114c-nRewt-jJDUXY4w60IcyBNGmlsg1580tJhAEHLgLSJFOXRul" alt="Event Planning"/>
-          <div className="absolute inset-0 bg-gradient-to-r from-background via-background/60 to-transparent"></div>
+    <FormShell
+      aside={(
+        <div className="space-y-4 rounded-3xl border border-white/10 bg-black/20 p-6">
+          <h3 className="font-headline text-2xl text-white">Custom Enquiry Notes</h3>
+          <ul className="space-y-3 text-sm text-on-surface-variant">
+            <li>Use this form for trip plans that do not fit a standard cab, room, or package request.</li>
+            <li>You can mention multiple services in one enquiry.</li>
+            <li>Our team will review the requirement manually before sharing options and pricing.</li>
+          </ul>
         </div>
-        <div className="relative z-10 max-w-2xl">
-          <span className="font-label uppercase tracking-[0.2em] text-secondary text-xs mb-4 block">Bespoke Experiences</span>
-          <h1 className="font-headline text-5xl md:text-7xl font-black text-on-surface tracking-tighter leading-none mb-6">
-            Event <br/><span className="text-glow text-primary-container">Planning</span>
-          </h1>
-          <p className="text-on-surface-variant text-lg max-w-md font-light leading-relaxed">
-            Transforming visions into atmospheric realities. From intimate gatherings to monumental celebrations across South India.
-          </p>
-        </div>
-      </section>
-
-      {/* Form Section */}
-      <section className="px-6 -mt-32 relative z-20 max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-8 items-start mb-20">
-        
-        {/* Information Panel (Asymmetric) */}
-        <div className="lg:col-span-4 space-y-12 pt-40 hidden lg:block">
-          <div>
-            <h3 className="font-headline text-2xl font-bold mb-4">The Standard</h3>
-            <p className="text-on-surface-variant text-sm leading-relaxed">Every event is curated by our Lead Digital Concierge to ensure seamless integration of logistics, decor, and AV tech.</p>
-          </div>
-          <div className="space-y-6">
-            <div className="flex items-center gap-4 group">
-              <div className="w-10 h-10 rounded-full border border-secondary/20 flex items-center justify-center text-secondary group-hover:bg-secondary/10 transition-colors">
-                <span className="material-symbols-outlined text-lg">verified</span>
-              </div>
-              <span className="font-label text-xs uppercase tracking-widest text-[#E5E2E3]">Premium Vendor Access</span>
+      )}
+      description="Share your destination, travel window, group size, required services, and full trip brief so we can review the request manually."
+      eyebrow="Custom Trip Enquiry"
+      title="Build a Custom Travel Request"
+    >
+      {submittedEnquiry ? (
+        <EnquirySuccess
+          message="Our team will review your request and contact you shortly with availability and pricing. Final confirmation will happen after manual review."
+          onReset={resetForm}
+          referenceId={submittedEnquiry.reference_id}
+          whatsappHref={whatsappHref}
+        />
+      ) : (
+        <form ref={formRef} aria-busy={isLoading} className="space-y-10" noValidate onSubmit={handleSubmit}>
+          {apiError && (
+            <div aria-live="assertive" className="rounded-xl border border-rose-500/30 bg-rose-500/10 px-4 py-3 text-sm text-rose-200" role="alert">
+              {apiError}
             </div>
-            <div className="flex items-center gap-4 group">
-              <div className="w-10 h-10 rounded-full border border-secondary/20 flex items-center justify-center text-secondary group-hover:bg-secondary/10 transition-colors">
-                <span className="material-symbols-outlined text-lg">schedule</span>
-              </div>
-              <span className="font-label text-xs uppercase tracking-widest text-[#E5E2E3]">24/7 Logistics Support</span>
-            </div>
-          </div>
-        </div>
-
-        {/* Booking Card */}
-        <div className="lg:col-span-8 glass-panel rounded-xl p-8 md:p-12 shadow-[0_24px_48px_rgba(0,0,0,0.5)] border border-outline-variant/10">
-          {isBooked ? (
-            <div className="p-12 text-center flex flex-col items-center">
-              <div className="w-20 h-20 bg-green-500/20 rounded-full flex items-center justify-center mb-6">
-                <span className="material-symbols-outlined text-green-500 text-4xl">check_circle</span>
-              </div>
-              <h3 className="font-headline text-3xl font-bold text-white mb-4">Inquiry Received!</h3>
-              <p className="text-on-surface-variant max-w-sm mb-8">
-                Your event planning requirements have been securely logged. Our Lead Digital Concierge will be in touch shortly via WhatsApp to begin curation.
-              </p>
-              <button
-                className="bg-primary-container text-white px-8 py-4 rounded-md font-bold font-jakarta text-[10px] uppercase tracking-widest hover:brightness-110 transition-all border-none"
-                onClick={() => navigate('/')}
-              >
-                Return to Home
-              </button>
-            </div>
-          ) : (
-            <form className="space-y-8" onSubmit={handleBookingSubmit}>
-              {error && (
-                <div className="bg-red-500/20 border border-red-500/30 text-red-400 px-4 py-3 rounded-lg text-sm text-center font-body">
-                  {error}
-                </div>
-              )}
-              {/* Section: Personal Info */}
-              <div>
-                <h2 className="font-headline text-xl font-bold mb-6 text-secondary flex items-center gap-3">
-                  <span className="w-8 h-[1px] bg-secondary/30"></span>
-                  Client Details
-                </h2>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div className="space-y-2">
-                    <label className="font-label text-[10px] uppercase tracking-widest text-on-surface-variant ml-1">Full Name</label>
-                    <input name="customer" defaultValue={state?.name || ''} className="w-full bg-black/40 border-none rounded-sm px-4 py-3 text-on-surface focus:ring-0 focus:border-l-2 focus:border-secondary transition-all outline-none" placeholder="Enter name" type="text" required/>
-                  </div>
-                  <div className="space-y-2">
-                    <label className="font-label text-[10px] uppercase tracking-widest text-on-surface-variant ml-1">Email</label>
-                    <input name="email" defaultValue={state?.email || ''} className="w-full bg-black/40 border-none rounded-sm px-4 py-3 text-on-surface focus:ring-0 focus:border-l-2 focus:border-secondary transition-all outline-none" placeholder="email@example.com" type="email" required/>
-                  </div>
-                  <div className="flex gap-4">
-                    <div className="w-1/3 space-y-2">
-                      <label className="font-label text-[10px] uppercase tracking-widest text-on-surface-variant ml-1">Code</label>
-                      <input className="w-full bg-black/40 border-none rounded-sm px-4 py-3 text-on-surface focus:ring-0 focus:border-l-2 focus:border-secondary transition-all outline-none" defaultValue="91" placeholder="+91" type="number" required/>
-                    </div>
-                    <div className="w-2/3 space-y-2">
-                      <label className="font-label text-[10px] uppercase tracking-widest text-on-surface-variant ml-1">Contact Phone</label>
-                      <input name="phone" defaultValue={state?.phone || ''} className="w-full bg-black/40 border-none rounded-sm px-4 py-3 text-on-surface focus:ring-0 focus:border-l-2 focus:border-secondary transition-all outline-none" placeholder="99999 99999" type="tel" required/>
-                    </div>
-                  </div>
-                  <div className="space-y-2">
-                    <label className="font-label text-[10px] uppercase tracking-widest text-on-surface-variant ml-1">Country</label>
-                    <input name="country" defaultValue={state?.country || ''} className="w-full bg-black/40 border-none rounded-sm px-4 py-3 text-on-surface focus:ring-0 focus:border-l-2 focus:border-secondary transition-all outline-none" placeholder="United Kingdom" type="text" required/>
-                  </div>
-                </div>
-              </div>
-
-              {/* Section: Event Specs */}
-              <div>
-                <h2 className="font-headline text-xl font-bold mb-6 text-secondary flex items-center gap-3">
-                  <span className="w-8 h-[1px] bg-secondary/30"></span>
-                  Event Specifications
-                </h2>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div className="space-y-2">
-                    <label className="font-label text-[10px] uppercase tracking-widest text-on-surface-variant ml-1">Event Type</label>
-                    <select name="eventType" className="w-full bg-black/40 border-none rounded-sm px-4 py-3 text-on-surface focus:ring-0 focus:border-l-2 focus:border-secondary transition-all outline-none appearance-none" required>
-                      <option value="Wedding">Wedding</option>
-                      <option value="Conference">Conference</option>
-                      <option value="Party">Party</option>
-                      <option value="Other">Other</option>
-                    </select>
-                  </div>
-                  <div className="space-y-2">
-                    <label className="font-label text-[10px] uppercase tracking-widest text-on-surface-variant ml-1">Event Date</label>
-                    <input name="date" className="w-full bg-black/40 border-none rounded-sm px-4 py-3 text-on-surface focus:ring-0 focus:border-l-2 focus:border-secondary transition-all outline-none" type="date" required/>
-                  </div>
-                  <div className="space-y-2">
-                    <label className="font-label text-[10px] uppercase tracking-widest text-on-surface-variant ml-1">Venue Location</label>
-                    <input name="location" className="w-full bg-black/40 border-none rounded-sm px-4 py-3 text-on-surface focus:ring-0 focus:border-l-2 focus:border-secondary transition-all outline-none" placeholder="Preferred City/Area" type="text" required/>
-                  </div>
-                  <div className="space-y-2">
-                    <label className="font-label text-[10px] uppercase tracking-widest text-on-surface-variant ml-1">Estimated Guests</label>
-                    <input name="guests" className="w-full bg-black/40 border-none rounded-sm px-4 py-3 text-on-surface focus:ring-0 focus:border-l-2 focus:border-secondary transition-all outline-none" min="1" placeholder="No. of attendees" type="number" required/>
-                  </div>
-                </div>
-              </div>
-
-              {/* Section: Required Services */}
-              <div>
-                <label className="font-label text-[10px] uppercase tracking-[0.15em] text-on-surface-variant mb-4 block">Services Required</label>
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                  {['Catering', 'AV', 'Decor', 'Logistics'].map((service) => (
-                    <label key={service} className="flex items-center gap-3 cursor-pointer group">
-                      <div className="relative flex items-center">
-                        <input className="peer hidden" type="checkbox"/>
-                        <div className="w-5 h-5 border border-outline rounded-sm bg-surface-container peer-checked:bg-primary-container peer-checked:border-primary transition-all"></div>
-                        <span className="material-symbols-outlined text-xs text-white absolute inset-0 flex items-center justify-center opacity-0 peer-checked:opacity-100">check</span>
-                      </div>
-                      <span className="text-sm font-medium text-on-surface-variant group-hover:text-on-surface transition-colors">{service}</span>
-                    </label>
-                  ))}
-                </div>
-              </div>
-
-              <div className="pt-6 border-t border-outline-variant/10 flex flex-col md:flex-row items-center justify-between gap-6">
-                <a className="flex items-center gap-3 text-secondary hover:text-white transition-colors" href="https://wa.me/919943139353" target="_blank" rel="noreferrer">
-                  <span className="material-symbols-outlined">chat</span>
-                  <span className="font-label text-xs uppercase tracking-widest font-bold">+91 99431 39353</span>
-                </a>
-                <button disabled={isLoading} className="w-full md:w-auto px-12 py-5 bg-primary-container text-white font-headline font-bold text-xs uppercase tracking-[0.2em] rounded-md shadow-xl shadow-primary-container/20 hover:brightness-110 active:scale-[0.98] transition-all border-none disabled:opacity-50 disabled:cursor-not-allowed" type="submit">
-                  {isLoading ? 'Processing...' : 'Request Proposal'}
-                </button>
-              </div>
-            </form>
           )}
-        </div>
-      </section>
-    </main>
+          <FormErrorSummary errors={errors} />
+
+          <SectionHeading
+            description="Tell us how you want us to follow up once we review this custom requirement."
+            step="01"
+            title="Customer Details"
+          />
+          <CustomerDetailsFields errors={errors} formData={formData} onChange={handleChange} />
+
+          <SectionHeading
+            description="These details help us understand the trip scope and decide what needs to be arranged manually."
+            step="02"
+            title="Requirement Details"
+          />
+          <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+            <div>
+              <label className={labelClassName}>Requirement Type <span className="text-secondary">*</span></label>
+              <select className={inputClassName(errors, 'requirement_type')} name="requirement_type" onChange={handleChange} value={formData.requirement_type}>
+                <option value="Custom trip">Custom trip</option>
+                <option value="Family trip">Family trip</option>
+                <option value="Group trip">Group trip</option>
+                <option value="Corporate trip">Corporate trip</option>
+                <option value="Event travel">Event travel</option>
+                <option value="Other">Other</option>
+              </select>
+              <FieldError error={errors.requirement_type} />
+            </div>
+            <div>
+              <label className={labelClassName}>Number of People <span className="text-secondary">*</span></label>
+              <input className={inputClassName(errors, 'number_of_people')} min="1" name="number_of_people" onChange={handleChange} type="number" value={formData.number_of_people} />
+              <FieldError error={errors.number_of_people} />
+            </div>
+            <div>
+              <label className={labelClassName}>Destination or Travel Area <span className="text-secondary">*</span></label>
+              <input className={inputClassName(errors, 'destination_or_travel_area')} name="destination_or_travel_area" onChange={handleChange} type="text" value={formData.destination_or_travel_area} />
+              <FieldError error={errors.destination_or_travel_area} />
+            </div>
+            <div>
+              <label className={labelClassName}>Travel Date / Window <span className="text-secondary">*</span></label>
+              <input className={inputClassName(errors, 'travel_date_window')} name="travel_date_window" onChange={handleChange} placeholder="10 Jun to 14 Jun 2026 / Flexible in July" type="text" value={formData.travel_date_window} />
+              <FieldError error={errors.travel_date_window} />
+            </div>
+            <div className="md:col-span-2">
+              <label className={labelClassName}>Services Needed</label>
+              <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
+                {serviceOptions.map((service) => (
+                  <label
+                    key={service}
+                    className={`flex cursor-pointer items-center gap-3 rounded-xl border px-4 py-3 text-sm transition-all ${
+                      formData.services_needed.includes(service)
+                        ? 'border-secondary bg-secondary/10 text-white'
+                        : 'border-white/10 bg-black/20 text-on-surface-variant'
+                    }`}
+                  >
+                    <input
+                      checked={formData.services_needed.includes(service)}
+                      className="sr-only"
+                      onChange={() => handleServiceToggle(service)}
+                      type="checkbox"
+                    />
+                    <span>{service}</span>
+                  </label>
+                ))}
+              </div>
+            </div>
+            <div className="md:col-span-2">
+              <label className={labelClassName}>Approximate Budget</label>
+              <input className={inputClassName(errors, 'approximate_budget')} name="approximate_budget" onChange={handleChange} type="text" value={formData.approximate_budget} />
+            </div>
+            <div className="md:col-span-2">
+              <label className={labelClassName}>Full Requirement Details <span className="text-secondary">*</span></label>
+              <textarea className={inputClassName(errors, 'full_requirement_details')} name="full_requirement_details" onChange={handleChange} rows="5" value={formData.full_requirement_details}></textarea>
+              <FieldError error={errors.full_requirement_details} />
+            </div>
+          </div>
+
+          <LoadingButton
+            idleLabel="Submit Custom Enquiry"
+            isLoading={isLoading}
+            loadingLabel="Submitting Enquiry..."
+          />
+        </form>
+      )}
+    </FormShell>
   );
 }

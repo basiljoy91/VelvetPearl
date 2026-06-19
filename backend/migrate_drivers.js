@@ -3,21 +3,19 @@ const db = require('./config/db');
 
 (async () => {
   try {
-    console.log('Running drivers table migration...');
-    
+    console.log('Running driver data normalization...');
     await db.query(`
-      ALTER TABLE drivers
-      ADD COLUMN IF NOT EXISTS photo TEXT,
-      ADD COLUMN IF NOT EXISTS licence_status VARCHAR(50) DEFAULT 'Pending',
-      ADD COLUMN IF NOT EXISTS address TEXT,
-      ADD COLUMN IF NOT EXISTS notes TEXT,
-      ADD COLUMN IF NOT EXISTS assigned_vehicle VARCHAR(50);
+      UPDATE drivers
+      SET status = 'Unavailable'
+      WHERE status = 'Inactive';
     `);
-    
-    console.log('Migration completed successfully.');
+
+    console.log('Driver normalization completed successfully.');
+    await db.end();
     process.exit(0);
   } catch (err) {
     console.error('Migration failed:', err);
+    await db.end().catch(() => {});
     process.exit(1);
   }
 })();

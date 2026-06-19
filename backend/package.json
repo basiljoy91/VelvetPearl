@@ -6,6 +6,7 @@
   "type": "commonjs",
   "scripts": {
     "start": "node server.js",
+    "hostinger:start": "node server.js",
     "dev": "nodemon server.js",
     "init-db": "node init-db.js"
   },
@@ -15,7 +16,8 @@
     "dotenv": "^16.4.5",
     "express": "^4.19.2",
     "jsonwebtoken": "^9.0.2",
-    "pg": "^8.16.0",
+    "mysql2": "^3.15.3",
+    "pg": "^8.22.0",
     "twilio": "^6.0.2"
   },
   "devDependencies": {

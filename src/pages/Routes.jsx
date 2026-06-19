@@ -10,7 +10,7 @@ export default function Routes() {
       via: 'ECR Scenic Road',
       duration: '3h 15m',
       vehicle: 'Executive Sedan',
-      price: '4,500'
+      price: 'Starting from price will be updated soon'
     },
     {
       from: 'Coimbatore',
@@ -19,7 +19,7 @@ export default function Routes() {
       via: 'Hairpin Bends',
       duration: '2h 45m',
       vehicle: 'Premium SUV',
-      price: '3,200'
+      price: 'Starting from price will be updated soon'
     },
     {
       from: 'Madurai',
@@ -28,7 +28,7 @@ export default function Routes() {
       via: 'Mist Hills',
       duration: '3h 30m',
       vehicle: 'Luxury Traveler',
-      price: '5,800'
+      price: 'Starting from price will be updated soon'
     }
   ];
 
@@ -40,7 +40,7 @@ export default function Routes() {
         <h1 className="font-headline font-light text-6xl md:text-8xl tracking-tighter mb-4 text-white">
           Popular <span className="font-bold text-primary-fixed-dim block md:inline">Routes.</span>
         </h1>
-        <p className="font-label text-xs uppercase tracking-[0.3em] text-secondary font-semibold">Curated South Indian Expeditions</p>
+        <p className="font-label text-xs uppercase tracking-[0.3em] text-secondary font-semibold">Editable Route Examples</p>
       </header>
 
       {/* Filters Section */}
@@ -84,7 +84,7 @@ export default function Routes() {
             <label className="font-label text-[10px] uppercase tracking-widest text-[#8e90a1] ml-1 font-bold">Date</label>
             <div className="relative">
               <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-primary-fixed-dim text-sm">calendar_month</span>
-              <input className="w-full bg-surface-container-highest border-none text-on-surface pl-10 pr-4 py-3 text-sm rounded focus:ring-1 focus:ring-secondary outline-none inven-invert" type="date"/>
+              <input className="w-full bg-surface-container-highest border-none text-on-surface pl-10 pr-4 py-3 text-sm rounded focus:ring-1 focus:ring-secondary outline-none" type="date"/>
             </div>
           </div>
         </div>
@@ -99,7 +99,7 @@ export default function Routes() {
                 <th className="px-8 py-6 font-label text-[10px] uppercase tracking-[0.2em] text-[#8e90a1] font-bold">Route & Distance</th>
                 <th className="px-8 py-6 font-label text-[10px] uppercase tracking-[0.2em] text-[#8e90a1] font-bold">Est. Duration</th>
                 <th className="px-8 py-6 font-label text-[10px] uppercase tracking-[0.2em] text-[#8e90a1] font-bold">Vehicle</th>
-                <th className="px-8 py-6 font-label text-[10px] uppercase tracking-[0.2em] text-[#8e90a1] font-bold">Starting Price</th>
+                <th className="px-8 py-6 font-label text-[10px] uppercase tracking-[0.2em] text-[#8e90a1] font-bold">Pricing Note</th>
                 <th className="px-8 py-6"></th>
               </tr>
             </thead>
@@ -127,11 +127,12 @@ export default function Routes() {
                     <span className="bg-surface-container-highest text-[10px] font-label font-bold uppercase tracking-widest px-3 py-1 rounded border border-outline-variant/30 text-white">{route.vehicle}</span>
                   </td>
                   <td className="px-8 py-8">
-                    <p className="text-2xl font-headline font-bold text-white">₹{route.price}</p>
+                    <p className="text-lg font-headline font-bold text-white leading-snug">{route.price}</p>
+                    <p className="text-[10px] text-[#8e90a1] font-label tracking-widest uppercase mt-2">Submit your requirement to get the best available quote</p>
                   </td>
                   <td className="px-8 py-8 text-right">
                     <Link to="/book/cab" className="inline-block bg-primary-container text-white px-8 py-3 font-label text-xs uppercase tracking-widest font-black rounded transition-all duration-300 hover:bg-on-primary-fixed-variant hover:shadow-[0_0_20px_rgba(34,73,219,0.4)] active:scale-95">
-                      Book
+                      Enquire
                     </Link>
                   </td>
                 </tr>
@@ -148,23 +149,23 @@ export default function Routes() {
             <span className="material-symbols-outlined text-8xl text-secondary/5">verified</span>
           </div>
           <div className="relative z-10 max-w-md">
-            <span className="inline-block bg-[#EFBF04] text-[#241a00] text-[10px] font-black uppercase tracking-[0.2em] px-3 py-1 rounded-full mb-6">Velvet Privilege</span>
-            <h3 className="font-headline text-3xl font-bold text-white mb-4 leading-tight">Round-trip Savings & Premium Upgrades.</h3>
-            <p className="font-body text-[#8e90a1] leading-relaxed mb-8">Secure your return journey today and enjoy an immediate 15% discount or a complimentary upgrade to our Executive Fleet.</p>
+            <span className="inline-block bg-[#EFBF04] text-[#241a00] text-[10px] font-black uppercase tracking-[0.2em] px-3 py-1 rounded-full mb-6">Editable Pricing Note</span>
+            <h3 className="font-headline text-3xl font-bold text-white mb-4 leading-tight">Need a custom round trip?</h3>
+            <p className="font-body text-[#8e90a1] leading-relaxed mb-8">Share your pickup, return timing, and vehicle preference. Final pricing is shared after manual review.</p>
             <Link className="text-secondary font-label text-xs uppercase tracking-widest font-bold flex items-center gap-2 group-hover:gap-4 transition-all" to="/services">
-              Learn more about packages <span className="material-symbols-outlined text-sm">arrow_forward</span>
+              Learn more about enquiry options <span className="material-symbols-outlined text-sm">arrow_forward</span>
             </Link>
           </div>
         </div>
         <div className="bg-primary-container p-10 rounded-xl flex flex-col justify-between text-white shadow-2xl shadow-blue-900/40">
           <div className="space-y-4">
             <span className="material-symbols-outlined text-4xl" style={{fontVariationSettings: "'FILL' 1"}}>support_agent</span>
-            <h4 className="font-headline text-xl font-bold">Priority Support</h4>
-            <p className="font-body text-primary-fixed-dim text-sm leading-relaxed">Dedicated concierge for all your route planning and personalized stopovers.</p>
+            <h4 className="font-headline text-xl font-bold">WhatsApp Follow-Up</h4>
+            <p className="font-body text-primary-fixed-dim text-sm leading-relaxed">Contact our team for route clarification, timing review, and service follow-up after enquiry submission.</p>
           </div>
           <div className="pt-8">
             <p className="font-label text-[10px] uppercase tracking-widest text-primary-fixed-dim opacity-70 mb-1">WhatsApp concierge</p>
-            <p className="text-xl font-bold font-headline tracking-tighter">+91-9943139353</p>
+            <p className="text-xl font-bold font-headline tracking-tighter">+91-7845039353</p>
           </div>
         </div>
       </section>

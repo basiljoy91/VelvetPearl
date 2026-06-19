@@ -6,7 +6,7 @@ export const routes = [
     distance: "155 KM",
     duration: "3h 15m",
     vehicle: "Executive Sedan",
-    price: "₹4,500"
+    price: "Starting from price will be updated soon"
   },
   {
     id: 2,
@@ -15,6 +15,6 @@ export const routes = [
     distance: "86 KM",
     duration: "3h 15m",
     vehicle: "Premium SUV",
-    price: "₹3,200"
+    price: "Starting from price will be updated soon"
   }
 ];
