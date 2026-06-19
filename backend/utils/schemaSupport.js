@@ -15,6 +15,14 @@ const REQUIRED_TABLES = [
   'enquiry_audit_log',
 ];
 
+const UPDATED_AT_TRIGGER_TABLES = [
+  { tableName: 'admins', triggerName: 'trg_admins_updated_at' },
+  { tableName: 'admin_setup_keys', triggerName: 'trg_admin_setup_keys_updated_at' },
+  { tableName: 'drivers', triggerName: 'trg_drivers_updated_at' },
+  { tableName: 'fleet', triggerName: 'trg_fleet_updated_at' },
+  { tableName: 'enquiries', triggerName: 'trg_enquiries_updated_at' },
+];
+
 const MIGRATIONS_DIR = path.resolve(__dirname, '..', '..', 'supabase', 'migrations');
 
 const getSupabaseMigrationFiles = () => {
@@ -62,10 +70,43 @@ const getSchemaPresence = async (db) => {
   };
 };
 
+const ensureRuntimeCompatibility = async (db) => {
+  for (const { tableName } of UPDATED_AT_TRIGGER_TABLES) {
+    await db.query(`
+      ALTER TABLE public.${tableName}
+      ADD COLUMN IF NOT EXISTS updated_at timestamptz NOT NULL DEFAULT now()
+    `);
+  }
+
+  await db.query(`
+    CREATE OR REPLACE FUNCTION public.set_row_updated_at()
+    RETURNS trigger
+    LANGUAGE plpgsql
+    AS $$
+    BEGIN
+      NEW.updated_at = now();
+      RETURN NEW;
+    END;
+    $$;
+  `);
+
+  for (const { tableName, triggerName } of UPDATED_AT_TRIGGER_TABLES) {
+    await db.query(`DROP TRIGGER IF EXISTS ${triggerName} ON public.${tableName}`);
+    await db.query(`
+      CREATE TRIGGER ${triggerName}
+      BEFORE UPDATE ON public.${tableName}
+      FOR EACH ROW
+      EXECUTE FUNCTION public.set_row_updated_at()
+    `);
+  }
+};
+
 module.exports = {
   REQUIRED_TABLES,
+  UPDATED_AT_TRIGGER_TABLES,
   MIGRATIONS_DIR,
   getSupabaseMigrationFiles,
   loadSupabaseBootstrapSql,
   getSchemaPresence,
+  ensureRuntimeCompatibility,
 };
