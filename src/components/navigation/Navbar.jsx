@@ -1,4 +1,6 @@
 import { Link, useLocation } from 'react-router-dom';
+import monogram from '../../assets/branding/velvet-pearl/velvet-pearl-monogram-transparent.png';
+import navWordmark from '../../assets/branding/velvet-pearl/velvet-pearl-nav-wordmark.png';
 
 export default function Navbar({ onBookClick }) {
   const location = useLocation();
@@ -22,8 +24,27 @@ export default function Navbar({ onBookClick }) {
 
         {/* Logo */}
         <Link to="/" onClick={handleScrollTop}>
-          <div className="text-lg md:text-2xl font-headline font-bold text-white tracking-wide cursor-pointer hover:text-[#EFBF04] transition-colors duration-300">
-            Velvet Pearl
+          <div className="group flex items-center transition-transform duration-300 hover:scale-[1.02]">
+            <img
+              alt="Velvet Pearl monogram"
+              className="h-10 w-10 shrink-0 object-contain sm:hidden"
+              decoding="sync"
+              fetchPriority="high"
+              height="1254"
+              loading="eager"
+              src={monogram}
+              width="1254"
+            />
+            <img
+              alt="Velvet Pearl wordmark"
+              className="hidden h-10 w-auto max-w-[240px] object-contain sm:block md:h-11 md:max-w-[290px]"
+              decoding="sync"
+              fetchPriority="high"
+              height="162"
+              loading="eager"
+              src={navWordmark}
+              width="840"
+            />
           </div>
         </Link>
 
@@ -55,7 +76,7 @@ export default function Navbar({ onBookClick }) {
           onClick={onBookClick}
           className="bg-[#EFBF04] text-black font-label text-xs uppercase tracking-widest px-6 py-2.5 rounded-md font-bold hover:bg-yellow-400 hover:scale-105 hover:shadow-lg active:scale-95 transition-all duration-200 ease-in-out"
         >
-          Book Now
+          Submit Enquiry
         </button>
       </div>
     </nav>

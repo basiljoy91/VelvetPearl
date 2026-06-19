@@ -21,14 +21,6 @@
     -webkit-backdrop-filter: blur(20px);
   }
   
-  .text-shadow-glow {
-    text-shadow: 0 0 20px rgba(34, 73, 219, 0.3);
-  }
-
-  .text-glow-blue {
-    text-shadow: 0 0 20px rgba(34, 73, 219, 0.4);
-  }
-  
   .material-symbols-outlined {
     font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
   }
@@ -50,4 +42,24 @@
 
 input::placeholder, select::placeholder, textarea::placeholder {
   color: rgba(196, 197, 216, 0.5);
+}
+
+input,
+select,
+textarea {
+  max-width: 100%;
+}
+
+select,
+input[type="date"],
+input[type="time"] {
+  min-width: 0;
+}
+
+@media (max-width: 767px) {
+  input,
+  select,
+  textarea {
+    font-size: 16px;
+  }
 }

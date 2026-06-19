@@ -2,12 +2,13 @@ const express = require('express');
 const router = express.Router();
 const { loginAdmin, signupAdmin, forgotPassword, resetPassword, getMe, changePassword, generateSetupKey, initializeAdmin } = require('../controllers/authController');
 const { protectAdmin, protectMainAdmin } = require('../middleware/authMiddleware');
+const { adminAuthRateLimit } = require('../middleware/rateLimitMiddleware');
 
 // Route: POST /api/admin/login
-router.post('/login', loginAdmin);
+router.post('/login', adminAuthRateLimit, loginAdmin);
 
 // Route: POST /api/admin/signup
-router.post('/signup', signupAdmin);
+router.post('/signup', adminAuthRateLimit, signupAdmin);
 
 // Route: POST /api/admin/forgot-password
 router.post('/forgot-password', forgotPassword);
@@ -25,6 +26,6 @@ router.put('/change-password', protectAdmin, changePassword);
 router.post('/generate-setup-key', protectAdmin, protectMainAdmin, generateSetupKey);
 
 // Route: POST /api/admin/initialize
-router.post('/initialize', initializeAdmin);
+router.post('/initialize', adminAuthRateLimit, initializeAdmin);
 
 module.exports = router;

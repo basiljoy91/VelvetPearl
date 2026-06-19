@@ -1,29 +1,56 @@
 import React, { useState } from 'react';
 import { X } from 'lucide-react';
+import { LoadingButton } from '../ui/LoadingState';
 
 const inputClassName = 'w-full bg-white/5 border border-white/10 rounded-lg p-3 text-white outline-none focus:border-[#EFBF04]/40';
 const labelClassName = 'text-[10px] uppercase tracking-widest text-[#EFBF04] font-bold';
 
-export default function AdminForms({ type, isOpen, onClose, onSubmit }) {
+const submitLabelsByType = {
+  bookings: {
+    idle: 'Add Enquiry',
+    loading: 'Adding Enquiry...',
+  },
+  fleet: {
+    idle: 'Add Fleet Record',
+    loading: 'Adding Fleet Record...',
+  },
+  drivers: {
+    idle: 'Add Driver',
+    loading: 'Adding Driver...',
+  },
+};
+
+export default function AdminForms({ type, isOpen, onClose, onSubmit, presentation = 'modal' }) {
   const [formData, setFormData] = useState({});
+  const [formError, setFormError] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   if (!isOpen) return null;
 
   const handleClose = () => {
     setFormData({});
+    setFormError('');
+    setIsSubmitting(false);
     onClose();
   };
 
   const handleChange = (e) => {
+    if (formError) setFormError('');
     setFormData((current) => ({ ...current, [e.target.name]: e.target.value }));
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
 
     let defaultValues = {};
     if (type === 'bookings') {
-      defaultValues = { status: 'Pending', amount: 'TBD' };
+      defaultValues = {
+        status: 'New',
+        quote_amount: '',
+        whatsapp_number: formData.whatsapp_number || formData.phone || '',
+        preferred_contact_method: formData.preferred_contact_method || 'whatsapp',
+        consent_to_contact: true,
+      };
     } else if (type === 'fleet') {
       defaultValues = {
         status: formData.status || 'Available',
@@ -39,49 +66,100 @@ export default function AdminForms({ type, isOpen, onClose, onSubmit }) {
       };
     }
 
-    onSubmit({ ...formData, ...defaultValues });
-    handleClose();
+    setFormError('');
+    setIsSubmitting(true);
+
+    try {
+      await onSubmit({ ...formData, ...defaultValues });
+      handleClose();
+    } catch (error) {
+      setFormError(error.message || 'Unable to save the record. Please review the form and try again.');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
+  const submitLabels = submitLabelsByType[type] || {
+    idle: 'Save Record',
+    loading: 'Saving Record...',
+  };
+
+  const isMobileFullscreen = presentation === 'mobile-fullscreen';
+
   return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+    <div className={`fixed inset-0 z-[100] flex overflow-y-auto ${isMobileFullscreen ? 'items-stretch justify-stretch p-0 md:items-center md:justify-center md:p-4' : 'items-start justify-center p-3 md:items-center md:p-4'}`}>
       <div className="absolute inset-0 bg-black/80 backdrop-blur-md" onClick={handleClose} />
-      <div className="relative w-full max-w-3xl bg-[#0F0F0F] border border-[#EFBF04]/20 rounded-2xl shadow-2xl p-8 overflow-hidden max-h-[90vh] overflow-y-auto">
-        <div className="flex justify-between items-center mb-8">
+      <div className={`relative flex w-full flex-col overflow-hidden border border-[#EFBF04]/20 bg-[#0F0F0F] shadow-2xl ${
+        isMobileFullscreen
+          ? 'min-h-screen rounded-none max-h-none md:min-h-0 md:max-w-3xl md:rounded-2xl md:max-h-[90vh]'
+          : 'max-w-3xl rounded-2xl max-h-[calc(100vh-1.5rem)] md:max-h-[90vh]'
+      }`}>
+        <div className={`sticky top-0 z-10 flex items-center justify-between border-b border-white/10 bg-[#0F0F0F]/95 backdrop-blur ${isMobileFullscreen ? 'px-5 py-4 pt-[calc(1rem+env(safe-area-inset-top))]' : 'px-5 py-5 md:px-8 md:py-6'}`}>
           <h3 className="text-2xl font-headline font-bold text-white capitalize">Add New {type}</h3>
           <button onClick={handleClose} className="p-2 hover:bg-white/5 rounded-full text-white transition-colors">
             <X className="w-6 h-6" />
           </button>
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-8">
+        <form aria-busy={isSubmitting} onSubmit={handleSubmit} className="flex min-h-0 flex-1 flex-col">
+          <div className={`space-y-8 overflow-y-auto ${isMobileFullscreen ? 'px-5 py-5 pb-28' : 'px-5 py-5 md:px-8 md:py-6'}`}>
+          {formError && (
+            <div aria-live="assertive" className="rounded-xl border border-rose-500/30 bg-rose-500/10 px-4 py-3 text-sm text-rose-200" role="alert">
+              {formError}
+            </div>
+          )}
           {type === 'bookings' && (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="space-y-2">
-                <label className={labelClassName}>Customer Name</label>
-                <input name="customer" onChange={handleChange} className={inputClassName} required />
+                <label className={labelClassName}>Full Name</label>
+                <input name="customer_name" onChange={handleChange} className={inputClassName} required />
               </div>
               <div className="space-y-2">
                 <label className={labelClassName}>Phone Number</label>
-                <input name="phone" onChange={handleChange} className={inputClassName} required />
+                <input name="phone_number" onChange={handleChange} className={inputClassName} required />
               </div>
               <div className="space-y-2">
-                <label className={labelClassName}>Service Type</label>
-                <select name="service" value={formData.service || ''} onChange={handleChange} className={inputClassName} required>
-                  <option value="" disabled className="bg-[#0F0F0F]">Select Service</option>
-                  <option value="Cab" className="bg-[#0F0F0F]">Cab Booking</option>
-                  <option value="Room" className="bg-[#0F0F0F]">Room Booking</option>
-                  <option value="Tour" className="bg-[#0F0F0F]">Tour Booking</option>
-                  <option value="Event" className="bg-[#0F0F0F]">Event Planning</option>
+                <label className={labelClassName}>WhatsApp Number</label>
+                <input name="whatsapp_number" onChange={handleChange} className={inputClassName} />
+              </div>
+              <div className="space-y-2">
+                <label className={labelClassName}>Enquiry Type</label>
+                <select name="enquiry_type" value={formData.enquiry_type || ''} onChange={handleChange} className={inputClassName} required>
+                  <option value="" disabled className="bg-[#0F0F0F]">Select Type</option>
+                  <option value="cab" className="bg-[#0F0F0F]">Cab Enquiry</option>
+                  <option value="room" className="bg-[#0F0F0F]">Room Enquiry</option>
+                  <option value="tour" className="bg-[#0F0F0F]">Tour Enquiry</option>
+                  <option value="custom" className="bg-[#0F0F0F]">Custom Trip Enquiry</option>
+                  <option value="general" className="bg-[#0F0F0F]">General Travel Enquiry</option>
                 </select>
               </div>
               <div className="space-y-2">
-                <label className={labelClassName}>Schedule Date</label>
-                <input name="schedule" type="date" onChange={handleChange} className={inputClassName} required />
+                <label className={labelClassName}>Travel Date</label>
+                <input name="travel_date" type="date" onChange={handleChange} className={inputClassName} />
+              </div>
+              <div className="space-y-2">
+                <label className={labelClassName}>Travel Time</label>
+                <input name="travel_time" type="time" onChange={handleChange} className={inputClassName} />
+              </div>
+              <div className="space-y-2">
+                <label className={labelClassName}>Preferred Contact</label>
+                <select name="preferred_contact_method" value={formData.preferred_contact_method || ''} onChange={handleChange} className={inputClassName}>
+                  <option value="whatsapp" className="bg-[#0F0F0F]">WhatsApp</option>
+                  <option value="phone" className="bg-[#0F0F0F]">Phone</option>
+                  <option value="email" className="bg-[#0F0F0F]">Email</option>
+                </select>
+              </div>
+              <div className="space-y-2">
+                <label className={labelClassName}>Source Page</label>
+                <input name="source_page" onChange={handleChange} placeholder="homepage, contact, admin" className={inputClassName} />
+              </div>
+              <div className="space-y-2">
+                <label className={labelClassName}>Quote Amount</label>
+                <input name="quote_amount" onChange={handleChange} placeholder="Optional" className={inputClassName} />
               </div>
               <div className="space-y-2 md:col-span-2">
-                <label className={labelClassName}>Details</label>
-                <input name="details" onChange={handleChange} placeholder="e.g. Airport pickup, VIP MPV, 4 Nights" className={inputClassName} required />
+                <label className={labelClassName}>Requirement Notes</label>
+                <textarea name="requirement_notes" onChange={handleChange} placeholder="Common requirement summary for the enquiry" className={inputClassName} rows="3" required />
               </div>
             </div>
           )}
@@ -217,9 +295,18 @@ export default function AdminForms({ type, isOpen, onClose, onSubmit }) {
             </div>
           )}
 
-          <button type="submit" className="w-full bg-[#EFBF04] text-black py-4 rounded-xl font-bold uppercase tracking-widest text-sm hover:scale-[0.98] transition-all">
-            Save Record
-          </button>
+          </div>
+
+          <div className={`sticky bottom-0 border-t border-white/10 bg-[#0F0F0F]/95 backdrop-blur ${isMobileFullscreen ? 'px-5 py-4 pb-[calc(1rem+env(safe-area-inset-bottom))]' : 'px-5 py-4 md:px-8'}`}>
+          <LoadingButton
+            className="bg-[#EFBF04] text-black hover:scale-[0.98] hover:brightness-100"
+            idleLabel={submitLabels.idle}
+            isLoading={isSubmitting}
+            loadingLabel={submitLabels.loading}
+            spinnerClassName="text-black"
+            type="submit"
+          />
+          </div>
         </form>
       </div>
     </div>

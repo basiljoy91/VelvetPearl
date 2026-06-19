@@ -1,5 +1,27 @@
 const Driver = require('../models/driverModel');
 
+const DRIVER_STATUS_OPTIONS = ['Active', 'Unavailable'];
+const LICENCE_STATUS_OPTIONS = ['Verified', 'Pending', 'Expired'];
+
+const normalizeDriverStatus = (value) => {
+  const normalized = String(value || '').trim().toLowerCase();
+
+  if (!normalized) return 'Active';
+  if (normalized === 'active') return 'Active';
+  if (normalized === 'inactive' || normalized === 'unavailable') return 'Unavailable';
+  return null;
+};
+
+const normalizeLicenceStatus = (value) => {
+  const normalized = String(value || '').trim().toLowerCase();
+
+  if (!normalized) return 'Pending';
+  if (normalized === 'verified') return 'Verified';
+  if (normalized === 'pending') return 'Pending';
+  if (normalized === 'expired') return 'Expired';
+  return null;
+};
+
 const getDrivers = async (req, res) => {
   try {
     const drivers = await Driver.getAll();
@@ -21,6 +43,22 @@ const createDriver = async (req, res) => {
       return res.status(400).json({ success: false, message: 'Driver name is required' });
     }
 
+    const normalizedStatus = normalizeDriverStatus(status);
+    if (!normalizedStatus) {
+      return res.status(400).json({
+        success: false,
+        message: `Driver status must be one of: ${DRIVER_STATUS_OPTIONS.join(', ')}`,
+      });
+    }
+
+    const normalizedLicenceStatus = normalizeLicenceStatus(licence_status);
+    if (!normalizedLicenceStatus) {
+      return res.status(400).json({
+        success: false,
+        message: `Licence status must be one of: ${LICENCE_STATUS_OPTIONS.join(', ')}`,
+      });
+    }
+
     const id = `DR-${Math.floor(Math.random() * 900) + 100}`;
     const driverData = {
       id,
@@ -28,9 +66,9 @@ const createDriver = async (req, res) => {
       phone: phone || '',
       rating: rating || '5.0',
       experience: experience || 'New',
-      status: status || 'Active',
+      status: normalizedStatus,
       photo: photo || null,
-      licence_status: licence_status || 'Pending',
+      licence_status: normalizedLicenceStatus,
       address: address || null,
       notes: notes || null,
       assigned_vehicle: assigned_vehicle || null,
@@ -58,14 +96,30 @@ const updateDriver = async (req, res) => {
       return res.status(400).json({ success: false, message: 'Driver name is required' });
     }
 
+    const normalizedStatus = normalizeDriverStatus(status);
+    if (!normalizedStatus) {
+      return res.status(400).json({
+        success: false,
+        message: `Driver status must be one of: ${DRIVER_STATUS_OPTIONS.join(', ')}`,
+      });
+    }
+
+    const normalizedLicenceStatus = normalizeLicenceStatus(licence_status);
+    if (!normalizedLicenceStatus) {
+      return res.status(400).json({
+        success: false,
+        message: `Licence status must be one of: ${LICENCE_STATUS_OPTIONS.join(', ')}`,
+      });
+    }
+
     const driverData = {
       name,
       phone: phone || '',
       rating: rating || '5.0',
       experience: experience || 'New',
-      status: status || 'Active',
+      status: normalizedStatus,
       photo: photo || null,
-      licence_status: licence_status || 'Pending',
+      licence_status: normalizedLicenceStatus,
       address: address || null,
       notes: notes || null,
       assigned_vehicle: assigned_vehicle || null,
