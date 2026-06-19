@@ -4,6 +4,7 @@ const cors = require('cors');
 const fs = require('fs');
 const path = require('path');
 const db = require('./config/db');
+const { getSchemaPresence } = require('./utils/schemaSupport');
 
 // Import Routes
 const authRoutes = require('./routes/authRoutes');
@@ -151,21 +152,33 @@ app.use((err, req, res, next) => {
 });
 
 async function ensureDatabaseReady() {
-  const schemaPath = path.join(__dirname, 'utils', 'schema.sql');
-  const schemaSql = fs.readFileSync(schemaPath, 'utf8');
+  console.log('Preparing database connection using config:', db.connectionSummary);
+  await db.query('SELECT 1');
 
-  console.log('Preparing database schema using config:', db.connectionSummary);
-  await db.query(schemaSql);
-  await db.query(`UPDATE drivers SET status = 'Unavailable' WHERE status = 'Inactive'`);
-  await db.query(`UPDATE admins SET role = 'admin' WHERE role IS NULL OR role = ''`);
+  const schemaPresence = await getSchemaPresence(db);
+
+  if (!schemaPresence.isReady) {
+    throw new Error(
+      `Supabase schema is missing required tables: ${schemaPresence.missingTables.join(', ')}. `
+      + 'Apply the SQL files in supabase/migrations or run `npm run init-db` against a fresh database before starting the server.'
+    );
+  }
+
+  await db.query(`UPDATE drivers SET status = 'Unavailable' WHERE status::text = 'Inactive'`);
+  await db.query(`UPDATE admins SET role = 'admin' WHERE role IS NULL OR role::text = ''`);
   await db.query(`
     UPDATE admins
-    SET is_main_admin = true, role = 'main_admin'
-    ORDER BY id ASC
-    LIMIT 1
+    SET is_main_admin = true,
+        role = 'main_admin'
+    WHERE id = (
+      SELECT id
+      FROM admins
+      ORDER BY id ASC
+      LIMIT 1
+    )
   `);
 
-  console.log('Database schema and auto-migrations are ready.');
+  console.log('Database connection and compatibility checks are ready.');
 }
 
 async function startServer() {
@@ -178,7 +191,7 @@ async function startServer() {
       }
     });
   } catch (error) {
-    console.error('Failed to initialize the database schema or start the server.');
+    console.error('Failed to verify the database connection or start the server.');
     console.error('Startup config summary:', {
       port: PORT,
       shouldServeFrontend,
@@ -188,9 +201,10 @@ async function startServer() {
     console.error('Startup error details:', {
       message: error.message,
       code: error.code,
-      errno: error.errno,
-      sqlState: error.sqlState,
-      sqlMessage: error.sqlMessage,
+      detail: error.detail,
+      hint: error.hint,
+      table: error.table,
+      column: error.column,
     });
     if (error.stack) {
       console.error(error.stack);

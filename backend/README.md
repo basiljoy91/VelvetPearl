@@ -1,12 +1,12 @@
 # Velvet Pearl Backend
 
-This backend now targets **Hostinger MySQL** for production deployment.
+This backend now targets the shared Supabase PostgreSQL database used by the team.
 
 ## Runtime
 
 - Node.js 18+
 - Express.js
-- MySQL via `mysql2`
+- PostgreSQL via `pg`
 
 ## Environment
 
@@ -16,12 +16,13 @@ Example:
 
 ```env
 NODE_ENV=production
-PORT=5000
+PORT=3000
 JWT_SECRET=replace_with_a_long_random_secret
+JWT_EXPIRES_IN=12h
 SETUP_SECRET=replace_with_a_long_random_setup_secret
 CORS_ORIGIN=https://your-domain.com,https://www.your-domain.com
-DATABASE_URL=mysql://u123456789_appuser:replace_me@localhost:3306/u123456789_appdb
-DB_SSL=false
+DATABASE_URL=postgresql://postgres:replace_me@db.your-project-ref.supabase.co:5432/postgres
+DB_SSL=true
 SERVE_FRONTEND=true
 FRONTEND_DIST_PATH=../dist
 ```
@@ -29,11 +30,11 @@ FRONTEND_DIST_PATH=../dist
 You can also use separate variables instead of `DATABASE_URL`:
 
 ```env
-DB_HOST=localhost
-DB_PORT=3306
-DB_USER=u123456789_appuser
+DB_HOST=db.your-project-ref.supabase.co
+DB_PORT=5432
+DB_USER=postgres
 DB_PASSWORD=replace_me
-DB_NAME=u123456789_appdb
+DB_NAME=postgres
 ```
 
 ## Local Setup
@@ -51,11 +52,13 @@ cd backend
 npm install
 ```
 
-3. Initialize the MySQL schema:
+3. If you are pointing at a fresh PostgreSQL database, initialize the schema once:
 
 ```bash
 npm run init-db
 ```
+
+`npm run init-db` reads the SQL files in [`supabase/migrations`](/Users/basiljoy/VS%20code/roughnote/cabwebsit/supabase/migrations). It skips bootstrap when the expected tables already exist, which is the normal case for the shared team Supabase instance.
 
 4. Start the backend:
 
@@ -65,13 +68,6 @@ npm start
 
 ## Important Notes
 
-- The schema file is [`backend/utils/schema.sql`](./utils/schema.sql).
-- The server auto-runs the schema on startup using `CREATE TABLE IF NOT EXISTS`.
-- JSON-like payloads are stored as serialized text and parsed in the app layer.
+- The shared schema source of truth is [`supabase/migrations`](/Users/basiljoy/VS%20code/roughnote/cabwebsit/supabase/migrations).
+- The backend expects the Supabase schema to exist before startup and will fail fast if required tables are missing.
 - The backend can serve the built Vite frontend when `SERVE_FRONTEND=true`.
-
-## Production on Hostinger
-
-Use the full deployment walkthrough in:
-
-- [docs/hostinger-production-plan.md](/Users/basiljoy/VS%20code/roughnote/cabwebsit/docs/hostinger-production-plan.md)

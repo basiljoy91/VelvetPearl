@@ -33,11 +33,11 @@ const Admin = {
   // Create an admin
   create: async (email, hashedPassword, isMainAdmin = false, role = null) => {
     try {
-      const result = await db.query(
-        'INSERT INTO admins (email, password, is_main_admin, role) VALUES ($1, $2, $3, $4)',
+      const { rows } = await db.query(
+        'INSERT INTO admins (email, password, is_main_admin, role) VALUES ($1, $2, $3, $4) RETURNING id',
         [email, hashedPassword, isMainAdmin, role || (isMainAdmin ? 'main_admin' : 'admin')]
       );
-      return result.insertId;
+      return rows[0]?.id ?? null;
     } catch (error) {
       throw error;
     }

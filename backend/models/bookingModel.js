@@ -1,13 +1,5 @@
 const db = require('../config/db');
 
-const ENQUIRY_TYPE_CONFIG = {
-  cab: { prefix: 'CAB', table: 'cab_enquiry_details' },
-  room: { prefix: 'ROOM', table: 'room_enquiry_details' },
-  tour: { prefix: 'TOUR', table: 'tour_enquiry_details' },
-  custom: { prefix: 'CUSTOM', table: 'custom_trip_details' },
-  general: { prefix: 'GEN', table: null },
-};
-
 const normalizeEnquiryType = (value) => {
   const normalized = String(value || 'general').trim().toLowerCase();
 
@@ -21,10 +13,6 @@ const normalizeEnquiryType = (value) => {
 
   return 'general';
 };
-
-const buildReferenceId = (prefix, year, sequence) => (
-  `${prefix}-${year}-${String(sequence).padStart(4, '0')}`
-);
 
 const serializeAuditValue = (value) => {
   if (value === undefined || value === null) return null;
@@ -127,13 +115,12 @@ const insertServiceDetails = async (client, enquiryId, enquiryType, details) => 
           travel_window_start,
           travel_window_end,
           duration_days,
-          duration_label,
           group_size,
           pickup_required,
           hotel_preference,
           budget
         )
-        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
       `,
       [
         enquiryId,
@@ -141,7 +128,6 @@ const insertServiceDetails = async (client, enquiryId, enquiryType, details) => 
         details.travel_window_start || null,
         details.travel_window_end || null,
         durationDays,
-        durationLabel,
         details.group_size || null,
         details.pickup_required || details.cab_required || null,
         details.hotel_preference || null,
@@ -352,26 +338,10 @@ const Booking = {
       await client.beginTransaction();
 
       const enquiryType = normalizeEnquiryType(enquiryData.enquiry_type);
-      const { prefix } = ENQUIRY_TYPE_CONFIG[enquiryType];
-      const year = new Date().getFullYear();
-
-      await client.query(
-        `
-          INSERT INTO enquiry_counters (enquiry_type, enquiry_year, last_number)
-          VALUES ($1, $2, LAST_INSERT_ID(1))
-          ON DUPLICATE KEY UPDATE last_number = LAST_INSERT_ID(last_number + 1)
-        `,
-        [enquiryType, year]
-      );
-
-      const counterResult = await client.query('SELECT LAST_INSERT_ID() AS last_number');
-      const sequence = Number(counterResult.rows[0]?.last_number || 1);
-      const referenceId = buildReferenceId(prefix, year, sequence);
 
       const insertResult = await client.query(
         `
           INSERT INTO enquiries (
-            reference_id,
             enquiry_type,
             customer_name,
             phone_number,
@@ -409,11 +379,11 @@ const Booking = {
           VALUES (
             $1, $2, $3, $4, $5, $6, $7, $8, $9, $10,
             $11, $12, $13, $14, $15, $16, $17, $18, $19, $20,
-            $21, $22, $23, $24, $25, false, NULL, NULL, $26, $27, $28, $29, 'pending', NULL
+            $21, $22, $23, $24, false, NULL, NULL, $25, $26, $27, $28, 'pending', NULL
           )
+          RETURNING id
         `,
         [
-          referenceId,
           enquiryType,
           enquiryData.customer_name,
           enquiryData.phone_number,
@@ -425,7 +395,7 @@ const Booking = {
           enquiryData.priority || 'Normal',
           enquiryData.travel_date || null,
           enquiryData.travel_time || null,
-          JSON.stringify(enquiryData.service_details_json || {}),
+          enquiryData.service_details_json || {},
           enquiryData.admin_notes || null,
           enquiryData.assigned_driver_id || null,
           enquiryData.assigned_vehicle_id || null,
@@ -445,9 +415,15 @@ const Booking = {
         ]
       );
 
-      const enquiryId = insertResult.insertId;
+      const enquiryId = insertResult.rows[0]?.id;
       await insertServiceDetails(client, enquiryId, enquiryType, enquiryData.service_details_json || {});
-      const createdResult = await client.query('SELECT * FROM enquiries WHERE id = $1', [enquiryId]);
+      const createdResult = await client.query(
+        `
+          ${baseSelect}
+          WHERE e.id = $1
+        `,
+        [enquiryId]
+      );
 
       await client.commit();
       return createdResult.rows[0];
@@ -526,7 +502,7 @@ const Booking = {
           enquiryData.quote_amount || null,
           enquiryData.last_contacted_at || null,
           enquiryData.follow_up_at || null,
-          JSON.stringify(nextDetails),
+          nextDetails,
           enquiryData.requirement_notes || null,
           id,
         ]
@@ -706,7 +682,7 @@ const Booking = {
       fieldName,
       serializeAuditValue(previousValue),
       serializeAuditValue(nextValue),
-      JSON.stringify(metadata || {}),
+      metadata || {},
     ]
   ),
 };
