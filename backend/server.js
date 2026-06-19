@@ -4,7 +4,7 @@ const cors = require('cors');
 const fs = require('fs');
 const path = require('path');
 const db = require('./config/db');
-const { getSchemaPresence } = require('./utils/schemaSupport');
+const { getSchemaPresence, ensureRuntimeCompatibility } = require('./utils/schemaSupport');
 
 // Import Routes
 const authRoutes = require('./routes/authRoutes');
@@ -29,6 +29,25 @@ const allowedOrigins = (process.env.CORS_ORIGIN || 'http://localhost:5173,http:/
   .split(',')
   .map((origin) => origin.trim())
   .filter(Boolean);
+
+function getDatabaseTroubleshootingHint(error) {
+  const message = String(error?.message || '');
+  const host = String(db.connectionSummary?.host || '');
+
+  if (host.includes('pooler.supabase.com') && message.includes('tenant/user') && message.includes('not found')) {
+    return 'Supabase pooler tenant/user lookup failed. Re-copy the exact Session pooler connection string from Supabase Dashboard > Connect. The pooler host region and the username `postgres.<project-ref>` must belong to the same project.';
+  }
+
+  if (message.toLowerCase().includes('password authentication failed')) {
+    return 'Database password was rejected. Reset the database password in Supabase if needed, then update backend/.env.';
+  }
+
+  if (message.toLowerCase().includes('connection refused')) {
+    return 'Database host is reachable but refused the connection. Verify that the project is running and that you chose the right direct or pooler endpoint.';
+  }
+
+  return null;
+}
 
 function getNormalizedOriginHost(value = '') {
   try {
@@ -164,6 +183,8 @@ async function ensureDatabaseReady() {
     );
   }
 
+  await ensureRuntimeCompatibility(db);
+
   await db.query(`UPDATE drivers SET status = 'Unavailable' WHERE status::text = 'Inactive'`);
   await db.query(`UPDATE admins SET role = 'admin' WHERE role IS NULL OR role::text = ''`);
   await db.query(`
@@ -206,6 +227,10 @@ async function startServer() {
       table: error.table,
       column: error.column,
     });
+    const troubleshootingHint = getDatabaseTroubleshootingHint(error);
+    if (troubleshootingHint) {
+      console.error('Troubleshooting hint:', troubleshootingHint);
+    }
     if (error.stack) {
       console.error(error.stack);
     }

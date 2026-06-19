@@ -16,17 +16,25 @@ const parseDatabaseUrl = (value) => {
   };
 };
 
-const connectionConfig = process.env.DATABASE_URL
-  ? {
-      connectionString: process.env.DATABASE_URL,
-    }
-  : {
-      host: process.env.DB_HOST || process.env.PGHOST || '127.0.0.1',
-      user: process.env.DB_USER || process.env.PGUSER,
-      password: process.env.DB_PASSWORD || process.env.PGPASSWORD,
-      database: process.env.DB_NAME || process.env.PGDATABASE,
-      port: Number(process.env.DB_PORT || process.env.PGPORT || 5432),
-    };
+let connectionConfig;
+if (process.env.DATABASE_URL) {
+  const urlObj = new URL(process.env.DATABASE_URL);
+  connectionConfig = {
+    host: urlObj.hostname,
+    port: Number(urlObj.port || 5432),
+    user: decodeURIComponent(urlObj.username || ''),
+    password: decodeURIComponent(urlObj.password || ''),
+    database: decodeURIComponent(urlObj.pathname.replace(/^[\/]?/, '')),
+  };
+} else {
+  connectionConfig = {
+    host: process.env.DB_HOST || process.env.PGHOST || '127.0.0.1',
+    user: process.env.DB_USER || process.env.PGUSER,
+    password: process.env.DB_PASSWORD || process.env.PGPASSWORD,
+    database: process.env.DB_NAME || process.env.PGDATABASE,
+    port: Number(process.env.DB_PORT || process.env.PGPORT || 5432),
+  };
+}
 
 const shouldUseSsl =
   String(process.env.DB_SSL || '').toLowerCase() === 'true' ||
