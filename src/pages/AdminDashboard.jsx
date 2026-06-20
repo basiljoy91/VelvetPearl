@@ -9,10 +9,12 @@ import {
   assignPackageToEnquiry,
   assignRoomToEnquiry,
   assignVehicleToEnquiry,
+  getAdminFeedback,
   getDrivers,
   getEnquiries,
   getEnquiryById,
   getFleet,
+  reviewFeedback,
   updateEnquiry,
   updateEnquiryNotes,
   updateEnquiryQuote,
@@ -350,6 +352,77 @@ function EnquiryCard({ enquiry, onOpenDetail, onMarkContacted }) {
         <EnquiryQuickActions enquiry={enquiry} onMarkContacted={onMarkContacted} onOpenDetail={onOpenDetail} />
       </div>
     </article>
+  );
+}
+
+function FeedbackModerationPanel({ feedback, isLoading, onReview }) {
+  const statusClasses = {
+    pending: 'bg-amber-500/15 text-amber-300',
+    accepted: 'bg-emerald-500/15 text-emerald-300',
+    rejected: 'bg-rose-500/15 text-rose-300',
+  };
+
+  if (isLoading) {
+    return (
+      <section className="grid gap-5 lg:grid-cols-2">
+        {Array.from({ length: 4 }).map((_, index) => (
+          <AdminEntityCardSkeleton key={`feedback-skeleton-${index}`} />
+        ))}
+      </section>
+    );
+  }
+
+  if (!feedback.length) {
+    return (
+      <section className="rounded-[28px] border border-white/10 bg-white/5 p-10 text-sm text-gray-300">
+        No feedback has been submitted yet.
+      </section>
+    );
+  }
+
+  return (
+    <section className="grid gap-5 lg:grid-cols-2">
+      {feedback.map((item) => (
+        <article key={item.id} className="rounded-[28px] border border-white/10 bg-white/5 p-6">
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+            <div>
+              <p className="text-xl font-semibold text-white">{item.customer_name}</p>
+              <p className="mt-1 text-sm text-gray-400">{item.location || 'No trip/location shared'}</p>
+            </div>
+            <span className={`w-fit rounded-full px-3 py-1 text-[10px] font-bold uppercase tracking-[0.16em] ${statusClasses[item.status] || 'bg-white/10 text-gray-300'}`}>
+              {item.status}
+            </span>
+          </div>
+          <div className="mt-4 flex gap-1 text-[#EFBF04]">
+            {Array.from({ length: 5 }).map((_, index) => (
+              <span key={index} className="material-symbols-outlined text-base">
+                {index < Number(item.rating || 5) ? 'star' : 'star_outline'}
+              </span>
+            ))}
+          </div>
+          <p className="mt-4 whitespace-pre-wrap text-sm leading-relaxed text-gray-200">{item.message}</p>
+          <p className="mt-4 text-xs text-gray-500">Submitted {formatDateTime(item.submitted_at)}</p>
+          {item.status === 'pending' && (
+            <div className="mt-5 flex flex-wrap gap-3">
+              <button
+                type="button"
+                onClick={() => onReview(item.id, 'accepted')}
+                className="rounded-full border border-emerald-400/30 bg-emerald-500/10 px-4 py-2 text-xs font-bold uppercase tracking-[0.2em] text-emerald-300"
+              >
+                Accept
+              </button>
+              <button
+                type="button"
+                onClick={() => onReview(item.id, 'rejected')}
+                className="rounded-full border border-rose-400/30 bg-rose-500/10 px-4 py-2 text-xs font-bold uppercase tracking-[0.2em] text-rose-300"
+              >
+                Reject
+              </button>
+            </div>
+          )}
+        </article>
+      ))}
+    </section>
   );
 }
 
@@ -909,6 +982,8 @@ function DesktopAdminDashboard({
   filteredEnquiries,
   filteredDrivers,
   filteredFleet,
+  feedback,
+  onReviewFeedback,
   enquiryFilters,
   oldPassword,
   setOldPassword,
@@ -1385,6 +1460,14 @@ function DesktopAdminDashboard({
             </section>
           )}
 
+          {activeTab === 'feedback' && (
+            <FeedbackModerationPanel
+              feedback={feedback}
+              isLoading={isLoading}
+              onReview={onReviewFeedback}
+            />
+          )}
+
           {activeTab === 'settings' && (
             <div className="mx-auto max-w-4xl space-y-8">
               <section className="rounded-[32px] border border-white/10 bg-white/5 p-8">
@@ -1472,6 +1555,7 @@ export default function AdminDashboard() {
   const [enquiries, setEnquiries] = useState([]);
   const [fleet, setFleet] = useState([]);
   const [drivers, setDrivers] = useState([]);
+  const [feedback, setFeedback] = useState([]);
   const [adminProfile, setAdminProfile] = useState(null);
   const [dashboardError, setDashboardError] = useState('');
   const [isLoading, setIsLoading] = useState(true);
@@ -1495,6 +1579,7 @@ export default function AdminDashboard() {
   const navItems = [
     { id: 'dashboard', label: 'Overview', icon: 'dashboard' },
     { id: 'bookings', label: 'Enquiries', icon: 'calendar_month' },
+    { id: 'feedback', label: 'Feedback', icon: 'rate_review' },
     { id: 'drivers', label: 'Drivers', icon: 'person_pin' },
     { id: 'fleet', label: 'Fleet', icon: 'directions_car' },
     { id: 'settings', label: 'Settings', icon: 'settings' },
@@ -1504,15 +1589,17 @@ export default function AdminDashboard() {
     if (showLoader) setIsLoading(true);
 
     try {
-      const [nextEnquiries, nextFleet, nextDrivers] = await Promise.all([
+      const [nextEnquiries, nextFleet, nextDrivers, nextFeedback] = await Promise.all([
         getEnquiries(),
         getFleet(),
         getDrivers(),
+        getAdminFeedback(),
       ]);
 
       setEnquiries(nextEnquiries);
       setFleet(nextFleet);
       setDrivers(nextDrivers);
+      setFeedback(nextFeedback);
       setDashboardError('');
     } catch (error) {
       console.error('Admin dashboard load error:', error);
@@ -1760,6 +1847,18 @@ export default function AdminDashboard() {
     }
   };
 
+  const handleReviewFeedback = async (feedbackId, status) => {
+    try {
+      await reviewFeedback(feedbackId, status);
+      setFeedback((current) => current.map((item) => (
+        String(item.id) === String(feedbackId) ? { ...item, status } : item
+      )));
+      await syncOperationalData();
+    } catch (error) {
+      setDashboardError(error.message || 'Unable to review feedback. Please try again.');
+    }
+  };
+
   const helperBag = {
     getEnquiryType,
     getPhoneNumber,
@@ -1787,6 +1886,8 @@ export default function AdminDashboard() {
         filteredEnquiries={filteredEnquiries}
         filteredDrivers={filteredDrivers}
         filteredFleet={filteredFleet}
+        feedback={feedback}
+        onReviewFeedback={handleReviewFeedback}
         enquiryFilters={enquiryFilters}
         setEnquiryFilters={setEnquiryFilters}
         searchQuery={searchQuery}
@@ -1879,6 +1980,8 @@ export default function AdminDashboard() {
         filteredEnquiries={filteredEnquiries}
         filteredDrivers={filteredDrivers}
         filteredFleet={filteredFleet}
+        feedback={feedback}
+        onReviewFeedback={handleReviewFeedback}
         enquiryFilters={enquiryFilters}
         oldPassword={oldPassword}
         setOldPassword={setOldPassword}

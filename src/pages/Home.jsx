@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { buildWhatsAppLink, DEFAULT_WHATSAPP_PHONE } from '../utils/whatsapp';
+import { getApprovedFeedback, submitFeedback } from '../services/dataService';
 import { slideshowArchiveMedia, travelMedia, vehicleMedia } from '../content/travelMedia';
 import { buildDestinationEnquiryState, buildPackageEnquiryState, featuredDestinations, featuredPackages } from '../content/travelCatalog';
 
@@ -174,6 +175,15 @@ const sectionIntro = (eyebrow, title, description) => (
 export default function Home() {
   const navigate = useNavigate();
   const [heroSlideIndex, setHeroSlideIndex] = useState(0);
+  const [approvedFeedback, setApprovedFeedback] = useState([]);
+  const [feedbackStatus, setFeedbackStatus] = useState('');
+  const [isFeedbackSubmitting, setIsFeedbackSubmitting] = useState(false);
+  const [feedbackForm, setFeedbackForm] = useState({
+    customer_name: '',
+    location: '',
+    rating: '5',
+    message: '',
+  });
   const [quickEnquiry, setQuickEnquiry] = useState({
     name: '',
     phone: '',
@@ -213,6 +223,22 @@ export default function Home() {
 
   const goToService = (path, state) => navigate(path, state ? { state } : undefined);
 
+  const handleFeedbackSubmit = async (event) => {
+    event.preventDefault();
+    setIsFeedbackSubmitting(true);
+    setFeedbackStatus('');
+
+    try {
+      await submitFeedback(feedbackForm);
+      setFeedbackForm({ customer_name: '', location: '', rating: '5', message: '' });
+      setFeedbackStatus('Thank you. Your feedback was submitted for admin review.');
+    } catch (error) {
+      setFeedbackStatus(error.message || 'Unable to submit feedback. Please try again.');
+    } finally {
+      setIsFeedbackSubmitting(false);
+    }
+  };
+
   useEffect(() => {
     const timer = window.setInterval(() => {
       setHeroSlideIndex((current) => (current + 1) % heroSlides.length);
@@ -220,6 +246,37 @@ export default function Home() {
 
     return () => window.clearInterval(timer);
   }, []);
+
+  useEffect(() => {
+    let ignore = false;
+
+    const loadFeedback = async () => {
+      try {
+        const feedback = await getApprovedFeedback();
+        if (!ignore) setApprovedFeedback(feedback);
+      } catch {
+        if (!ignore) setApprovedFeedback([]);
+      }
+    };
+
+    loadFeedback();
+
+    return () => {
+      ignore = true;
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!feedbackStatus) return undefined;
+
+    const timer = window.setTimeout(() => {
+      setFeedbackStatus('');
+    }, 5000);
+
+    return () => window.clearTimeout(timer);
+  }, [feedbackStatus]);
+
+  const marqueeFeedback = Array.from({ length: 4 }, () => approvedFeedback).flat();
 
   return (
     <main className="overflow-hidden pb-28 pt-20 md:pb-0">
@@ -455,6 +512,8 @@ export default function Home() {
         </div>
       </section>
 
+    
+
       <section className="bg-surface-container-low px-6 py-24 md:px-8">
         <div className="mx-auto max-w-7xl">
           {sectionIntro(
@@ -602,23 +661,55 @@ export default function Home() {
       </section>
 
       <section className="bg-background px-6 py-24 md:px-8">
-        <div className="mx-auto max-w-5xl rounded-[32px] border border-white/10 bg-[linear-gradient(135deg,rgba(34,73,219,0.12),rgba(239,191,4,0.08))] p-8 md:p-12">
-          <p className="text-[10px] font-bold uppercase tracking-[0.3em] text-secondary">Reviews</p>
-          <h2 className="mt-4 font-headline text-4xl font-bold text-white md:text-5xl">Customer Reviews Coming Soon</h2>
-          <p className="mt-5 max-w-3xl text-lg leading-relaxed text-on-surface-variant">
-            We are collecting verified feedback from our customers. Until then, you can contact us directly on WhatsApp for more details about our travel support process.
-          </p>
-          <a
-            className="mt-8 inline-flex rounded-xl border border-secondary px-6 py-4 text-sm font-bold uppercase tracking-[0.18em] text-secondary transition-all hover:bg-secondary/10"
-            href={buildWhatsAppLink({
-              phone: DEFAULT_WHATSAPP_PHONE,
-              message: 'Hi, I would like to know more about your travel services.',
-            })}
-            rel="noreferrer"
-            target="_blank"
-          >
-            Contact on WhatsApp
-          </a>
+        <div className="mx-auto max-w-7xl">
+          {approvedFeedback.length > 0 ? (
+            <>
+              {sectionIntro(
+                'Reviews',
+                'Customer Feedback',
+                'Accepted customer feedback from the admin dashboard appears here as an infinite moving card wall.'
+              )}
+              <div className="feedback-marquee">
+                <div className="feedback-marquee-track">
+                  {marqueeFeedback.map((item, index) => (
+                    <article key={`${item.id}-${index}`} className="feedback-card w-[280px] shrink-0 rounded-[24px] border border-white/10 bg-surface-container p-5 sm:w-[340px]">
+                      <div className="flex gap-1 text-secondary">
+                        {Array.from({ length: 5 }).map((_, starIndex) => (
+                          <span key={starIndex} className="material-symbols-outlined text-base">
+                            {starIndex < Number(item.rating || 5) ? 'star' : 'star_outline'}
+                          </span>
+                        ))}
+                      </div>
+                      <p className="mt-4 line-clamp-5 text-sm leading-relaxed text-on-surface-variant">{item.message}</p>
+                      <div className="mt-5 border-t border-white/10 pt-4">
+                        <p className="font-headline text-lg font-bold text-white">{item.customer_name}</p>
+                        <p className="mt-1 text-xs font-bold uppercase tracking-[0.18em] text-secondary">{item.location || 'Verified customer'}</p>
+                      </div>
+                    </article>
+                  ))}
+                </div>
+              </div>
+            </>
+          ) : (
+            <div className="mx-auto max-w-5xl rounded-[32px] border border-white/10 bg-[linear-gradient(135deg,rgba(34,73,219,0.12),rgba(239,191,4,0.08))] p-8 md:p-12">
+              <p className="text-[10px] font-bold uppercase tracking-[0.3em] text-secondary">Reviews</p>
+              <h2 className="mt-4 font-headline text-4xl font-bold text-white md:text-5xl">Customer Reviews Coming Soon</h2>
+              <p className="mt-5 max-w-3xl text-lg leading-relaxed text-on-surface-variant">
+                We are collecting verified feedback from our customers. Until then, you can contact us directly on WhatsApp for more details about our travel support process.
+              </p>
+              <a
+                className="mt-8 inline-flex rounded-xl border border-secondary px-6 py-4 text-sm font-bold uppercase tracking-[0.18em] text-secondary transition-all hover:bg-secondary/10"
+                href={buildWhatsAppLink({
+                  phone: DEFAULT_WHATSAPP_PHONE,
+                  message: 'Hi, I would like to know more about your travel services.',
+                })}
+                rel="noreferrer"
+                target="_blank"
+              >
+                Contact on WhatsApp
+              </a>
+            </div>
+          )}
         </div>
       </section>
 
@@ -673,6 +764,71 @@ export default function Home() {
               </a>
             </div>
           </div>
+        </div>
+      </section>
+
+      <section className="bg-surface-container-low px-6 py-24 md:px-8" id="feedback">
+        <div className="mx-auto max-w-3xl">
+          {sectionIntro(
+            'Feedback',
+            'Share Your Travel Experience',
+            'Submit your review here. The admin team will review it first, and accepted feedback will appear publicly on the homepage.'
+          )}
+          <form className="space-y-5 rounded-[28px] border border-white/10 bg-black/20 p-6" onSubmit={handleFeedbackSubmit}>
+            <div>
+              <label className="mb-2 block text-[11px] font-bold uppercase tracking-[0.18em] text-on-surface-variant">Name</label>
+              <input
+                className="w-full rounded-xl border border-white/10 bg-black/30 px-4 py-3 text-sm text-white outline-none transition-all focus:border-secondary"
+                onChange={(event) => setFeedbackForm((current) => ({ ...current, customer_name: event.target.value }))}
+                required
+                type="text"
+                value={feedbackForm.customer_name}
+              />
+            </div>
+            <div className="grid gap-5 md:grid-cols-[1fr_160px]">
+              <div>
+                <label className="mb-2 block text-[11px] font-bold uppercase tracking-[0.18em] text-on-surface-variant">Trip / Location</label>
+                <input
+                  className="w-full rounded-xl border border-white/10 bg-black/30 px-4 py-3 text-sm text-white outline-none transition-all focus:border-secondary"
+                  onChange={(event) => setFeedbackForm((current) => ({ ...current, location: event.target.value }))}
+                  placeholder="Chennai, Ooty, airport transfer..."
+                  type="text"
+                  value={feedbackForm.location}
+                />
+              </div>
+              <div>
+                <label className="mb-2 block text-[11px] font-bold uppercase tracking-[0.18em] text-on-surface-variant">Rating</label>
+                <select
+                  className="w-full rounded-xl border border-white/10 bg-black/30 px-4 py-3 text-sm text-white outline-none transition-all focus:border-secondary"
+                  onChange={(event) => setFeedbackForm((current) => ({ ...current, rating: event.target.value }))}
+                  value={feedbackForm.rating}
+                >
+                  {[5, 4, 3, 2, 1].map((rating) => (
+                    <option key={rating} className="bg-[#0A0A0A]" value={rating}>{rating} star{rating === 1 ? '' : 's'}</option>
+                  ))}
+                </select>
+              </div>
+            </div>
+            <div>
+              <label className="mb-2 block text-[11px] font-bold uppercase tracking-[0.18em] text-on-surface-variant">Message</label>
+              <textarea
+                className="min-h-32 w-full rounded-xl border border-white/10 bg-black/30 px-4 py-3 text-sm text-white outline-none transition-all focus:border-secondary"
+                onChange={(event) => setFeedbackForm((current) => ({ ...current, message: event.target.value }))}
+                required
+                value={feedbackForm.message}
+              />
+            </div>
+            {feedbackStatus && (
+              <p className="rounded-2xl border border-secondary/20 bg-secondary/10 px-4 py-3 text-sm text-on-surface-variant">{feedbackStatus}</p>
+            )}
+            <button
+              className="w-full rounded-xl bg-primary-container px-6 py-4 text-sm font-bold uppercase tracking-[0.2em] text-white transition-all hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-60"
+              disabled={isFeedbackSubmitting}
+              type="submit"
+            >
+              {isFeedbackSubmitting ? 'Submitting...' : 'Submit Feedback'}
+            </button>
+          </form>
         </div>
       </section>
     </main>

@@ -28,6 +28,8 @@ export default function MobileAdminDashboard({
   filteredEnquiries,
   filteredFleet,
   filteredDrivers,
+  feedback,
+  onReviewFeedback,
   enquiryFilters,
   setEnquiryFilters,
   searchQuery,
@@ -88,6 +90,7 @@ export default function MobileAdminDashboard({
     bookings: 'Review, contact, assign, and update customer enquiries.',
     drivers: 'Keep driver availability and contact details within reach.',
     fleet: 'Track available vehicles, status, and coverage.',
+    feedback: 'Accept or reject customer feedback before it appears publicly.',
     settings: 'Security, onboarding, and admin access controls.',
   }[activeTab] || 'Manual operations';
 
@@ -186,6 +189,65 @@ export default function MobileAdminDashboard({
             setSearchQuery={setSearchQuery}
             isLoading={isLoading}
           />
+        )}
+
+        {activeTab === 'feedback' && (
+          <div className="space-y-4">
+            {isLoading ? (
+              <div className="rounded-3xl border border-white/10 bg-white/5 p-6 text-sm text-gray-300">
+                Loading feedback...
+              </div>
+            ) : feedback.length === 0 ? (
+              <div className="rounded-3xl border border-white/10 bg-white/5 p-6 text-sm text-gray-300">
+                No feedback has been submitted yet.
+              </div>
+            ) : feedback.map((item) => (
+              <article key={item.id} className="rounded-3xl border border-white/10 bg-white/5 p-5">
+                <div className="flex items-start justify-between gap-3">
+                  <div>
+                    <h3 className="text-lg font-semibold text-white">{item.customer_name}</h3>
+                    <p className="mt-1 text-xs text-gray-400">{item.location || 'No trip/location shared'}</p>
+                  </div>
+                  <span className={`rounded-full px-3 py-1 text-[10px] font-bold uppercase ${
+                    item.status === 'accepted'
+                      ? 'bg-emerald-500/15 text-emerald-300'
+                      : item.status === 'rejected'
+                        ? 'bg-rose-500/15 text-rose-300'
+                        : 'bg-amber-500/15 text-amber-300'
+                  }`}>
+                    {item.status}
+                  </span>
+                </div>
+                <div className="mt-3 flex gap-1 text-[#EFBF04]">
+                  {Array.from({ length: 5 }).map((_, index) => (
+                    <span key={index} className="material-symbols-outlined text-base">
+                      {index < Number(item.rating || 5) ? 'star' : 'star_outline'}
+                    </span>
+                  ))}
+                </div>
+                <p className="mt-3 whitespace-pre-wrap text-sm leading-relaxed text-gray-200">{item.message}</p>
+                <p className="mt-3 text-xs text-gray-500">Submitted {formatDateTime(item.submitted_at)}</p>
+                {item.status === 'pending' && (
+                  <div className="mt-4 grid grid-cols-2 gap-3">
+                    <button
+                      type="button"
+                      onClick={() => onReviewFeedback(item.id, 'accepted')}
+                      className="rounded-2xl border border-emerald-400/30 bg-emerald-500/10 px-4 py-3 text-xs font-bold uppercase tracking-[0.18em] text-emerald-300"
+                    >
+                      Accept
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => onReviewFeedback(item.id, 'rejected')}
+                      className="rounded-2xl border border-rose-400/30 bg-rose-500/10 px-4 py-3 text-xs font-bold uppercase tracking-[0.18em] text-rose-300"
+                    >
+                      Reject
+                    </button>
+                  </div>
+                )}
+              </article>
+            ))}
+          </div>
         )}
 
         {activeTab === 'settings' && (

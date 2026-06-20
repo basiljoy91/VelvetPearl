@@ -161,6 +161,40 @@ export const updateBookingEnquiry = updateEnquiry;
 export const deleteBookingRecord = deleteEnquiryRecord;
 export const assignDriverToBooking = assignDriverToEnquiry;
 
+// FEEDBACK
+
+export const submitFeedback = async (feedbackData) => {
+  const res = await fetch(`${API}/feedback`, {
+    method: 'POST',
+    headers: authHeaders(),
+    body: JSON.stringify(feedbackData),
+  });
+  const data = await handleResponse(res);
+  return data.data;
+};
+
+export const getApprovedFeedback = async () => {
+  const res = await fetch(`${API}/feedback/approved`, { headers: authHeaders() });
+  const data = await handleResponse(res);
+  return data.data || [];
+};
+
+export const getAdminFeedback = async () => {
+  const res = await fetch(`${API}/feedback/admin`, { headers: authHeaders() });
+  const data = await handleResponse(res);
+  return data.data || [];
+};
+
+export const reviewFeedback = async (id, status, adminNotes = '') => {
+  const res = await fetch(`${API}/feedback/admin/${id}/review`, {
+    method: 'PATCH',
+    headers: authHeaders(),
+    body: JSON.stringify({ status, admin_notes: adminNotes }),
+  });
+  const data = await handleResponse(res);
+  return data.data;
+};
+
 // ─────────────────────────────────────────────
 // DRIVERS
 // ─────────────────────────────────────────────
