@@ -276,7 +276,9 @@ export default function Home() {
     return () => window.clearTimeout(timer);
   }, [feedbackStatus]);
 
-  const marqueeFeedback = Array.from({ length: 4 }, () => approvedFeedback).flat();
+  const marqueeFeedback = approvedFeedback.length > 1
+    ? Array.from({ length: 4 }, () => approvedFeedback).flat()
+    : approvedFeedback;
 
   return (
     <main className="overflow-hidden pb-28 pt-20 md:pb-0">
@@ -669,8 +671,8 @@ export default function Home() {
                 'Customer Feedback',
                 'Accepted customer feedback from the admin dashboard appears here as an infinite moving card wall.'
               )}
-              <div className="feedback-marquee">
-                <div className="feedback-marquee-track">
+              <div className={approvedFeedback.length > 1 ? 'feedback-marquee' : ''}>
+                <div className={approvedFeedback.length > 1 ? 'feedback-marquee-track' : 'flex justify-center'}>
                   {marqueeFeedback.map((item, index) => (
                     <article key={`${item.id}-${index}`} className="feedback-card w-[280px] shrink-0 rounded-[24px] border border-white/10 bg-surface-container p-5 sm:w-[340px]">
                       <div className="flex gap-1 text-secondary">
