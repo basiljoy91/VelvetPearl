@@ -210,3 +210,43 @@ export const getAnalytics = async () => {
   const data = await handleResponse(res);
   return data.data || {};
 };
+
+export const submitFeedback = async (data) => {
+  const res = await fetch(`${API}/feedbacks`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data)
+  });
+  return handleResponse(res);
+};
+
+
+export const getFeedbacks = async () => {
+  const res = await fetch(`${API}/feedbacks`, { headers: authHeaders() });
+  const data = await handleResponse(res);
+  return data.data || [];
+};
+
+export const getFeedbackStats = async () => {
+  const res = await fetch(`${API}/feedbacks/stats`, { headers: authHeaders() });
+  const data = await handleResponse(res);
+  return data.data || {};
+};
+
+export const updateFeedbackStatus = async (id, status) => {
+  const res = await fetch(`${API}/feedbacks/${id}`, {
+    method: 'PATCH',
+    headers: authHeaders(),
+    body: JSON.stringify({ status }),
+  });
+  const data = await handleResponse(res);
+  return data.data;
+};
+
+
+export const getAcceptedFeedbacks = async () => {
+  const res = await fetch(`${API}/feedbacks/accepted`);
+  const data = await handleResponse(res);
+  return data.data || [];
+};
+

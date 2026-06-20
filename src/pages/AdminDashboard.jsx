@@ -13,6 +13,9 @@ import {
   getEnquiries,
   getEnquiryById,
   getFleet,
+  getFeedbacks,
+  getFeedbackStats,
+  updateFeedbackStatus,
   updateEnquiry,
   updateEnquiryNotes,
   updateEnquiryQuote,
@@ -909,6 +912,10 @@ function DesktopAdminDashboard({
   filteredEnquiries,
   filteredDrivers,
   filteredFleet,
+  filteredFeedbacks,
+  feedbackStats,
+  handleFeedbackAction,
+  feedbackProcessing,
   enquiryFilters,
   oldPassword,
   setOldPassword,
@@ -1385,6 +1392,125 @@ function DesktopAdminDashboard({
             </section>
           )}
 
+          {activeTab === 'feedback' && (
+            <section className="space-y-6">
+              <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+                <article className="rounded-2xl border border-white/10 bg-white/5 p-6 shadow-xl">
+                  <h3 className="text-sm font-medium text-gray-400">Total Reviews</h3>
+                  <p className="mt-2 text-3xl font-bold text-white">{feedbackStats?.totalReviews || 0}</p>
+                </article>
+                <article className="rounded-2xl border border-white/10 bg-white/5 p-6 shadow-xl">
+                  <h3 className="text-sm font-medium text-gray-400">Total Accepted</h3>
+                  <p className="mt-2 text-3xl font-bold text-emerald-400">{feedbackStats?.totalAccepted || 0}</p>
+                </article>
+                <article className="rounded-2xl border border-white/10 bg-white/5 p-6 shadow-xl">
+                  <h3 className="text-sm font-medium text-gray-400">Total Rejected</h3>
+                  <p className="mt-2 text-3xl font-bold text-red-400">{feedbackStats?.totalRejected || 0}</p>
+                </article>
+                <article className="rounded-2xl border border-white/10 bg-white/5 p-6 shadow-xl">
+                  <h3 className="text-sm font-medium text-gray-400">Overall Rating</h3>
+                  <p className="mt-2 text-3xl font-bold text-[#EFBF04]">{Number(feedbackStats?.overallRating || 0).toFixed(1)} / 5</p>
+                </article>
+              </div>
+
+              <div className="rounded-[32px] border border-white/10 bg-white/5 p-5">
+                <div className="flex flex-col gap-4 xl:flex-row xl:items-end xl:justify-between">
+                  <div>
+                    <h2 className="text-xl font-semibold text-white">Feedback list</h2>
+                    <p className="mt-1 text-sm text-gray-400">Manage and moderate customer feedback.</p>
+                  </div>
+                </div>
+                <div className="mt-6 overflow-x-auto rounded-2xl border border-white/10 bg-black/20">
+                  <table className="w-full text-left text-sm text-gray-300">
+                    <thead className="bg-white/5 text-xs uppercase tracking-widest text-gray-400">
+                      <tr>
+                        <th className="px-6 py-4 font-semibold">Name</th>
+                        <th className="px-4 py-4 font-semibold">Feedback</th>
+                        <th className="px-4 py-4 font-semibold">Rating</th>
+                        <th className="px-4 py-4 font-semibold">Status</th>
+                        <th className="px-6 py-4 font-semibold text-right">Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-white/5">
+                      {isLoading ? (
+                        <EnquiryTableSkeletonRows count={3} />
+                      ) : filteredFeedbacks.length === 0 ? (
+                        <tr>
+                          <td colSpan="5" className="px-6 py-8 text-center text-gray-400">
+                            No feedback found matching your criteria.
+                          </td>
+                        </tr>
+                      ) : (
+                        filteredFeedbacks.map((fb) => (
+                          <tr key={fb.id} className="transition-colors hover:bg-white/5">
+                            <td className="px-6 py-4 font-medium text-white">{fb.name}</td>
+                            <td className="px-4 py-4 whitespace-normal">{fb.feedback}</td>
+                            <td className="px-4 py-4">{fb.rating} / 5</td>
+                            <td className="px-4 py-4">
+                              <span className={`inline-flex rounded-full px-3 py-1 text-[10px] font-bold uppercase tracking-widest ${
+                                fb.status === 'accepted' ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' :
+                                fb.status === 'rejected' ? 'bg-red-500/10 text-red-400 border border-red-500/20' :
+                                'bg-amber-500/10 text-amber-400 border border-amber-500/20'
+                              }`}>
+                                {fb.status}
+                              </span>
+                            </td>
+                            <td className="px-6 py-4 text-right">
+                              {fb.status === 'pending' ? (
+                                <div className="flex justify-end gap-2">
+                                  <button
+                                    onClick={() => handleFeedbackAction(fb.id, 'accepted')}
+                                    disabled={feedbackProcessing?.id === fb.id}
+                                    className={`relative overflow-hidden rounded-full px-4 py-2 text-xs font-bold uppercase tracking-[0.2em] transition-all ${
+                                      feedbackProcessing?.id === fb.id
+                                        ? 'cursor-not-allowed border border-emerald-400/20 bg-emerald-500/5 text-emerald-300/50'
+                                        : 'border border-emerald-400/30 bg-emerald-500/10 text-emerald-300 hover:bg-emerald-500/20'
+                                    }`}
+                                  >
+                                    <span className={feedbackProcessing?.id === fb.id && feedbackProcessing?.action === 'accepted' ? 'invisible' : ''}>
+                                      Accept
+                                    </span>
+                                    {feedbackProcessing?.id === fb.id && feedbackProcessing?.action === 'accepted' && (
+                                      <div className="absolute inset-0 flex items-center justify-center">
+                                        <div className="h-4 w-4 animate-spin rounded-full border-2 border-emerald-300/30 border-t-emerald-400"></div>
+                                      </div>
+                                    )}
+                                  </button>
+                                  <button
+                                    onClick={() => handleFeedbackAction(fb.id, 'rejected')}
+                                    disabled={feedbackProcessing?.id === fb.id}
+                                    className={`relative overflow-hidden rounded-full px-4 py-2 text-xs font-bold uppercase tracking-[0.2em] transition-all ${
+                                      feedbackProcessing?.id === fb.id
+                                        ? 'cursor-not-allowed border border-red-400/20 bg-red-500/5 text-red-300/50'
+                                        : 'border border-red-400/30 bg-red-500/10 text-red-300 hover:bg-red-500/20'
+                                    }`}
+                                  >
+                                    <span className={feedbackProcessing?.id === fb.id && feedbackProcessing?.action === 'rejected' ? 'invisible' : ''}>
+                                      Reject
+                                    </span>
+                                    {feedbackProcessing?.id === fb.id && feedbackProcessing?.action === 'rejected' && (
+                                      <div className="absolute inset-0 flex items-center justify-center">
+                                        <div className="h-4 w-4 animate-spin rounded-full border-2 border-red-300/30 border-t-red-400"></div>
+                                      </div>
+                                    )}
+                                  </button>
+                                </div>
+                              ) : (
+                                <span className="text-xs font-bold uppercase tracking-[0.2em] text-gray-500">
+                                  Completed
+                                </span>
+                              )}
+                            </td>
+                          </tr>
+                        ))
+                      )}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </section>
+          )}
+
           {activeTab === 'settings' && (
             <div className="mx-auto max-w-4xl space-y-8">
               <section className="rounded-[32px] border border-white/10 bg-white/5 p-8">
@@ -1472,6 +1598,8 @@ export default function AdminDashboard() {
   const [enquiries, setEnquiries] = useState([]);
   const [fleet, setFleet] = useState([]);
   const [drivers, setDrivers] = useState([]);
+  const [feedbacks, setFeedbacks] = useState([]);
+  const [feedbackStats, setFeedbackStats] = useState(null);
   const [adminProfile, setAdminProfile] = useState(null);
   const [dashboardError, setDashboardError] = useState('');
   const [isLoading, setIsLoading] = useState(true);
@@ -1482,6 +1610,7 @@ export default function AdminDashboard() {
   const [detailDraft, setDetailDraft] = useState(null);
   const [isDetailLoading, setIsDetailLoading] = useState(false);
   const [savingAction, setSavingAction] = useState('');
+  const [feedbackProcessing, setFeedbackProcessing] = useState(null);
 
   const [enquiryFilters, setEnquiryFilters] = useState({
     type: 'all',
@@ -1497,6 +1626,7 @@ export default function AdminDashboard() {
     { id: 'bookings', label: 'Enquiries', icon: 'calendar_month' },
     { id: 'drivers', label: 'Drivers', icon: 'person_pin' },
     { id: 'fleet', label: 'Fleet', icon: 'directions_car' },
+    { id: 'feedback', label: 'Feedback', icon: 'rate_review' },
     { id: 'settings', label: 'Settings', icon: 'settings' },
   ];
 
@@ -1504,19 +1634,23 @@ export default function AdminDashboard() {
     if (showLoader) setIsLoading(true);
 
     try {
-      const [nextEnquiries, nextFleet, nextDrivers] = await Promise.all([
+      const [nextEnquiries, nextFleet, nextDrivers, nextFeedbacks, nextFeedbackStats] = await Promise.all([
         getEnquiries(),
         getFleet(),
         getDrivers(),
+        getFeedbacks(),
+        getFeedbackStats(),
       ]);
 
       setEnquiries(nextEnquiries);
       setFleet(nextFleet);
       setDrivers(nextDrivers);
+      setFeedbacks(nextFeedbacks);
+      setFeedbackStats(nextFeedbackStats);
       setDashboardError('');
     } catch (error) {
       console.error('Admin dashboard load error:', error);
-      setDashboardError('Unable to load enquiries. Please refresh or try again.');
+      setDashboardError('Unable to load dashboard data. Please refresh or try again.');
     } finally {
       if (showLoader) setIsLoading(false);
     }
@@ -1710,14 +1844,38 @@ export default function AdminDashboard() {
     const normalizedSearch = searchQuery.trim().toLowerCase();
     if (!normalizedSearch) return drivers;
 
-    return drivers.filter((driver) => [
-      driver.id,
-      driver.name,
-      driver.phone,
-      driver.status,
-      driver.assigned_vehicle,
-    ].some((value) => String(value || '').toLowerCase().includes(normalizedSearch)));
+    return drivers.filter((driver) => {
+      const matchName = driver.name?.toLowerCase().includes(normalizedSearch);
+      const matchPhone = driver.phone?.includes(normalizedSearch);
+      const matchStatus = driver.status?.toLowerCase().includes(normalizedSearch);
+      return matchName || matchPhone || matchStatus;
+    });
   }, [drivers, searchQuery]);
+
+  const filteredFeedbacks = useMemo(() => {
+    const normalizedSearch = searchQuery.trim().toLowerCase();
+    if (!normalizedSearch) return feedbacks;
+
+    return feedbacks.filter((fb) => {
+      const matchName = fb.name?.toLowerCase().includes(normalizedSearch);
+      const matchFeedback = fb.feedback?.toLowerCase().includes(normalizedSearch);
+      const matchStatus = fb.status?.toLowerCase().includes(normalizedSearch);
+      return matchName || matchFeedback || matchStatus;
+    });
+  }, [feedbacks, searchQuery]);
+
+  const handleFeedbackAction = async (id, status) => {
+    setFeedbackProcessing({ id, action: status });
+    try {
+      await updateFeedbackStatus(id, status);
+      await syncOperationalData({ showLoader: false });
+    } catch (error) {
+      console.error('Error updating feedback:', error);
+      alert('Failed to update feedback status.');
+    } finally {
+      setFeedbackProcessing(null);
+    }
+  };
 
   const overviewCounts = useMemo(() => ({
     New: enquiries.filter((item) => item.status === 'New').length,
@@ -1879,6 +2037,10 @@ export default function AdminDashboard() {
         filteredEnquiries={filteredEnquiries}
         filteredDrivers={filteredDrivers}
         filteredFleet={filteredFleet}
+        filteredFeedbacks={filteredFeedbacks}
+        feedbackStats={feedbackStats}
+        handleFeedbackAction={handleFeedbackAction}
+        feedbackProcessing={feedbackProcessing}
         enquiryFilters={enquiryFilters}
         oldPassword={oldPassword}
         setOldPassword={setOldPassword}

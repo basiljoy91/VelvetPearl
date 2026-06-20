@@ -1,8 +1,9 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { buildWhatsAppLink, DEFAULT_WHATSAPP_PHONE } from '../utils/whatsapp';
 import { slideshowArchiveMedia, travelMedia, vehicleMedia } from '../content/travelMedia';
 import { buildDestinationEnquiryState, buildPackageEnquiryState, featuredDestinations, featuredPackages } from '../content/travelCatalog';
+import { submitFeedback, getAcceptedFeedbacks } from '../services/dataService';
 
 const optimizeRemoteImage = (url, width = 1200) => {
   if (!url.includes('images.unsplash.com')) return url;
@@ -171,15 +172,118 @@ const sectionIntro = (eyebrow, title, description) => (
   </div>
 );
 
+const ReviewCard = ({ review, colorClass }) => {
+  const [expanded, setExpanded] = useState(false);
+  const words = review.feedback.split(' ');
+  const isLong = words.length > 20;
+  
+  const displayText = expanded || !isLong ? review.feedback : words.slice(0, 20).join(' ') + '...';
+
+  return (
+    <div className={`relative z-10 w-[80vw] md:w-[280px] lg:w-[320px] h-[340px] shrink-0 rounded-3xl border border-white/10 p-8 backdrop-blur-xl shadow-2xl transition-all duration-300 ease-out hover:-translate-y-2 hover:scale-[1.02] hover:border-white/20 hover:shadow-[0_20px_40px_-15px_rgba(255,255,255,0.1)] flex flex-col justify-between ${colorClass}`}>
+      <div className="flex flex-col h-[calc(100%-40px)] overflow-hidden">
+         <div className="mb-4 flex gap-1 shrink-0">
+           {Array.from({ length: 5 }).map((_, i) => (
+             <span 
+               key={i} 
+               className={`fade-in-star text-xl drop-shadow-[0_0_8px_rgba(255,220,124,0.6)] ${i < review.rating ? 'text-secondary' : 'text-white/20'}`}
+               style={{ animationDelay: `${i * 0.1}s` }}
+             >
+               ★
+             </span>
+           ))}
+         </div>
+         <div className={`overflow-y-auto pr-2 flex-1 ${expanded ? 'review-scrollbar' : 'scrollbar-hide'}`}>
+           <p className="text-white text-base leading-relaxed italic transition-all duration-300">
+             "{displayText}"
+             {isLong && (
+               <button 
+                 onClick={(e) => { e.preventDefault(); e.stopPropagation(); setExpanded(!expanded); }}
+                 className="ml-2 text-secondary hover:underline font-bold text-sm tracking-wide shrink-0"
+               >
+                 {expanded ? 'hide' : 'more'}
+               </button>
+             )}
+           </p>
+         </div>
+      </div>
+      <div className="mt-4 flex items-center justify-between shrink-0">
+        <p className="font-bold text-sm text-gray-300 uppercase tracking-widest">{review.name}</p>
+        <div className="h-10 w-10 rounded-full border border-secondary/20 bg-secondary/10 flex items-center justify-center text-secondary font-bold shadow-inner shrink-0">
+          {review.name.charAt(0).toUpperCase()}
+        </div>
+      </div>
+    </div>
+  );
+};
+
 export default function Home() {
   const navigate = useNavigate();
+
+  const [reviews, setReviews] = useState([]);
+  const [reviewsLoading, setReviewsLoading] = useState(true);
+  const reviewsRef = useRef(null);
+  const [reviewsVisible, setReviewsVisible] = useState(false);
+
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting) {
+          setReviewsVisible(true);
+          observer.disconnect();
+        }
+      },
+      { threshold: 0.1 }
+    );
+    if (reviewsRef.current) observer.observe(reviewsRef.current);
+    return () => observer.disconnect();
+  }, []);
+
+  useEffect(() => {
+    getAcceptedFeedbacks()
+      .then((data) => {
+        setReviews(Array.isArray(data) ? data.slice(0, 10) : []);
+      })
+      .catch((error) => {
+        console.error('Failed to load reviews:', error);
+      })
+      .finally(() => {
+        setReviewsLoading(false);
+      });
+  }, []);
+
   const [heroSlideIndex, setHeroSlideIndex] = useState(0);
+  const [reviewsBgIndex, setReviewsBgIndex] = useState(0);
   const [quickEnquiry, setQuickEnquiry] = useState({
     name: '',
     phone: '',
     email: '',
     service: 'cab',
   });
+
+  const [feedbackData, setFeedbackData] = useState({ name: '', feedback: '', rating: 0 });
+  const [hoverRating, setHoverRating] = useState(0);
+  const [isFeedbackLoading, setIsFeedbackLoading] = useState(false);
+  const [isFeedbackSuccess, setIsFeedbackSuccess] = useState(false);
+  const [feedbackError, setFeedbackError] = useState(null);
+
+  const handleFeedbackSubmit = async (e) => {
+    e.preventDefault();
+    setFeedbackError(null);
+    if (!feedbackData.name.trim() || !feedbackData.feedback.trim() || feedbackData.rating < 1 || feedbackData.rating > 5) {
+      setFeedbackError('Please provide a name, feedback, and a rating between 1 and 5.');
+      return;
+    }
+    setIsFeedbackLoading(true);
+    try {
+      await submitFeedback(feedbackData);
+      setIsFeedbackSuccess(true);
+    } catch (err) {
+      setFeedbackError(err.message || 'Failed to submit feedback.');
+    } finally {
+      setIsFeedbackLoading(false);
+    }
+  };
 
   const quickServiceCopy = useMemo(() => ({
     cab: {
@@ -218,7 +322,14 @@ export default function Home() {
       setHeroSlideIndex((current) => (current + 1) % heroSlides.length);
     }, 5200);
 
-    return () => window.clearInterval(timer);
+    const reviewsTimer = window.setInterval(() => {
+      setReviewsBgIndex((current) => (current + 1) % 4);
+    }, 2000);
+
+    return () => {
+      window.clearInterval(timer);
+      window.clearInterval(reviewsTimer);
+    };
   }, []);
 
   return (
@@ -601,24 +712,91 @@ export default function Home() {
         </div>
       </section>
 
-      <section className="bg-background px-6 py-24 md:px-8">
-        <div className="mx-auto max-w-5xl rounded-[32px] border border-white/10 bg-[linear-gradient(135deg,rgba(34,73,219,0.12),rgba(239,191,4,0.08))] p-8 md:p-12">
-          <p className="text-[10px] font-bold uppercase tracking-[0.3em] text-secondary">Reviews</p>
-          <h2 className="mt-4 font-headline text-4xl font-bold text-white md:text-5xl">Customer Reviews Coming Soon</h2>
-          <p className="mt-5 max-w-3xl text-lg leading-relaxed text-on-surface-variant">
-            We are collecting verified feedback from our customers. Until then, you can contact us directly on WhatsApp for more details about our travel support process.
-          </p>
-          <a
-            className="mt-8 inline-flex rounded-xl border border-secondary px-6 py-4 text-sm font-bold uppercase tracking-[0.18em] text-secondary transition-all hover:bg-secondary/10"
-            href={buildWhatsAppLink({
-              phone: DEFAULT_WHATSAPP_PHONE,
-              message: 'Hi, I would like to know more about your travel services.',
-            })}
-            rel="noreferrer"
-            target="_blank"
-          >
-            Contact on WhatsApp
-          </a>
+      <section 
+        ref={reviewsRef}
+        className={`relative px-6 py-24 md:px-8 overflow-hidden transition-all duration-[600ms] ease-out ${reviewsVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-[30px]'}`}
+      >
+        {/* Background Image Slideshow */}
+        <div className="absolute inset-0 z-0 bg-background">
+          {slideshowArchiveMedia.slice(0, 4).map((slide, index) => (
+            <img
+              key={slide.src}
+              src={slide.src}
+              alt=""
+              className={`absolute inset-0 h-full w-full object-cover transition-opacity duration-1000 ease-in-out ${
+                index === reviewsBgIndex ? 'opacity-40' : 'opacity-0'
+              }`}
+            />
+          ))}
+          <div className="absolute inset-0 bg-background/60"></div>
+        </div>
+
+        <div className="mx-auto max-w-7xl relative z-10 overflow-hidden rounded-[32px] border border-white/10 bg-[linear-gradient(135deg,rgba(34,73,219,0.05),rgba(239,191,4,0.03))] p-8 md:p-12">
+          
+          {/* Animated Background Glows */}
+          <div className="absolute inset-0 z-0 overflow-hidden rounded-[32px] pointer-events-none">
+            <div className="absolute -top-[20%] -left-[10%] w-[50%] h-[50%] rounded-full bg-purple-500/10 blur-[100px] animate-pulse"></div>
+            <div className="absolute top-[40%] -right-[10%] w-[40%] h-[40%] rounded-full bg-pink-500/10 blur-[100px] animate-pulse" style={{ animationDelay: '2s' }}></div>
+          </div>
+
+          <style dangerouslySetInnerHTML={{__html: `
+            @keyframes marquee-left-to-right {
+              0% { transform: translateX(-50%); }
+              100% { transform: translateX(0%); }
+            }
+            .animate-marquee-ltr {
+              animation: marquee-left-to-right 40s linear infinite;
+            }
+            .pause-on-hover:hover {
+              animation-play-state: paused;
+            }
+            .fade-in-star {
+              animation: fadeIn 0.8s ease-out forwards;
+            }
+            @keyframes fadeIn {
+              from { opacity: 0; transform: scale(0.8); }
+              to { opacity: 1; transform: scale(1); }
+            }
+            .review-scrollbar::-webkit-scrollbar {
+              width: 4px;
+            }
+            .review-scrollbar::-webkit-scrollbar-thumb {
+              background: rgba(255, 255, 255, 0.2);
+              border-radius: 4px;
+            }
+            .scrollbar-hide::-webkit-scrollbar {
+              display: none;
+            }
+            .scrollbar-hide {
+              -ms-overflow-style: none;
+              scrollbar-width: none;
+            }
+          `}} />
+          
+          <div className="relative z-10">
+            <p className="text-[10px] font-bold uppercase tracking-[0.3em] text-secondary">Reviews</p>
+            <h2 className="mt-4 font-headline text-4xl font-bold text-white md:text-5xl">Customer Reviews</h2>
+            <p className="mt-5 max-w-3xl text-lg leading-relaxed text-on-surface-variant">
+              Here's what our customers have to say about their travel experience.
+            </p>
+
+            <div className="mt-12">
+              {reviewsLoading ? (
+                 <div className="text-gray-400">Loading reviews...</div>
+              ) : reviews.length === 0 ? (
+                 <div className="text-gray-400 text-lg">No reviews available yet.</div>
+              ) : (
+                 <div className="relative flex overflow-hidden mask-image-linear">
+                   <div className="animate-marquee-ltr pause-on-hover flex items-start gap-6 shrink-0" style={{ width: 'max-content' }}>
+                      {[...reviews, ...reviews].map((review, idx) => {
+                        const cardColors = ['bg-blue-500/10', 'bg-pink-500/10', 'bg-emerald-500/10', 'bg-amber-500/10', 'bg-purple-500/10', 'bg-cyan-500/10'];
+                        return <ReviewCard key={idx} review={review} colorClass={cardColors[idx % cardColors.length]} />;
+                      })}
+                   </div>
+                 </div>
+              )}
+            </div>
+          </div>
         </div>
       </section>
 
@@ -672,6 +850,100 @@ export default function Home() {
                 Chat on WhatsApp
               </a>
             </div>
+          </div>
+        </div>
+      </section>
+
+      <section className="relative px-6 py-24 md:px-8">
+        <div className="absolute inset-0">
+          <img className="h-full w-full object-cover" src={optimizeRemoteImage('https://images.unsplash.com/photo-1449965408869-eaa3f722e40d?auto=format&fit=crop&w=1920&q=80', 1920)} alt="Feedback Background" loading="lazy" />
+          <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(12,11,16,0.95)_0%,rgba(12,11,16,0.75)_45%,rgba(12,11,16,0.55)_100%)]"></div>
+        </div>
+        <div className="relative z-10 mx-auto max-w-7xl">
+          {sectionIntro(
+            'Feedback',
+            'We Value Your Feedback',
+            'Tell us about your experience and help us improve our services.'
+          )}
+          <div className="mx-auto max-w-3xl rounded-[24px] border border-white/10 bg-black/40 backdrop-blur-md p-8 shadow-2xl">
+            {isFeedbackSuccess ? (
+              <div className="text-center py-12">
+                <div className="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-full bg-emerald-500/20 text-emerald-400">
+                  <span className="material-symbols-outlined text-4xl">check_circle</span>
+                </div>
+                <h3 className="mb-4 text-2xl font-headline font-bold text-white">Feedback submitted successfully!</h3>
+                <p className="mb-8 text-on-surface-variant">Thank you for taking the time to share your thoughts.</p>
+                <button
+                  onClick={() => {
+                    setIsFeedbackSuccess(false);
+                    setFeedbackData({ name: '', feedback: '', rating: 0 });
+                  }}
+                  className="rounded-xl bg-white/10 px-6 py-3 font-bold text-white transition-colors hover:bg-white/20"
+                >
+                  Back to Form
+                </button>
+              </div>
+            ) : (
+              <form onSubmit={handleFeedbackSubmit} className="space-y-6">
+                {feedbackError && (
+                  <div className="rounded-xl border border-red-500/20 bg-red-500/10 p-4 text-red-400">
+                    {feedbackError}
+                  </div>
+                )}
+                <div className="space-y-2">
+                  <label className="text-sm font-bold text-white">Name</label>
+                  <input
+                    type="text"
+                    required
+                    value={feedbackData.name}
+                    onChange={(e) => setFeedbackData({ ...feedbackData, name: e.target.value })}
+                    className="w-full rounded-xl border border-white/10 bg-black/50 px-4 py-3 text-white placeholder-gray-500 transition-colors focus:border-primary focus:outline-none"
+                    placeholder="Your name"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <label className="text-sm font-bold text-white">Feedback</label>
+                  <textarea
+                    required
+                    rows="4"
+                    value={feedbackData.feedback}
+                    onChange={(e) => setFeedbackData({ ...feedbackData, feedback: e.target.value })}
+                    className="w-full resize-none rounded-xl border border-white/10 bg-black/50 px-4 py-3 text-white placeholder-gray-500 transition-colors focus:border-primary focus:outline-none"
+                    placeholder="Share your experience with us..."
+                  />
+                </div>
+                <div className="space-y-2">
+                  <label className="text-sm font-bold text-white">Rating</label>
+                  <div className="flex gap-2">
+                    {[1, 2, 3, 4, 5].map((star) => (
+                      <button
+                        key={star}
+                        type="button"
+                        onClick={() => setFeedbackData({ ...feedbackData, rating: star })}
+                        onMouseEnter={() => setHoverRating(star)}
+                        onMouseLeave={() => setHoverRating(0)}
+                        className={`material-symbols-outlined text-3xl transition-colors ${
+                          (hoverRating || feedbackData.rating) >= star ? 'text-yellow-400' : 'text-gray-600'
+                        }`}
+                      >
+                        star
+                      </button>
+                    ))}
+                  </div>
+                </div>
+                <button
+                  type="submit"
+                  disabled={isFeedbackLoading}
+                  className="w-full flex items-center justify-center rounded-xl bg-primary-container px-8 py-4 text-sm font-bold uppercase tracking-[0.18em] text-white transition-all hover:brightness-110 hover:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {isFeedbackLoading ? (
+                    <div className="h-6 w-6 animate-spin rounded-full border-2 border-white border-t-transparent"></div>
+                  ) : (
+                    'Submit Feedback'
+                  )}
+                </button>
+              </form>
+            )}
           </div>
         </div>
       </section>

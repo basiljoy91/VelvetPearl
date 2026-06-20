@@ -16,6 +16,7 @@ const fleetRoutes = require('./routes/fleetRoutes');
 const analyticsRoutes = require('./routes/analyticsRoutes');
 const tripRoutes = require('./routes/tripRoutes');
 const chatbotRoutes = require('./routes/chatbotRoutes');
+const feedbackRoutes = require('./routes/feedbackRoutes');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -108,6 +109,7 @@ app.use('/api/fleet', fleetRoutes);
 app.use('/api/admin', analyticsRoutes);
 app.use('/api/trips', tripRoutes);
 app.use('/api/chatbot', chatbotRoutes);
+app.use('/api/feedbacks', feedbackRoutes);
 
 if (shouldServeFrontend) {
   if (fs.existsSync(frontendDistPath)) {

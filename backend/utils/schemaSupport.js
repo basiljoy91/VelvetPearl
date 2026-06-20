@@ -13,6 +13,7 @@ const REQUIRED_TABLES = [
   'tour_enquiry_details',
   'custom_trip_details',
   'enquiry_audit_log',
+  'feedbacks',
 ];
 
 const UPDATED_AT_TRIGGER_TABLES = [
@@ -21,6 +22,7 @@ const UPDATED_AT_TRIGGER_TABLES = [
   { tableName: 'drivers', triggerName: 'trg_drivers_updated_at' },
   { tableName: 'fleet', triggerName: 'trg_fleet_updated_at' },
   { tableName: 'enquiries', triggerName: 'trg_enquiries_updated_at' },
+  { tableName: 'feedbacks', triggerName: 'trg_feedbacks_updated_at' },
 ];
 
 const MIGRATIONS_DIR = path.resolve(__dirname, '..', '..', 'supabase', 'migrations');
@@ -72,10 +74,24 @@ const getSchemaPresence = async (db) => {
 
 const ensureRuntimeCompatibility = async (db) => {
   for (const { tableName } of UPDATED_AT_TRIGGER_TABLES) {
-    await db.query(`
-      ALTER TABLE public.${tableName}
-      ADD COLUMN IF NOT EXISTS updated_at timestamptz NOT NULL DEFAULT now()
-    `);
+    if (tableName === 'feedbacks') {
+      await db.query(`
+        CREATE TABLE IF NOT EXISTS public.feedbacks (
+          id BIGSERIAL PRIMARY KEY,
+          name TEXT NOT NULL,
+          feedback TEXT NOT NULL,
+          rating INTEGER NOT NULL CHECK (rating BETWEEN 1 AND 5),
+          status TEXT NOT NULL DEFAULT 'pending',
+          created_at TIMESTAMP DEFAULT NOW(),
+          updated_at TIMESTAMP DEFAULT NOW()
+        )
+      `);
+    } else {
+      await db.query(`
+        ALTER TABLE public.${tableName}
+        ADD COLUMN IF NOT EXISTS updated_at timestamptz NOT NULL DEFAULT now()
+      `);
+    }
   }
 
   await db.query(`
