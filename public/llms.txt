@@ -1,0 +1,30 @@
+# Velvet Pearl
+
+> Travel enquiry-first support for Chennai, Tamil Nadu, and South India cab trips, room stays, tour planning, custom travel, and approved customer feedback.
+
+Website: https://velvetpearl.in/
+Support email: velvetpearl2026@gmail.com
+Support phone: +91 78450 39353
+Primary service area: Chennai, Tamil Nadu, South India
+
+## Core pages
+- [Home | Chennai and South India Travel Enquiries](https://velvetpearl.in/): Homepage with travel services, destination ideas, customer feedback, and direct enquiry shortcuts.
+- [About | Velvet Pearl Travel Service Information](https://velvetpearl.in/about): Business overview, service direction, and current travel support model for Velvet Pearl.
+- [Services | Cab, Room, Tour and Custom Trip Enquiries](https://velvetpearl.in/services): Overview of cab, room, tour, and custom travel enquiry services.
+- [Routes | Popular Travel Route Enquiries and Planning](https://velvetpearl.in/routes): Popular route examples for Chennai and South India travel planning.
+- [Contact | Travel Enquiry and WhatsApp Support](https://velvetpearl.in/contact): Direct contact page for WhatsApp, phone, email, and manual travel follow-up.
+- [Customer Feedback | Share Your Velvet Pearl Travel Experience](https://velvetpearl.in/feedback): Customer feedback submission form for sharing a travel experience with Velvet Pearl.
+
+## Enquiry forms
+- [Cab Enquiry | Airport Pickup, Local Sightseeing and Outstation Trips](https://velvetpearl.in/book/cab): Cab enquiry form for airport transfers, local rides, sightseeing, and outstation travel.
+- [Room Enquiry | Stay Assistance for Chennai and South India Trips](https://velvetpearl.in/book/room): Room and stay enquiry form for stopovers, hotels, resorts, and family stays.
+- [Tour Packages | Chennai, Tamil Nadu and South India Travel Planning](https://velvetpearl.in/book/tour): Tour enquiry form for destination ideas, itineraries, groups, and custom South India travel plans.
+- [Custom Enquiry | Family, Group and Special Travel Plans](https://velvetpearl.in/book/event): Flexible enquiry form for mixed travel needs, group trips, special requests, and custom planning.
+
+## Tour packages
+- [Chennai 1-Day City & Shoreline Trip | South India Tour Package Details](https://velvetpearl.in/packages/chennai-1-day-city-shoreline-trip): 1 Day travel package page for Chennai 1-Day City & Shoreline Trip. Includes highlights, itinerary direction, FAQs, and an enquiry form.
+- [Mahabalipuram & ECR Day Trip | South India Tour Package Details](https://velvetpearl.in/packages/mahabalipuram-ecr-day-trip): 1 Day travel package page for Mahabalipuram & ECR Day Trip. Includes highlights, itinerary direction, FAQs, and an enquiry form.
+- [Ooty 2-Day Family Trip | South India Tour Package Details](https://velvetpearl.in/packages/ooty-2-day-family-trip): 2 Days / 1 Night travel package page for Ooty 2-Day Family Trip. Includes highlights, itinerary direction, FAQs, and an enquiry form.
+- [Kodaikanal Stay + Sightseeing Plan | South India Tour Package Details](https://velvetpearl.in/packages/kodaikanal-stay-sightseeing-plan): 2 to 3 Days travel package page for Kodaikanal Stay + Sightseeing Plan. Includes highlights, itinerary direction, FAQs, and an enquiry form.
+- [Chennai Airport Pickup + Tamil Nadu Tour | South India Tour Package Details](https://velvetpearl.in/packages/chennai-airport-pickup-tamil-nadu-tour): Flexible travel package page for Chennai Airport Pickup + Tamil Nadu Tour. Includes highlights, itinerary direction, FAQs, and an enquiry form.
+- [Custom South India Group Trip | South India Tour Package Details](https://velvetpearl.in/packages/custom-group-trip): Flexible travel package page for Custom South India Group Trip. Includes highlights, itinerary direction, FAQs, and an enquiry form.
