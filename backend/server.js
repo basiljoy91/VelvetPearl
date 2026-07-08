@@ -17,8 +17,11 @@ const analyticsRoutes = require('./routes/analyticsRoutes');
 const tripRoutes = require('./routes/tripRoutes');
 const chatbotRoutes = require('./routes/chatbotRoutes');
 const feedbackRoutes = require('./routes/feedbackRoutes');
+const userProfileRoutes = require('./routes/userProfileRoutes');
+const quotationRoutes = require('./routes/quotationRoutes');
 
 const app = express();
+app.use((req, res, next) => { console.log('[REQ]', req.method, req.url); next(); });
 const PORT = process.env.PORT || 3000;
 app.disable('x-powered-by');
 app.set('trust proxy', 1);
@@ -110,6 +113,8 @@ app.use('/api/admin', analyticsRoutes);
 app.use('/api/trips', tripRoutes);
 app.use('/api/chatbot', chatbotRoutes);
 app.use('/api/feedbacks', feedbackRoutes);
+app.use('/api/users', userProfileRoutes);
+app.use('/api/quotations', quotationRoutes);
 
 if (shouldServeFrontend) {
   if (fs.existsSync(frontendDistPath)) {

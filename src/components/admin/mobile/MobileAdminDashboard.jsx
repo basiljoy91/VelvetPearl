@@ -12,6 +12,8 @@ import MobileDrivers from './MobileDrivers';
 import MobileNewEntrySheet from './MobileNewEntrySheet';
 import MobileOverview from './MobileOverview';
 import MobileSettings from './MobileSettings';
+import UserProfileTab from '../UserProfileTab';
+import QuotationTab from '../QuotationTab';
 
 export default function MobileAdminDashboard({
   activeTab,
@@ -186,6 +188,14 @@ export default function MobileAdminDashboard({
             setSearchQuery={setSearchQuery}
             isLoading={isLoading}
           />
+        )}
+
+        {activeTab === 'user_profile' && (
+          <UserProfileTab searchQuery={searchQuery} />
+        )}
+
+        {activeTab === 'quotation' && (
+          <QuotationTab searchQuery={searchQuery} />
         )}
 
         {activeTab === 'settings' && (

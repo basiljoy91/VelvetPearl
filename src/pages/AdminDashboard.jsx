@@ -24,6 +24,8 @@ import {
 import AdminForms from '../components/admin/AdminForms';
 import BrandMark from '../components/branding/BrandMark';
 import MobileAdminDashboard from '../components/admin/mobile/MobileAdminDashboard';
+import UserProfileTab from '../components/admin/UserProfileTab';
+import QuotationTab from '../components/admin/QuotationTab';
 import { LoadingButton, LoadingOverlay, SectionLoader, SkeletonBlock } from '../components/ui/LoadingState';
 import {
   changePassword,
@@ -1511,6 +1513,14 @@ function DesktopAdminDashboard({
             </section>
           )}
 
+          {activeTab === 'user_profile' && (
+            <UserProfileTab searchQuery={headerSearchValue} />
+          )}
+
+          {activeTab === 'quotation' && (
+            <QuotationTab searchQuery={headerSearchValue} />
+          )}
+
           {activeTab === 'settings' && (
             <div className="mx-auto max-w-4xl space-y-8">
               <section className="rounded-[32px] border border-white/10 bg-white/5 p-8">
@@ -1627,6 +1637,8 @@ export default function AdminDashboard() {
     { id: 'drivers', label: 'Drivers', icon: 'person_pin' },
     { id: 'fleet', label: 'Fleet', icon: 'directions_car' },
     { id: 'feedback', label: 'Feedback', icon: 'rate_review' },
+    { id: 'quotation', label: 'Quotation', icon: 'request_quote' },
+    { id: 'user_profile', label: 'User Profile', icon: 'person' },
     { id: 'settings', label: 'Settings', icon: 'settings' },
   ];
 

@@ -1,0 +1,1 @@
+const db = require('./backend/config/db'); async function run() { try { const res = await db.query('SELECT pg_get_constraintdef(c.oid) FROM pg_constraint c JOIN pg_class t ON c.conrelid = t.oid WHERE t.relname = \'enquiries\' AND c.conname = \'enquiries_status_check\''); console.log(res.rows); } catch (e) { console.error(e); } finally { process.exit(); } } run();

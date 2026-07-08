@@ -21,6 +21,8 @@
     "dotenv": "16.4.5",
     "express": "4.19.2",
     "jsonwebtoken": "9.0.2",
+    "jspdf": "^4.2.1",
+    "jspdf-autotable": "^5.0.8",
     "leaflet": "^1.9.4",
     "leaflet-routing-machine": "^3.2.12",
     "lucide-react": "^1.7.0",

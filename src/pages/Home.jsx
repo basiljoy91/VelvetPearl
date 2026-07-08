@@ -4,6 +4,7 @@ import { buildWhatsAppLink, DEFAULT_WHATSAPP_PHONE } from '../utils/whatsapp';
 import { slideshowArchiveMedia, travelMedia, vehicleMedia } from '../content/travelMedia';
 import { buildDestinationEnquiryState, buildPackageEnquiryState, featuredDestinations, featuredPackages } from '../content/travelCatalog';
 import { submitFeedback, getAcceptedFeedbacks } from '../services/dataService';
+import QuotationSection from '../components/home/QuotationSection';
 
 const optimizeRemoteImage = (url, width = 1200) => {
   if (!url.includes('images.unsplash.com')) return url;
@@ -853,6 +854,9 @@ export default function Home() {
           </div>
         </div>
       </section>
+
+      {/* Quotation Section */}
+      <QuotationSection />
 
       <section className="relative px-6 py-24 md:px-8">
         <div className="absolute inset-0">

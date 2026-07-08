@@ -250,3 +250,94 @@ export const getAcceptedFeedbacks = async () => {
   return data.data || [];
 };
 
+// User Profile API
+export const getUserStats = async () => {
+  const res = await fetch(`${API}/users/stats`, { headers: authHeaders() });
+  const data = await handleResponse(res);
+  return data.data;
+};
+
+export const getAllUsers = async () => {
+  const res = await fetch(`${API}/users`, { headers: authHeaders() });
+  const data = await handleResponse(res);
+  return data.data || [];
+};
+
+export const getUserProfile = async (phoneNumber) => {
+  const res = await fetch(`${API}/users/${phoneNumber}`, { headers: authHeaders() });
+  const data = await handleResponse(res);
+  return data.data;
+};
+
+export const getUserBookings = async (phoneNumber, type) => {
+  const url = type ? `${API}/users/${phoneNumber}/bookings/${type}` : `${API}/users/${phoneNumber}/bookings`;
+  const res = await fetch(url, { headers: authHeaders() });
+  const data = await handleResponse(res);
+  return data.data || [];
+};
+
+// Quotation API
+export const submitQuotation = async (data) => {
+  const res = await fetch(`${API}/quotations`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data)
+  });
+  const resData = await handleResponse(res);
+  return resData;
+};
+
+export const getQuotations = async () => {
+  const res = await fetch(`${API}/quotations`, {
+    headers: authHeaders(),
+  });
+  const resData = await handleResponse(res);
+  return resData.data || [];
+};
+
+export const updateQuotationStatus = async (id, status, rejection_reason = null) => {
+  const res = await fetch(`${API}/quotations/${id}/status`, {
+    method: 'PATCH',
+    headers: authHeaders(),
+    body: JSON.stringify({ status, rejection_reason })
+  });
+  const resData = await handleResponse(res);
+  return resData.data;
+};
+
+export const saveQuotationDetails = async (id, details) => {
+  const res = await fetch(`${API}/quotations/${id}/details`, {
+    method: 'POST',
+    headers: authHeaders(),
+    body: JSON.stringify(details)
+  });
+  const resData = await handleResponse(res);
+  return resData.data;
+};
+
+
+export const verifyQuotationPdf = async (formData) => {
+  const token = localStorage.getItem('adminToken');
+  const res = await fetch(`${API}/quotations/verify`, {
+    method: 'POST',
+    headers: {
+      ...(token ? { Authorization: `Bearer ${token}` } : {})
+    },
+    body: formData
+  });
+  
+  let data;
+  try {
+    const contentType = res.headers.get('content-type');
+    if (contentType && contentType.includes('application/json')) {
+      data = await res.json();
+    } else {
+      throw new Error('Not JSON');
+    }
+  } catch (err) {
+    throw new Error(`Server returned an invalid response (Status: ${res.status}). The document might be too large or the server is unreachable.`);
+  }
+
+  if (!res.ok) throw new Error(data.message || 'Verification failed');
+  return data;
+};
