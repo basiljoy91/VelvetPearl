@@ -21,6 +21,7 @@ import {
   updateEnquiryStatus,
 } from '../services/dataService';
 import AdminForms from '../components/admin/AdminForms';
+import InvoiceModal from '../components/admin/InvoiceModal';
 import BrandMark from '../components/branding/BrandMark';
 import MobileAdminDashboard from '../components/admin/mobile/MobileAdminDashboard';
 import { LoadingButton, LoadingOverlay, SectionLoader, SkeletonBlock } from '../components/ui/LoadingState';
@@ -572,6 +573,7 @@ function EnquiryDetailModal({
   onSaveRoom,
   onSavePackage,
   onArchive,
+  onGenerateInvoice,
 }) {
   if (!enquiry || !draft) return null;
 
@@ -611,11 +613,19 @@ function EnquiryDetailModal({
               )}
               <button
                 type="button"
+                onClick={() => onGenerateInvoice(enquiry)}
+                className="rounded-full border border-[#EFBF04]/50 bg-[#EFBF04] px-4 py-2 text-xs font-bold uppercase tracking-[0.16em] text-black"
+              >
+                Generate Invoice
+              </button>
+              <button
+                type="button"
                 onClick={onClose}
                 className="rounded-full border border-white/10 bg-white/5 px-4 py-2 text-xs font-bold uppercase tracking-[0.2em] text-gray-200"
               >
                 Close
               </button>
+              
             </div>
           </div>
         </div>
@@ -1566,6 +1576,7 @@ export default function AdminDashboard() {
   const [detailDraft, setDetailDraft] = useState(null);
   const [isDetailLoading, setIsDetailLoading] = useState(false);
   const [savingAction, setSavingAction] = useState('');
+  const [invoiceEnquiry, setInvoiceEnquiry] = useState(null);
 
   const [enquiryFilters, setEnquiryFilters] = useState({
     type: 'all',
@@ -2045,8 +2056,10 @@ export default function AdminDashboard() {
           package_id: detailDraft.assigned_package_id,
         }))}
         onArchive={() => runEnquiryAction('archive', () => archiveEnquiryRecord(selectedEnquiry.id, 'Archived from admin dashboard'), { closeAfter: true })}
+        onGenerateInvoice={setInvoiceEnquiry}
       />
       </div>
+      <InvoiceModal enquiry={invoiceEnquiry} isOpen={Boolean(invoiceEnquiry)} onClose={() => setInvoiceEnquiry(null)} />
     </>
   );
 }
