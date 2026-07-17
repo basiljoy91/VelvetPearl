@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">
+  <url>
+    <loc>https://velvetpearl.in/</loc>
+    <lastmod>2026-06-21</lastmod>
+    <image:image>
+      <image:loc>https://velvetpearl.in/travel/south-india-hero.webp</image:loc>
+      <image:title>Home | Chennai and South India Travel Enquiries</image:title>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://velvetpearl.in/about</loc>
+    <lastmod>2026-06-19</lastmod>
+    <image:image>
+      <image:loc>https://velvetpearl.in/travel/group-travel.webp</image:loc>
+      <image:title>About | Velvet Pearl Travel Service Information</image:title>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://velvetpearl.in/services</loc>
+    <lastmod>2026-06-19</lastmod>
+    <image:image>
+      <image:loc>https://velvetpearl.in/travel/family-sightseeing.webp</image:loc>
+      <image:title>Services | Cab, Room, Tour and Custom Trip Enquiries</image:title>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://velvetpearl.in/routes</loc>
+    <lastmod>2026-06-19</lastmod>
+    <image:image>
+      <image:loc>https://velvetpearl.in/travel/airport-transfer.webp</image:loc>
+      <image:title>Routes | Popular Travel Route Enquiries and Planning</image:title>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://velvetpearl.in/contact</loc>
+    <lastmod>2026-06-21</lastmod>
+    <image:image>
+      <image:loc>https://velvetpearl.in/travel/airport-transfer.webp</image:loc>
+      <image:title>Contact | Travel Enquiry and WhatsApp Support</image:title>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://velvetpearl.in/feedback</loc>
+    <lastmod>2026-06-21</lastmod>
+    <image:image>
+      <image:loc>https://velvetpearl.in/travel/family-sightseeing.webp</image:loc>
+      <image:title>Customer Feedback | Share Your Velvet Pearl Travel Experience</image:title>
+    </image:image>
+  </url>
+</urlset>

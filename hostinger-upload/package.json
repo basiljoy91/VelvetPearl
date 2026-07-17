@@ -1,0 +1,50 @@
+{
+  "name": "velvet-pearl-app",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "postinstall": "npm install --prefix backend",
+    "dev": "vite",
+    "prebuild": "node scripts/generate-seo-files.mjs",
+    "build": "vite build",
+    "backend:install": "npm install --prefix backend",
+    "hostinger:build": "npm run backend:install && npm run build",
+    "hostinger:start": "node backend/server.js",
+    "lint": "eslint .",
+    "preview": "vite preview",
+    "seo:generate": "node scripts/generate-seo-files.mjs"
+  },
+  "dependencies": {
+    "bcrypt": "5.1.1",
+    "cors": "2.8.5",
+    "dotenv": "16.4.5",
+    "express": "4.19.2",
+    "jsonwebtoken": "9.0.2",
+    "leaflet": "^1.9.4",
+    "leaflet-routing-machine": "^3.2.12",
+    "lucide-react": "^1.7.0",
+    "mysql2": "3.15.3",
+    "react": "^19.2.4",
+    "react-dom": "^19.2.4",
+    "react-leaflet": "^5.0.0",
+    "react-router-dom": "^7.14.0",
+    "twilio": "6.0.2"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.39.4",
+    "@tailwindcss/container-queries": "^0.1.1",
+    "@tailwindcss/forms": "^0.5.11",
+    "@types/react": "^19.2.14",
+    "@types/react-dom": "^19.2.3",
+    "@vitejs/plugin-react": "^6.0.1",
+    "autoprefixer": "^10.4.27",
+    "eslint": "^9.39.4",
+    "eslint-plugin-react-hooks": "^7.0.1",
+    "eslint-plugin-react-refresh": "^0.5.2",
+    "globals": "^17.4.0",
+    "postcss": "^8.5.9",
+    "tailwindcss": "^3.4.19",
+    "vite": "^8.0.4"
+  }
+}

@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">
+  <url>
+    <loc>https://velvetpearl.in/book/cab</loc>
+    <lastmod>2026-06-19</lastmod>
+    <image:image>
+      <image:loc>https://velvetpearl.in/travel/airport-transfer.webp</image:loc>
+      <image:title>Cab Enquiry | Airport Pickup, Local Sightseeing and Outstation Trips</image:title>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://velvetpearl.in/book/room</loc>
+    <lastmod>2026-06-19</lastmod>
+    <image:image>
+      <image:loc>https://velvetpearl.in/travel/resort-stay.webp</image:loc>
+      <image:title>Room Enquiry | Stay Assistance for Chennai and South India Trips</image:title>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://velvetpearl.in/book/tour</loc>
+    <lastmod>2026-06-19</lastmod>
+    <image:image>
+      <image:loc>https://velvetpearl.in/travel/south-india-hero.webp</image:loc>
+      <image:title>Tour Packages | Chennai, Tamil Nadu and South India Travel Planning</image:title>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://velvetpearl.in/book/event</loc>
+    <lastmod>2026-06-19</lastmod>
+    <image:image>
+      <image:loc>https://velvetpearl.in/travel/group-travel.webp</image:loc>
+      <image:title>Custom Enquiry | Family, Group and Special Travel Plans</image:title>
+    </image:image>
+  </url>
+</urlset>

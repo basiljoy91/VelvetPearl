@@ -57,4 +57,3 @@ backend/.env
 backend/.env.*
 !backend/.env.example
 hostinger-upload.zip
-backend/models/hgk.env
