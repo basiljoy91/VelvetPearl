@@ -132,10 +132,35 @@ JWT_EXPIRES_IN=12h
 SETUP_SECRET=replace_with_a_long_random_setup_secret
 CORS_ORIGIN=https://velvetpearl.in,https://www.velvetpearl.in
 DATABASE_URL=mysql://DB_USER:DB_PASSWORD@localhost:3306/DB_NAME
+DB_DIALECT=mysql
+DB_HOST=localhost
+DB_PORT=3306
+DB_USER=DB_USER
+DB_PASSWORD=DB_PASSWORD
+DB_NAME=DB_NAME
 DB_SSL=false
 SERVE_FRONTEND=true
 FRONTEND_DIST_PATH=../dist
 REQUEST_BODY_LIMIT=250kb
+PUBLIC_APP_URL=https://velvetpearl.in
+MAP_PROVIDER=seed
+MAP_ROUTE_PROVIDER=fallback
+MAP_COUNTRY_FILTER=in
+MAPBOX_ACCESS_TOKEN=
+GOOGLE_MAPS_API_KEY=
+OPENROUTESERVICE_API_KEY=
+GENERATED_DOCUMENTS_DIR=backend/storage/generated-documents
+BUSINESS_NAME=Velvet Pearl
+BUSINESS_PHONE=
+BUSINESS_EMAIL=
+BUSINESS_ADDRESS=
+BUSINESS_WEBSITE=https://velvetpearl.in
+SMTP_HOST=
+SMTP_PORT=587
+SMTP_SECURE=false
+SMTP_USER=
+SMTP_PASSWORD=
+SMTP_FROM=
 WHATSAPP_CLOUD_API_ENABLED=false
 WHATSAPP_ACCESS_TOKEN=
 WHATSAPP_PHONE_NUMBER_ID=
@@ -211,6 +236,16 @@ Check that these tables exist:
 - `tour_enquiry_details`
 - `custom_trip_details`
 - `enquiry_audit_log`
+- `locations`
+- `route_estimates`
+- `popular_routes`
+- `invoices`
+- `invoice_items`
+- `quotations`
+- `quotation_items`
+- `generated_documents`
+- `document_delivery_logs`
+- `document_counters`
 
 If they exist, the backend schema bootstrap worked.
 
@@ -245,7 +280,9 @@ This repo has been updated for MySQL and Hostinger-managed Node.js deployment:
 
 - PostgreSQL driver replaced with `mysql2`
 - backend query layer rewritten for MySQL connection pooling
-- MySQL schema added in [`backend/utils/schema.sql`](/Users/basiljoy/VS%20code/roughnote/cabwebsit/backend/utils/schema.sql)
+- MySQL schema added in [`backend/utils/schema.mysql.sql`](../backend/utils/schema.mysql.sql)
+- Route provider abstraction and location/estimate tables added for dynamic route search
+- Invoice, quotation, generated-document, and delivery-log tables added for admin documents
 - backend startup now bootstraps MySQL tables
 - root scripts added for Hostinger build/start
 - backend env template updated for MySQL

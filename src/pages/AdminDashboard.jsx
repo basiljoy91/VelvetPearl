@@ -20,7 +20,9 @@ import {
 } from '../services/dataService';
 import AdminForms from '../components/admin/AdminForms';
 import BrandMark from '../components/branding/BrandMark';
+import InvoiceList from '../components/admin/documents/InvoiceList';
 import MobileAdminDashboard from '../components/admin/mobile/MobileAdminDashboard';
+import QuotationList from '../components/admin/documents/QuotationList';
 import { LoadingButton, LoadingOverlay, SectionLoader, SkeletonBlock } from '../components/ui/LoadingState';
 import {
   changePassword,
@@ -1303,6 +1305,14 @@ function DesktopAdminDashboard({
             </section>
           )}
 
+          {activeTab === 'invoices' && (
+            <InvoiceList enquiries={enquiries} />
+          )}
+
+          {activeTab === 'quotations' && (
+            <QuotationList enquiries={enquiries} />
+          )}
+
           {activeTab === 'drivers' && (
             <section className="grid gap-6 lg:grid-cols-2">
               {isLoading ? Array.from({ length: 4 }).map((_, index) => (
@@ -1495,6 +1505,8 @@ export default function AdminDashboard() {
   const navItems = [
     { id: 'dashboard', label: 'Overview', icon: 'dashboard' },
     { id: 'bookings', label: 'Enquiries', icon: 'calendar_month' },
+    { id: 'invoices', label: 'Invoices', icon: 'receipt_long' },
+    { id: 'quotations', label: 'Quotations', icon: 'request_quote' },
     { id: 'drivers', label: 'Drivers', icon: 'person_pin' },
     { id: 'fleet', label: 'Fleet', icon: 'directions_car' },
     { id: 'settings', label: 'Settings', icon: 'settings' },
@@ -1745,7 +1757,7 @@ export default function AdminDashboard() {
     [enquiries]
   );
 
-  const showHeaderSearch = activeTab !== 'dashboard';
+  const showHeaderSearch = ['bookings', 'drivers', 'fleet'].includes(activeTab);
   const headerSearchValue = activeTab === 'bookings' ? enquiryFilters.search : searchQuery;
   const headerSearchPlaceholder = activeTab === 'bookings'
     ? 'Search name, phone, or reference ID'

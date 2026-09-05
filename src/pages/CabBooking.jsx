@@ -1,6 +1,7 @@
-import React, { useMemo, useRef, useState } from 'react';
+import React, { useCallback, useMemo, useRef, useState } from 'react';
 import { useLocation } from 'react-router-dom';
 import { addEnquiry } from '../services/dataService';
+import LocationRoutePicker from '../components/routes/LocationRoutePicker';
 import {
   buildWhatsAppHref,
   CustomerDetailsFields,
@@ -76,17 +77,36 @@ const renderSectionIntro = (eyebrow, title, description) => (
 export default function CabBooking() {
   const { state } = useLocation();
   const routeDefaults = parseRoute(state?.route);
+  const initialRouteData = state?.routeData || {};
+  const initialPickupLocation = initialRouteData.pickup_location || (routeDefaults.pickup ? {
+    label: routeDefaults.pickup,
+    address: routeDefaults.pickup,
+    provider: 'manual',
+    provider_place_id: '',
+    latitude: null,
+    longitude: null,
+  } : null);
+  const initialDropLocation = initialRouteData.drop_location || (routeDefaults.drop ? {
+    label: routeDefaults.drop,
+    address: routeDefaults.drop,
+    provider: 'manual',
+    provider_place_id: '',
+    latitude: null,
+    longitude: null,
+  } : null);
+  const initialRouteEstimate = initialRouteData.route_estimate || null;
 
   const initialFormData = useMemo(() => ({
     customer_name: state?.name || '',
     phone_number: state?.phone || '',
     whatsapp_number: state?.phone || '',
+    use_different_whatsapp: false,
     email: state?.email || '',
     preferred_contact_method: 'whatsapp',
     consent_to_contact: false,
     trip_type: 'local_sightseeing',
-    pickup_location: routeDefaults.pickup,
-    drop_location: routeDefaults.drop,
+    pickup_location: initialPickupLocation?.label || routeDefaults.pickup,
+    drop_location: initialDropLocation?.label || routeDefaults.drop,
     pickup_date: '',
     pickup_time: '',
     return_date: '',
@@ -96,9 +116,14 @@ export default function CabBooking() {
     vehicle_preference: 'not_sure',
     child_seat_required: 'No',
     special_requests: '',
-  }), [routeDefaults.drop, routeDefaults.pickup, state?.email, state?.name, state?.phone]);
+  }), [initialDropLocation?.label, initialPickupLocation?.label, routeDefaults.drop, routeDefaults.pickup, state?.email, state?.name, state?.phone]);
 
   const [formData, setFormData] = useState(initialFormData);
+  const [structuredRoute, setStructuredRoute] = useState({
+    pickup: initialPickupLocation,
+    drop: initialDropLocation,
+    estimate: initialRouteEstimate,
+  });
   const [errors, setErrors] = useState({});
   const [apiError, setApiError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -110,10 +135,29 @@ export default function CabBooking() {
     setFormData((current) => ({
       ...current,
       [name]: type === 'checkbox' ? checked : value,
-      ...(name === 'phone_number' && !current.whatsapp_number ? { whatsapp_number: value } : {}),
+      ...(name === 'phone_number' && !current.use_different_whatsapp ? { whatsapp_number: value } : {}),
+      ...(name === 'use_different_whatsapp' && !checked ? { whatsapp_number: current.phone_number } : {}),
       ...(name === 'trip_type' && value !== 'round_trip' ? { return_date: '', return_time: '' } : {}),
     }));
   };
+
+  const handleRouteChange = useCallback(({ pickup, drop, estimate }) => {
+    setStructuredRoute((current) => {
+      if (current.pickup === pickup && current.drop === drop && current.estimate === estimate) return current;
+      return { pickup, drop, estimate };
+    });
+
+    setFormData((current) => {
+      const nextPickup = pickup?.label || '';
+      const nextDrop = drop?.label || '';
+      if (nextPickup === current.pickup_location && nextDrop === current.drop_location) return current;
+      return {
+        ...current,
+        pickup_location: nextPickup,
+        drop_location: nextDrop,
+      };
+    });
+  }, []);
 
   const validateForm = () => {
     const nextErrors = {
@@ -178,6 +222,9 @@ export default function CabBooking() {
           luggage: formData.luggage_details,
           vehicle_preference: formData.vehicle_preference,
           child_seat_required: formData.child_seat_required,
+          pickup_location: structuredRoute.pickup,
+          drop_location: structuredRoute.drop,
+          route_estimate: structuredRoute.estimate,
           notes: formData.special_requests,
         },
       });
@@ -235,7 +282,7 @@ export default function CabBooking() {
             whatsappHref={successWhatsAppHref}
           />
         ) : (
-          <form ref={formRef} aria-busy={isLoading} className="space-y-10" noValidate onSubmit={handleSubmit}>
+          <form ref={formRef} aria-busy={isLoading} className="space-y-7" noValidate onSubmit={handleSubmit}>
             {apiError && (
               <div aria-live="assertive" className="rounded-xl border border-rose-500/30 bg-rose-500/10 px-4 py-3 text-sm text-rose-200" role="alert">
                 {apiError}
@@ -251,22 +298,37 @@ export default function CabBooking() {
             <CustomerDetailsFields errors={errors} formData={formData} onChange={handleChange} />
 
             <SectionHeading
-              description="These details help us check route suitability, timing, and the best available vehicle category."
+              description="Search the exact pickup and drop points, then review the map before submitting."
               step="02"
-              title="Cab Enquiry Form"
+              title="Route"
             />
-            <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+            <LocationRoutePicker
+              initialPickup={initialPickupLocation}
+              initialDrop={initialDropLocation}
+              initialEstimate={initialRouteEstimate}
+              onRouteChange={handleRouteChange}
+            />
+
+            <SectionHeading
+              description="Keep the first pass short. Add return, luggage, or child-seat details only when they matter."
+              step="03"
+              title="Trip Details"
+            />
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
               <div>
-                <label className={labelClassName}>Trip Type <span className="text-secondary">*</span></label>
-                <select className={inputClassName(errors, 'trip_type')} name="trip_type" onChange={handleChange} value={formData.trip_type}>
-                  <option value="local_sightseeing">Local sightseeing</option>
-                  <option value="airport_pickup">Airport pickup</option>
-                  <option value="airport_drop">Airport drop</option>
-                  <option value="outstation">Outstation</option>
-                  <option value="one_way_transfer">One-way transfer</option>
-                  <option value="round_trip">Round trip</option>
-                </select>
-                <FieldError error={errors.trip_type} />
+                <label className={labelClassName}>Pickup Date <span className="text-secondary">*</span></label>
+                <input className={inputClassName(errors, 'pickup_date')} name="pickup_date" onChange={handleChange} type="date" value={formData.pickup_date} />
+                <FieldError error={errors.pickup_date} />
+              </div>
+              <div>
+                <label className={labelClassName}>Pickup Time <span className="text-secondary">*</span></label>
+                <input className={inputClassName(errors, 'pickup_time')} name="pickup_time" onChange={handleChange} type="time" value={formData.pickup_time} />
+                <FieldError error={errors.pickup_time} />
+              </div>
+              <div>
+                <label className={labelClassName}>Passengers <span className="text-secondary">*</span></label>
+                <input className={inputClassName(errors, 'passengers')} min="1" name="passengers" onChange={handleChange} type="number" value={formData.passengers} />
+                <FieldError error={errors.passengers} />
               </div>
               <div>
                 <label className={labelClassName}>Vehicle Preference <span className="text-secondary">*</span></label>
@@ -278,60 +340,55 @@ export default function CabBooking() {
                   <option value="not_sure">Not sure</option>
                 </select>
               </div>
-              <div>
-                <label className={labelClassName}>Pickup Location <span className="text-secondary">*</span></label>
-                <input className={inputClassName(errors, 'pickup_location')} name="pickup_location" onChange={handleChange} type="text" value={formData.pickup_location} />
-                <FieldError error={errors.pickup_location} />
-              </div>
-              <div>
-                <label className={labelClassName}>Drop Location <span className="text-secondary">*</span></label>
-                <input className={inputClassName(errors, 'drop_location')} name="drop_location" onChange={handleChange} type="text" value={formData.drop_location} />
-                <FieldError error={errors.drop_location} />
-              </div>
-              <div>
-                <label className={labelClassName}>Pickup Date <span className="text-secondary">*</span></label>
-                <input className={inputClassName(errors, 'pickup_date')} name="pickup_date" onChange={handleChange} type="date" value={formData.pickup_date} />
-                <FieldError error={errors.pickup_date} />
-              </div>
-              <div>
-                <label className={labelClassName}>Pickup Time <span className="text-secondary">*</span></label>
-                <input className={inputClassName(errors, 'pickup_time')} name="pickup_time" onChange={handleChange} type="time" value={formData.pickup_time} />
-                <FieldError error={errors.pickup_time} />
-              </div>
-              {formData.trip_type === 'round_trip' && (
-                <>
-                  <div>
-                    <label className={labelClassName}>Return Date <span className="text-secondary">*</span></label>
-                    <input className={inputClassName(errors, 'return_date')} name="return_date" onChange={handleChange} type="date" value={formData.return_date} />
-                    <FieldError error={errors.return_date} />
-                  </div>
-                  <div>
-                    <label className={labelClassName}>Return Time <span className="text-secondary">*</span></label>
-                    <input className={inputClassName(errors, 'return_time')} name="return_time" onChange={handleChange} type="time" value={formData.return_time} />
-                    <FieldError error={errors.return_time} />
-                  </div>
-                </>
-              )}
-              <div>
-                <label className={labelClassName}>Number of Passengers <span className="text-secondary">*</span></label>
-                <input className={inputClassName(errors, 'passengers')} min="1" name="passengers" onChange={handleChange} type="number" value={formData.passengers} />
-                <FieldError error={errors.passengers} />
-              </div>
-              <div>
-                <label className={labelClassName}>Luggage Details</label>
-                <input className={inputClassName(errors, 'luggage_details')} name="luggage_details" onChange={handleChange} type="text" value={formData.luggage_details} />
-              </div>
-              <div>
-                <label className={labelClassName}>Child Seat Required</label>
-                <select className={inputClassName(errors, 'child_seat_required')} name="child_seat_required" onChange={handleChange} value={formData.child_seat_required}>
-                  <option value="No">No</option>
-                  <option value="Yes">Yes</option>
-                </select>
-              </div>
               <div className="md:col-span-2">
-                <label className={labelClassName}>Special Requests</label>
-                <textarea className={inputClassName(errors, 'special_requests')} name="special_requests" onChange={handleChange} rows="4" value={formData.special_requests}></textarea>
+                <label className={labelClassName}>Short Note</label>
+                <textarea className={inputClassName(errors, 'special_requests')} name="special_requests" onChange={handleChange} rows="3" value={formData.special_requests}></textarea>
               </div>
+
+              <details className="md:col-span-2 rounded-lg border border-white/10 bg-black/20 p-4">
+                <summary className="cursor-pointer text-sm font-semibold text-white">More details</summary>
+                <div className="mt-4 grid gap-4 md:grid-cols-2">
+                  <div>
+                    <label className={labelClassName}>Trip Type <span className="text-secondary">*</span></label>
+                    <select className={inputClassName(errors, 'trip_type')} name="trip_type" onChange={handleChange} value={formData.trip_type}>
+                      <option value="local_sightseeing">Local sightseeing</option>
+                      <option value="airport_pickup">Airport pickup</option>
+                      <option value="airport_drop">Airport drop</option>
+                      <option value="outstation">Outstation</option>
+                      <option value="one_way_transfer">One-way transfer</option>
+                      <option value="round_trip">Round trip</option>
+                    </select>
+                    <FieldError error={errors.trip_type} />
+                  </div>
+                  <div>
+                    <label className={labelClassName}>Luggage</label>
+                    <input className={inputClassName(errors, 'luggage_details')} name="luggage_details" onChange={handleChange} type="text" value={formData.luggage_details} />
+                  </div>
+                  {formData.trip_type === 'round_trip' && (
+                    <>
+                      <div>
+                        <label className={labelClassName}>Return Date <span className="text-secondary">*</span></label>
+                        <input className={inputClassName(errors, 'return_date')} name="return_date" onChange={handleChange} type="date" value={formData.return_date} />
+                        <FieldError error={errors.return_date} />
+                      </div>
+                      <div>
+                        <label className={labelClassName}>Return Time <span className="text-secondary">*</span></label>
+                        <input className={inputClassName(errors, 'return_time')} name="return_time" onChange={handleChange} type="time" value={formData.return_time} />
+                        <FieldError error={errors.return_time} />
+                      </div>
+                    </>
+                  )}
+                  <div>
+                    <label className={labelClassName}>Child Seat</label>
+                    <select className={inputClassName(errors, 'child_seat_required')} name="child_seat_required" onChange={handleChange} value={formData.child_seat_required}>
+                      <option value="No">No</option>
+                      <option value="Yes">Yes</option>
+                    </select>
+                  </div>
+                </div>
+              </details>
+              <input type="hidden" name="pickup_location" value={formData.pickup_location} readOnly />
+              <input type="hidden" name="drop_location" value={formData.drop_location} readOnly />
             </div>
 
             <LoadingButton

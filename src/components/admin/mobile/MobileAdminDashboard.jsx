@@ -12,6 +12,8 @@ import MobileDrivers from './MobileDrivers';
 import MobileNewEntrySheet from './MobileNewEntrySheet';
 import MobileOverview from './MobileOverview';
 import MobileSettings from './MobileSettings';
+import InvoiceList from '../documents/InvoiceList';
+import QuotationList from '../documents/QuotationList';
 
 export default function MobileAdminDashboard({
   activeTab,
@@ -86,6 +88,8 @@ export default function MobileAdminDashboard({
   const topSubtitle = {
     dashboard: 'Manual operations snapshot for today.',
     bookings: 'Review, contact, assign, and update customer enquiries.',
+    invoices: 'Create and send saved billing documents.',
+    quotations: 'Prepare quotes and convert accepted work.',
     drivers: 'Keep driver availability and contact details within reach.',
     fleet: 'Track available vehicles, status, and coverage.',
     settings: 'Security, onboarding, and admin access controls.',
@@ -177,6 +181,14 @@ export default function MobileAdminDashboard({
             setSearchQuery={setSearchQuery}
             isLoading={isLoading}
           />
+        )}
+
+        {activeTab === 'invoices' && (
+          <InvoiceList enquiries={enquiries} isCompact />
+        )}
+
+        {activeTab === 'quotations' && (
+          <QuotationList enquiries={enquiries} isCompact />
         )}
 
         {activeTab === 'fleet' && (

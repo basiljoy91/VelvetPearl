@@ -35,8 +35,7 @@ exports.getAnalytics = async (req, res) => {
 
     let pendingPayments = 0;
     pendingPaymentsRes.forEach(row => {
-      // Try to extract numeric value from amount string (e.g., '₹14k', '14000', '150.50')
-      let numStr = row.quote_amount.replace(/[^0-9.-]+/g, "");
+      const numStr = String(row.quote_amount || '').replace(/[^0-9.-]+/g, "");
       let num = parseFloat(numStr);
       if (!isNaN(num)) {
         pendingPayments += num;

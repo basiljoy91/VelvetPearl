@@ -44,6 +44,7 @@ export default function Contact() {
     customer_name: '',
     phone_number: '',
     whatsapp_number: '',
+    use_different_whatsapp: false,
     email: '',
     preferred_contact_method: 'whatsapp',
     consent_to_contact: false,
@@ -63,7 +64,8 @@ export default function Contact() {
     setFormData((current) => ({
       ...current,
       [name]: type === 'checkbox' ? checked : value,
-      ...(name === 'phone_number' && !current.whatsapp_number ? { whatsapp_number: value } : {}),
+      ...(name === 'phone_number' && !current.use_different_whatsapp ? { whatsapp_number: value } : {}),
+      ...(name === 'use_different_whatsapp' && !checked ? { whatsapp_number: current.phone_number } : {}),
     }));
   };
 

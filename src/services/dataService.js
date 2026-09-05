@@ -25,6 +25,25 @@ const handleResponse = async (res) => {
   throw new Error(text || `Server returned a non-JSON response (${res.status}). Check backend status.`);
 };
 
+const downloadFileResponse = async (res, fallbackName) => {
+  if (!res.ok) {
+    await handleResponse(res);
+  }
+
+  const blob = await res.blob();
+  const disposition = res.headers.get('content-disposition') || '';
+  const fileNameMatch = disposition.match(/filename="?([^"]+)"?/i);
+  const fileName = fileNameMatch?.[1] || fallbackName;
+  const url = window.URL.createObjectURL(blob);
+  const anchor = document.createElement('a');
+  anchor.href = url;
+  anchor.download = fileName;
+  document.body.appendChild(anchor);
+  anchor.click();
+  anchor.remove();
+  window.URL.revokeObjectURL(url);
+};
+
 const buildQueryString = (params = {}) => {
   const query = new URLSearchParams();
 
@@ -162,6 +181,66 @@ export const deleteBookingRecord = deleteEnquiryRecord;
 export const assignDriverToBooking = assignDriverToEnquiry;
 
 // ─────────────────────────────────────────────
+// LOCATIONS AND ROUTES
+// ─────────────────────────────────────────────
+
+export const searchLocations = async (query) => {
+  const res = await fetch(`${API}/locations/search${buildQueryString({ q: query })}`, { headers: authHeaders() });
+  const data = await handleResponse(res);
+  return data.data || [];
+};
+
+export const estimateRoute = async ({ pickup, drop }) => {
+  const res = await fetch(`${API}/routes/estimate`, {
+    method: 'POST',
+    headers: authHeaders(),
+    body: JSON.stringify({ pickup, drop }),
+  });
+  const data = await handleResponse(res);
+  return data.data;
+};
+
+export const getPopularRoutes = async () => {
+  const res = await fetch(`${API}/routes/popular`, { headers: authHeaders() });
+  const data = await handleResponse(res);
+  return data.data || [];
+};
+
+export const getAdminPopularRoutes = async (includeInactive = true) => {
+  const res = await fetch(`${API}/admin/routes/popular${buildQueryString({ include_inactive: includeInactive ? 'true' : '' })}`, { headers: authHeaders() });
+  const data = await handleResponse(res);
+  return data.data || [];
+};
+
+export const addPopularRoute = async (routeData) => {
+  const res = await fetch(`${API}/admin/routes/popular`, {
+    method: 'POST',
+    headers: authHeaders(),
+    body: JSON.stringify(routeData),
+  });
+  const data = await handleResponse(res);
+  return data.data;
+};
+
+export const updatePopularRoute = async (id, routeData) => {
+  const res = await fetch(`${API}/admin/routes/popular/${id}`, {
+    method: 'PATCH',
+    headers: authHeaders(),
+    body: JSON.stringify(routeData),
+  });
+  const data = await handleResponse(res);
+  return data.data;
+};
+
+export const deletePopularRoute = async (id) => {
+  const res = await fetch(`${API}/admin/routes/popular/${id}`, {
+    method: 'DELETE',
+    headers: authHeaders(),
+  });
+  return handleResponse(res);
+};
+
+// ─────────────────────────────────────────────
 // DRIVERS
 // ─────────────────────────────────────────────
 
@@ -209,4 +288,139 @@ export const getAnalytics = async () => {
   const res = await fetch(`${API}/admin/analytics`, { headers: authHeaders() });
   const data = await handleResponse(res);
   return data.data || {};
+};
+
+// ─────────────────────────────────────────────
+// INVOICES
+// ─────────────────────────────────────────────
+
+export const getInvoices = async (filters = {}) => {
+  const res = await fetch(`${API}/admin/invoices${buildQueryString(filters)}`, { headers: authHeaders() });
+  const data = await handleResponse(res);
+  return data.data || [];
+};
+
+export const getInvoiceById = async (id) => {
+  const res = await fetch(`${API}/admin/invoices/${id}`, { headers: authHeaders() });
+  const data = await handleResponse(res);
+  return data.data;
+};
+
+export const saveInvoice = async (invoiceData) => {
+  const isUpdate = Boolean(invoiceData.id);
+  const res = await fetch(`${API}/admin/invoices${isUpdate ? `/${invoiceData.id}` : ''}`, {
+    method: isUpdate ? 'PATCH' : 'POST',
+    headers: authHeaders(),
+    body: JSON.stringify(invoiceData),
+  });
+  const data = await handleResponse(res);
+  return data.data;
+};
+
+export const duplicateInvoice = async (id) => {
+  const res = await fetch(`${API}/admin/invoices/${id}/duplicate`, {
+    method: 'POST',
+    headers: authHeaders(),
+  });
+  const data = await handleResponse(res);
+  return data.data;
+};
+
+export const sendInvoiceEmail = async (id, payload = {}) => {
+  const res = await fetch(`${API}/admin/invoices/${id}/send-email`, {
+    method: 'POST',
+    headers: authHeaders(),
+    body: JSON.stringify(payload),
+  });
+  const data = await handleResponse(res);
+  return data.data;
+};
+
+export const shareInvoiceWhatsApp = async (id, payload = {}) => {
+  const res = await fetch(`${API}/admin/invoices/${id}/share-whatsapp`, {
+    method: 'POST',
+    headers: authHeaders(),
+    body: JSON.stringify(payload),
+  });
+  const data = await handleResponse(res);
+  return data.data;
+};
+
+export const getInvoicePdfUrl = (id) => `${API}/admin/invoices/${id}/pdf`;
+
+export const downloadInvoicePdf = async (id) => {
+  const res = await fetch(getInvoicePdfUrl(id), { headers: authHeaders() });
+  return downloadFileResponse(res, `invoice-${id}.pdf`);
+};
+
+// ─────────────────────────────────────────────
+// QUOTATIONS
+// ─────────────────────────────────────────────
+
+export const getQuotations = async (filters = {}) => {
+  const res = await fetch(`${API}/admin/quotations${buildQueryString(filters)}`, { headers: authHeaders() });
+  const data = await handleResponse(res);
+  return data.data || [];
+};
+
+export const getQuotationById = async (id) => {
+  const res = await fetch(`${API}/admin/quotations/${id}`, { headers: authHeaders() });
+  const data = await handleResponse(res);
+  return data.data;
+};
+
+export const saveQuotation = async (quotationData) => {
+  const isUpdate = Boolean(quotationData.id);
+  const res = await fetch(`${API}/admin/quotations${isUpdate ? `/${quotationData.id}` : ''}`, {
+    method: isUpdate ? 'PATCH' : 'POST',
+    headers: authHeaders(),
+    body: JSON.stringify(quotationData),
+  });
+  const data = await handleResponse(res);
+  return data.data;
+};
+
+export const duplicateQuotation = async (id) => {
+  const res = await fetch(`${API}/admin/quotations/${id}/duplicate`, {
+    method: 'POST',
+    headers: authHeaders(),
+  });
+  const data = await handleResponse(res);
+  return data.data;
+};
+
+export const sendQuotationEmail = async (id, payload = {}) => {
+  const res = await fetch(`${API}/admin/quotations/${id}/send-email`, {
+    method: 'POST',
+    headers: authHeaders(),
+    body: JSON.stringify(payload),
+  });
+  const data = await handleResponse(res);
+  return data.data;
+};
+
+export const shareQuotationWhatsApp = async (id, payload = {}) => {
+  const res = await fetch(`${API}/admin/quotations/${id}/share-whatsapp`, {
+    method: 'POST',
+    headers: authHeaders(),
+    body: JSON.stringify(payload),
+  });
+  const data = await handleResponse(res);
+  return data.data;
+};
+
+export const convertQuotationToInvoice = async (id) => {
+  const res = await fetch(`${API}/admin/quotations/${id}/convert-to-invoice`, {
+    method: 'POST',
+    headers: authHeaders(),
+  });
+  const data = await handleResponse(res);
+  return data.data;
+};
+
+export const getQuotationPdfUrl = (id) => `${API}/admin/quotations/${id}/pdf`;
+
+export const downloadQuotationPdf = async (id) => {
+  const res = await fetch(getQuotationPdfUrl(id), { headers: authHeaders() });
+  return downloadFileResponse(res, `quotation-${id}.pdf`);
 };

@@ -32,6 +32,7 @@ export default function EventBooking() {
     customer_name: state?.name || '',
     phone_number: state?.phone || '',
     whatsapp_number: state?.phone || '',
+    use_different_whatsapp: false,
     email: state?.email || '',
     preferred_contact_method: 'whatsapp',
     consent_to_contact: false,
@@ -56,7 +57,8 @@ export default function EventBooking() {
     setFormData((current) => ({
       ...current,
       [name]: type === 'checkbox' ? checked : value,
-      ...(name === 'phone_number' && !current.whatsapp_number ? { whatsapp_number: value } : {}),
+      ...(name === 'phone_number' && !current.use_different_whatsapp ? { whatsapp_number: value } : {}),
+      ...(name === 'use_different_whatsapp' && !checked ? { whatsapp_number: current.phone_number } : {}),
     }));
   };
 

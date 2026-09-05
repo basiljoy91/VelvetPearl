@@ -211,6 +211,10 @@ const validateQuotePayload = (req, res, next) => {
   if (!req.body.quote_amount) {
     return fail(res, 'Quote amount is required.');
   }
+  const parsed = Number(String(req.body.quote_amount).replace(/[^0-9.-]/g, ''));
+  if (!Number.isFinite(parsed)) {
+    return fail(res, 'Quote amount must be a valid amount.');
+  }
   return next();
 };
 

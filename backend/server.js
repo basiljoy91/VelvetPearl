@@ -16,6 +16,12 @@ const fleetRoutes = require('./routes/fleetRoutes');
 const analyticsRoutes = require('./routes/analyticsRoutes');
 const tripRoutes = require('./routes/tripRoutes');
 const chatbotRoutes = require('./routes/chatbotRoutes');
+const locationRoutes = require('./routes/locationRoutes');
+const routeRoutes = require('./routes/routeRoutes');
+const adminRouteRoutes = require('./routes/adminRouteRoutes');
+const invoiceRoutes = require('./routes/invoiceRoutes');
+const quotationRoutes = require('./routes/quotationRoutes');
+const documentRoutes = require('./routes/documentRoutes');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -38,18 +44,13 @@ const allowedOrigins = [...new Set([
 
 function getDatabaseTroubleshootingHint(error) {
   const message = String(error?.message || '');
-  const host = String(db.connectionSummary?.host || '');
 
-  if (host.includes('pooler.supabase.com') && message.includes('tenant/user') && message.includes('not found')) {
-    return 'Supabase pooler tenant/user lookup failed. Re-copy the exact Session pooler connection string from Supabase Dashboard > Connect. The pooler host region and the username `postgres.<project-ref>` must belong to the same project.';
-  }
-
-  if (message.toLowerCase().includes('password authentication failed')) {
-    return 'Database password was rejected. Reset the database password in Supabase if needed, then update backend/.env.';
+  if (message.toLowerCase().includes('access denied')) {
+    return 'MySQL rejected the database credentials. Verify DB_USER, DB_PASSWORD, DB_NAME, and DATABASE_URL in the runtime environment.';
   }
 
   if (message.toLowerCase().includes('connection refused')) {
-    return 'Database host is reachable but refused the connection. Verify that the project is running and that you chose the right direct or pooler endpoint.';
+    return 'The database host refused the connection. Verify DB_HOST, DB_PORT, and that the Hostinger MySQL database is active.';
   }
 
   return null;
@@ -93,7 +94,7 @@ app.use((req, res, next) => {
   res.setHeader('X-Content-Type-Options', 'nosniff');
   res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
   res.setHeader('X-Frame-Options', 'DENY');
-  res.setHeader('Permissions-Policy', 'camera=(), microphone=(), geolocation=()');
+  res.setHeader('Permissions-Policy', 'camera=(), microphone=(), geolocation=(self)');
   next();
 });
 app.use(express.json({ limit: process.env.REQUEST_BODY_LIMIT || '250kb' }));
@@ -114,6 +115,12 @@ app.use('/api/fleet', fleetRoutes);
 app.use('/api/admin', analyticsRoutes);
 app.use('/api/trips', tripRoutes);
 app.use('/api/chatbot', chatbotRoutes);
+app.use('/api/locations', locationRoutes);
+app.use('/api/routes', routeRoutes);
+app.use('/api/admin/routes', adminRouteRoutes);
+app.use('/api/admin/invoices', invoiceRoutes);
+app.use('/api/admin/quotations', quotationRoutes);
+app.use('/api/documents', documentRoutes);
 
 if (shouldServeFrontend) {
   if (fs.existsSync(frontendDistPath)) {
@@ -184,26 +191,12 @@ async function ensureDatabaseReady() {
 
   if (!schemaPresence.isReady) {
     throw new Error(
-      `Supabase schema is missing required tables: ${schemaPresence.missingTables.join(', ')}. `
-      + 'Apply the SQL files in supabase/migrations or run `npm run init-db` against a fresh database before starting the server.'
+      `MySQL schema is missing required tables: ${schemaPresence.missingTables.join(', ')}. `
+      + 'Run `npm run init-db` against a fresh Hostinger MySQL/MariaDB database before starting the server.'
     );
   }
 
   await ensureRuntimeCompatibility(db);
-
-  await db.query(`UPDATE drivers SET status = 'Unavailable' WHERE status::text = 'Inactive'`);
-  await db.query(`UPDATE admins SET role = 'admin' WHERE role IS NULL OR role::text = ''`);
-  await db.query(`
-    UPDATE admins
-    SET is_main_admin = true,
-        role = 'main_admin'
-    WHERE id = (
-      SELECT id
-      FROM admins
-      ORDER BY id ASC
-      LIMIT 1
-    )
-  `);
 
   console.log('Database connection and compatibility checks are ready.');
 }

@@ -1,40 +1,48 @@
 require('./config/loadEnv');
 const db = require('./config/db');
-const { getSchemaPresence, loadSupabaseBootstrapSql } = require('./utils/schemaSupport');
+const {
+  ensureRuntimeCompatibility,
+  getSchemaPresence,
+  loadMysqlBootstrapSql,
+} = require('./utils/schemaSupport');
 
 (async () => {
   try {
-    console.log('Connecting to PostgreSQL/Supabase:', db.connectionSummary);
+    console.log('Connecting to MySQL/MariaDB:', db.connectionSummary);
 
     const schemaPresence = await getSchemaPresence(db);
 
     if (schemaPresence.isReady) {
-      console.log('Schema already present. Skipping bootstrap.');
-      await db.end();
-      process.exit(0);
-    }
-
-    if (schemaPresence.availableTables.length > 0) {
-      throw new Error(
-        `Detected a partial schema (${schemaPresence.availableTables.join(', ')}). `
-        + 'Apply the remaining Supabase migrations manually instead of running a fresh bootstrap.'
+      console.log('Schema already present. Applying compatibility checks.');
+    } else if (schemaPresence.availableTables.length > 0) {
+      console.log(
+        `Partial schema detected (${schemaPresence.availableTables.join(', ')}). `
+        + 'Applying the MySQL schema to add missing tables.'
       );
     }
 
-    const { files, sql } = loadSupabaseBootstrapSql();
+    if (!schemaPresence.isReady) {
+      const { files, sql } = loadMysqlBootstrapSql();
 
-    console.log('Applying Supabase migrations:');
-    files.forEach((filePath) => {
-      console.log(`- ${filePath}`);
-    });
+      console.log('Applying MySQL schema:');
+      files.forEach((filePath) => {
+        console.log(`- ${filePath}`);
+      });
 
-    await db.query(sql);
+      await db.query(sql);
+    }
 
-    console.log('✅ PostgreSQL/Supabase schema created successfully!');
+    await ensureRuntimeCompatibility(db);
+    const finalPresence = await getSchemaPresence(db);
+    if (!finalPresence.isReady) {
+      throw new Error(`MySQL schema is still incomplete: ${finalPresence.missingTables.join(', ')}`);
+    }
+
+    console.log('MySQL/MariaDB schema is ready.');
     await db.end();
     process.exit(0);
   } catch (err) {
-    console.error('❌ Failed to initialize database:', err.message);
+    console.error('Failed to initialize database:', err.message);
     await db.end().catch(() => {});
     process.exit(1);
   }

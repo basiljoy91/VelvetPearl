@@ -1,5 +1,23 @@
 const db = require('../config/db');
 
+const parseJsonValue = (value, fallback = {}) => {
+  if (!value) return fallback;
+  if (typeof value === 'object') return value;
+
+  try {
+    return JSON.parse(value);
+  } catch {
+    return fallback;
+  }
+};
+
+const normalizeEnquiryRow = (row) => (row ? {
+  ...row,
+  service_details_json: parseJsonValue(row.service_details_json, {}),
+  consent_to_contact: Boolean(row.consent_to_contact),
+  is_archived: Boolean(row.is_archived),
+} : row);
+
 const normalizeEnquiryType = (value) => {
   const normalized = String(value || 'general').trim().toLowerCase();
 
@@ -46,25 +64,74 @@ const parseDurationDays = (value) => {
   return numberMatches[0] > 0 ? numberMatches[0] : null;
 };
 
+const normalizeMoneyValue = (value) => {
+  if (value === undefined || value === null || value === '') return null;
+  const cleaned = String(value).replace(/[^0-9.-]/g, '');
+  if (!cleaned) return null;
+  const parsed = Number(cleaned);
+  return Number.isFinite(parsed) ? parsed.toFixed(2) : null;
+};
+
+const getEnquiryReferencePrefix = (enquiryType) => ({
+  cab: 'CAB',
+  room: 'ROOM',
+  tour: 'TOUR',
+  custom: 'CUS',
+  general: 'GEN',
+}[enquiryType] || 'GEN');
+
+const generateEnquiryReferenceId = async (client, enquiryType) => {
+  const now = new Date();
+  const enquiryYear = now.getFullYear();
+  const prefix = getEnquiryReferencePrefix(enquiryType);
+
+  await client.query(
+    `
+      INSERT INTO enquiry_counters (enquiry_type, enquiry_year, last_number)
+      VALUES ($1, $2, LAST_INSERT_ID(1))
+      ON DUPLICATE KEY UPDATE last_number = LAST_INSERT_ID(last_number + 1)
+    `,
+    [enquiryType, enquiryYear]
+  );
+
+  const { rows } = await client.query('SELECT LAST_INSERT_ID() AS next_number');
+  const nextNumber = Number(rows[0]?.next_number || 1);
+  return `${prefix}-${enquiryYear}-${String(nextNumber).padStart(4, '0')}`;
+};
+
 const insertServiceDetails = async (client, enquiryId, enquiryType, details) => {
   if (enquiryType === 'cab') {
+    const pickupLocation = details.pickup_location || null;
+    const dropLocation = details.drop_location || null;
+    const routeEstimate = details.route_estimate || details.selected_route_estimate || null;
+
     await client.query(
       `
         INSERT INTO cab_enquiry_details (
           enquiry_id,
           pickup,
           dropoff,
+          pickup_location_id,
+          drop_location_id,
+          pickup_location_json,
+          drop_location_json,
+          route_estimate_json,
           passengers,
           luggage,
           vehicle_preference,
           requirement_notes
         )
-        VALUES ($1, $2, $3, $4, $5, $6, $7)
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
       `,
       [
         enquiryId,
-        details.pickup || null,
-        details.dropoff || null,
+        details.pickup || pickupLocation?.label || null,
+        details.dropoff || dropLocation?.label || null,
+        details.pickup_location_id || pickupLocation?.id || null,
+        details.drop_location_id || dropLocation?.id || null,
+        pickupLocation,
+        dropLocation,
+        routeEstimate,
         details.passengers || null,
         details.luggage || null,
         details.vehicle_preference || null,
@@ -293,7 +360,7 @@ const Booking = {
     `;
 
     const { rows } = await db.query(query, values);
-    return rows;
+    return rows.map(normalizeEnquiryRow);
   },
 
   getById: async (id) => {
@@ -304,7 +371,7 @@ const Booking = {
       `,
       [id]
     );
-    return rows[0] || null;
+    return normalizeEnquiryRow(rows[0]) || null;
   },
 
   getAuditTrail: async (id) => {
@@ -328,7 +395,10 @@ const Booking = {
       [id]
     );
 
-    return rows;
+    return rows.map((row) => ({
+      ...row,
+      metadata_json: parseJsonValue(row.metadata_json, {}),
+    }));
   },
 
   create: async (enquiryData) => {
@@ -338,10 +408,12 @@ const Booking = {
       await client.beginTransaction();
 
       const enquiryType = normalizeEnquiryType(enquiryData.enquiry_type);
+      const referenceId = enquiryData.reference_id || await generateEnquiryReferenceId(client, enquiryType);
 
       const insertResult = await client.query(
         `
           INSERT INTO enquiries (
+            reference_id,
             enquiry_type,
             customer_name,
             phone_number,
@@ -379,11 +451,11 @@ const Booking = {
           VALUES (
             $1, $2, $3, $4, $5, $6, $7, $8, $9, $10,
             $11, $12, $13, $14, $15, $16, $17, $18, $19, $20,
-            $21, $22, $23, $24, false, NULL, NULL, $25, $26, $27, $28, 'pending', NULL
+            $21, $22, $23, $24, $25, false, NULL, NULL, $26, $27, $28, $29, 'pending', NULL
           )
-          RETURNING id
         `,
         [
+          referenceId,
           enquiryType,
           enquiryData.customer_name,
           enquiryData.phone_number,
@@ -403,7 +475,7 @@ const Booking = {
           enquiryData.assigned_package_id || null,
           enquiryData.assigned_hotel_option || null,
           enquiryData.assigned_owner_id || null,
-          enquiryData.quote_amount || null,
+          normalizeMoneyValue(enquiryData.quote_amount),
           enquiryData.last_contacted_at || null,
           enquiryData.follow_up_at || null,
           enquiryData.consent_to_contact !== false,
@@ -415,7 +487,7 @@ const Booking = {
         ]
       );
 
-      const enquiryId = insertResult.rows[0]?.id;
+      const enquiryId = insertResult.insertId;
       await insertServiceDetails(client, enquiryId, enquiryType, enquiryData.service_details_json || {});
       const createdResult = await client.query(
         `
@@ -426,7 +498,7 @@ const Booking = {
       );
 
       await client.commit();
-      return createdResult.rows[0];
+      return normalizeEnquiryRow(createdResult.rows[0]);
     } catch (error) {
       await client.rollback();
       throw error;
@@ -465,7 +537,10 @@ const Booking = {
         return { rowCount: 0 };
       }
 
-      const current = currentResult.rows[0];
+      const current = {
+        ...currentResult.rows[0],
+        service_details_json: parseJsonValue(currentResult.rows[0].service_details_json, {}),
+      };
       const nextDetails = enquiryData.service_details_json || current.service_details_json || {};
 
       const result = await client.query(
@@ -499,7 +574,7 @@ const Booking = {
           enquiryData.assigned_package_id || null,
           enquiryData.assigned_hotel_option || null,
           enquiryData.assigned_owner_id || null,
-          enquiryData.quote_amount || null,
+          normalizeMoneyValue(enquiryData.quote_amount),
           enquiryData.last_contacted_at || null,
           enquiryData.follow_up_at || null,
           nextDetails,
@@ -569,7 +644,7 @@ const Booking = {
       SET quote_amount = $1, updated_at = CURRENT_TIMESTAMP
       WHERE id = $2
     `,
-    [quoteAmount, id]
+    [normalizeMoneyValue(quoteAmount), id]
   ),
 
   archive: async (id, archivedReason = null) => db.query(

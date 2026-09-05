@@ -1,93 +1,147 @@
 require('./loadEnv');
-const { Pool } = require('pg');
+const mysql = require('mysql2/promise');
+
+const SUPPORTED_PROTOCOLS = new Set(['mysql:', 'mariadb:']);
+
+const normalizeDialect = (value) => String(value || 'mysql').trim().toLowerCase();
 
 const parseDatabaseUrl = (value) => {
   const url = new URL(value);
 
-  if (!['postgres:', 'postgresql:'].includes(url.protocol)) {
-    throw new Error(`Unsupported database protocol: ${url.protocol}`);
+  if (!SUPPORTED_PROTOCOLS.has(url.protocol)) {
+    throw new Error(`Unsupported database protocol: ${url.protocol}. Use mysql:// or mariadb:// for Hostinger.`);
   }
 
   return {
     host: url.hostname,
-    port: Number(url.port || 5432),
-    user: decodeURIComponent(url.username),
+    port: Number(url.port || 3306),
+    user: decodeURIComponent(url.username || ''),
+    password: decodeURIComponent(url.password || ''),
     database: decodeURIComponent(url.pathname.replace(/^\//, '')),
   };
 };
 
-let connectionConfig;
-if (process.env.DATABASE_URL) {
-  const urlObj = new URL(process.env.DATABASE_URL);
-  connectionConfig = {
-    host: urlObj.hostname,
-    port: Number(urlObj.port || 5432),
-    user: decodeURIComponent(urlObj.username || ''),
-    password: decodeURIComponent(urlObj.password || ''),
-    database: decodeURIComponent(urlObj.pathname.replace(/^[\/]?/, '')),
-  };
-} else {
-  connectionConfig = {
-    host: process.env.DB_HOST || process.env.PGHOST || '127.0.0.1',
-    user: process.env.DB_USER || process.env.PGUSER,
-    password: process.env.DB_PASSWORD || process.env.PGPASSWORD,
-    database: process.env.DB_NAME || process.env.PGDATABASE,
-    port: Number(process.env.DB_PORT || process.env.PGPORT || 5432),
-  };
+const dialect = normalizeDialect(process.env.DB_DIALECT);
+
+if (dialect !== 'mysql') {
+  throw new Error(`Unsupported DB_DIALECT "${dialect}". This backend is configured for Hostinger-compatible MySQL/MariaDB.`);
 }
 
-const shouldUseSsl =
-  String(process.env.DB_SSL || '').toLowerCase() === 'true' ||
-  (process.env.DATABASE_URL && String(process.env.DB_SSL || '').toLowerCase() !== 'false');
+const connectionConfig = process.env.DATABASE_URL
+  ? parseDatabaseUrl(process.env.DATABASE_URL)
+  : {
+    host: process.env.DB_HOST || '127.0.0.1',
+    user: process.env.DB_USER,
+    password: process.env.DB_PASSWORD || '',
+    database: process.env.DB_NAME,
+    port: Number(process.env.DB_PORT || 3306),
+  };
+
+const shouldUseSsl = String(process.env.DB_SSL || '').toLowerCase() === 'true';
 
 if (shouldUseSsl) {
   connectionConfig.ssl = { rejectUnauthorized: false };
 }
 
-const parsedUrlSummary = process.env.DATABASE_URL ? parseDatabaseUrl(process.env.DATABASE_URL) : null;
-
 const connectionSummary = {
-  source: process.env.DATABASE_URL ? 'DATABASE_URL' : 'DB_* / PG*',
-  host: parsedUrlSummary?.host || connectionConfig.host || '(missing)',
-  port: parsedUrlSummary?.port || connectionConfig.port || 5432,
-  user: parsedUrlSummary?.user || connectionConfig.user || '(missing)',
-  database: parsedUrlSummary?.database || connectionConfig.database || '(missing)',
+  dialect,
+  source: process.env.DATABASE_URL ? 'DATABASE_URL' : 'DB_*',
+  host: connectionConfig.host || '(missing)',
+  port: connectionConfig.port || 3306,
+  user: connectionConfig.user || '(missing)',
+  database: connectionConfig.database || '(missing)',
   ssl: Boolean(connectionConfig.ssl),
 };
 
 const validateConnectionConfig = () => {
-  if (!process.env.DATABASE_URL && !connectionConfig.user) {
-    throw new Error('Database user is missing. Set DATABASE_URL or DB_USER / PGUSER.');
+  if (!connectionConfig.user) {
+    throw new Error('Database user is missing. Set DATABASE_URL or DB_USER.');
   }
 
-  if (!process.env.DATABASE_URL && !connectionConfig.database) {
-    throw new Error('Database name is missing. Set DATABASE_URL or DB_NAME / PGDATABASE.');
+  if (!connectionConfig.database) {
+    throw new Error('Database name is missing. Set DATABASE_URL or DB_NAME.');
   }
 };
 
 validateConnectionConfig();
 
-const pool = new Pool({
+const serializeParam = (value) => {
+  if (value === undefined) return null;
+  if (value === null) return null;
+  if (value instanceof Date) return value;
+  if (Buffer.isBuffer(value)) return value;
+  if (Array.isArray(value) || (typeof value === 'object' && value.constructor === Object)) {
+    return JSON.stringify(value);
+  }
+  if (typeof value === 'boolean') return value ? 1 : 0;
+  return value;
+};
+
+const normalizePlaceholders = (sql, params) => {
+  if (!/\$\d+/.test(sql)) {
+    return { sql, params };
+  }
+
+  const normalizedParams = [];
+  const normalizedSql = sql.replace(/\$(\d+)/g, (_match, index) => {
+    normalizedParams.push(params[Number(index) - 1]);
+    return '?';
+  });
+
+  return { sql: normalizedSql, params: normalizedParams };
+};
+
+const normalizeRows = (result) => {
+  if (Array.isArray(result)) {
+    return {
+      rows: result,
+      rowCount: result.length,
+      insertId: null,
+    };
+  }
+
+  return {
+    rows: [],
+    rowCount: Number(result?.affectedRows || 0),
+    insertId: result?.insertId || null,
+  };
+};
+
+const normalizeResult = ([result]) => normalizeRows(result);
+
+const pool = mysql.createPool({
   ...connectionConfig,
-  max: Number(process.env.DB_POOL_LIMIT || 10),
-  idleTimeoutMillis: 30000,
+  waitForConnections: true,
+  connectionLimit: Number(process.env.DB_POOL_LIMIT || 10),
+  queueLimit: 0,
+  multipleStatements: true,
+  dateStrings: true,
+  namedPlaceholders: false,
 });
 
-pool.on('error', (error) => {
-  console.error('Unexpected PostgreSQL pool error:', error);
-});
+const runQuery = async (runner, sql, params = []) => {
+  const normalized = normalizePlaceholders(sql, params);
+  const preparedParams = normalized.params.map(serializeParam);
+
+  if (!preparedParams.length) {
+    return normalizeResult(await runner.query(normalized.sql));
+  }
+
+  return normalizeResult(await runner.execute(normalized.sql, preparedParams));
+};
 
 const wrapConnection = (connection) => ({
-  query: (sql, params = []) => connection.query(sql, params),
-  beginTransaction: () => connection.query('BEGIN'),
-  commit: () => connection.query('COMMIT'),
-  rollback: () => connection.query('ROLLBACK'),
+  query: (sql, params = []) => runQuery(connection, sql, params),
+  beginTransaction: () => connection.beginTransaction(),
+  commit: () => connection.commit(),
+  rollback: () => connection.rollback(),
   release: () => connection.release(),
 });
 
 module.exports = {
-  query: (sql, params = []) => pool.query(sql, params),
-  connect: async () => wrapConnection(await pool.connect()),
+  dialect,
+  query: (sql, params = []) => runQuery(pool, sql, params),
+  connect: async () => wrapConnection(await pool.getConnection()),
   end: () => pool.end(),
   rawPool: pool,
   connectionSummary,

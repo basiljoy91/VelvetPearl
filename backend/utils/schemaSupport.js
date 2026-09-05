@@ -13,51 +13,41 @@ const REQUIRED_TABLES = [
   'tour_enquiry_details',
   'custom_trip_details',
   'enquiry_audit_log',
+  'locations',
+  'route_estimates',
+  'popular_routes',
+  'invoices',
+  'invoice_items',
+  'quotations',
+  'quotation_items',
+  'generated_documents',
+  'document_delivery_logs',
+  'document_counters',
 ];
 
-const UPDATED_AT_TRIGGER_TABLES = [
-  { tableName: 'admins', triggerName: 'trg_admins_updated_at' },
-  { tableName: 'admin_setup_keys', triggerName: 'trg_admin_setup_keys_updated_at' },
-  { tableName: 'drivers', triggerName: 'trg_drivers_updated_at' },
-  { tableName: 'fleet', triggerName: 'trg_fleet_updated_at' },
-  { tableName: 'enquiries', triggerName: 'trg_enquiries_updated_at' },
-];
+const MYSQL_SCHEMA_FILE = path.resolve(__dirname, 'schema.mysql.sql');
 
-const MIGRATIONS_DIR = path.resolve(__dirname, '..', '..', 'supabase', 'migrations');
-
-const getSupabaseMigrationFiles = () => {
-  if (!fs.existsSync(MIGRATIONS_DIR)) {
-    throw new Error(`Supabase migrations directory not found: ${MIGRATIONS_DIR}`);
-  }
-
-  return fs.readdirSync(MIGRATIONS_DIR)
-    .filter((name) => name.endsWith('.sql'))
-    .sort()
-    .map((name) => path.join(MIGRATIONS_DIR, name));
-};
-
-const loadSupabaseBootstrapSql = () => {
-  const files = getSupabaseMigrationFiles();
-
-  if (!files.length) {
-    throw new Error(`No Supabase migration files were found in ${MIGRATIONS_DIR}`);
+const loadMysqlBootstrapSql = () => {
+  if (!fs.existsSync(MYSQL_SCHEMA_FILE)) {
+    throw new Error(`MySQL schema file not found: ${MYSQL_SCHEMA_FILE}`);
   }
 
   return {
-    files,
-    sql: files.map((filePath) => fs.readFileSync(filePath, 'utf8').trim()).join('\n\n'),
+    files: [MYSQL_SCHEMA_FILE],
+    sql: fs.readFileSync(MYSQL_SCHEMA_FILE, 'utf8').trim(),
   };
 };
 
 const getSchemaPresence = async (db) => {
+  const placeholders = REQUIRED_TABLES.map(() => '?').join(', ');
   const { rows } = await db.query(
     `
       SELECT table_name
       FROM information_schema.tables
-      WHERE table_schema = 'public'
-        AND table_name = ANY($1::text[])
+      WHERE table_schema = DATABASE()
+        AND table_name IN (${placeholders})
     `,
-    [REQUIRED_TABLES]
+    REQUIRED_TABLES
   );
 
   const availableTables = new Set(rows.map((row) => row.table_name));
@@ -70,43 +60,63 @@ const getSchemaPresence = async (db) => {
   };
 };
 
+const hasColumn = async (db, tableName, columnName) => {
+  const { rows } = await db.query(
+    `
+      SELECT column_name
+      FROM information_schema.columns
+      WHERE table_schema = DATABASE()
+        AND table_name = ?
+        AND column_name = ?
+      LIMIT 1
+    `,
+    [tableName, columnName]
+  );
+
+  return rows.length > 0;
+};
+
+const addColumnIfMissing = async (db, tableName, columnName, definition) => {
+  if (await hasColumn(db, tableName, columnName)) return;
+  await db.query(`ALTER TABLE \`${tableName}\` ADD COLUMN \`${columnName}\` ${definition}`);
+};
+
 const ensureRuntimeCompatibility = async (db) => {
-  for (const { tableName } of UPDATED_AT_TRIGGER_TABLES) {
-    await db.query(`
-      ALTER TABLE public.${tableName}
-      ADD COLUMN IF NOT EXISTS updated_at timestamptz NOT NULL DEFAULT now()
-    `);
-  }
+  await addColumnIfMissing(db, 'admins', 'updated_at', 'DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP');
+  await addColumnIfMissing(db, 'admin_setup_keys', 'updated_at', 'DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP');
+  await addColumnIfMissing(db, 'drivers', 'updated_at', 'DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP');
+  await addColumnIfMissing(db, 'fleet', 'updated_at', 'DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP');
+  await addColumnIfMissing(db, 'enquiries', 'updated_at', 'DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP');
+  await addColumnIfMissing(db, 'enquiries', 'service_details_json', 'JSON NULL');
+  await addColumnIfMissing(db, 'enquiries', 'quote_amount', 'DECIMAL(12,2) NULL');
+  await addColumnIfMissing(db, 'cab_enquiry_details', 'pickup_location_id', 'BIGINT UNSIGNED NULL');
+  await addColumnIfMissing(db, 'cab_enquiry_details', 'drop_location_id', 'BIGINT UNSIGNED NULL');
+  await addColumnIfMissing(db, 'cab_enquiry_details', 'pickup_location_json', 'JSON NULL');
+  await addColumnIfMissing(db, 'cab_enquiry_details', 'drop_location_json', 'JSON NULL');
+  await addColumnIfMissing(db, 'cab_enquiry_details', 'route_estimate_json', 'JSON NULL');
 
+  await db.query("UPDATE drivers SET status = 'Unavailable' WHERE status = 'Inactive'");
+  await db.query("UPDATE admins SET role = 'admin' WHERE role IS NULL OR role = ''");
   await db.query(`
-    CREATE OR REPLACE FUNCTION public.set_row_updated_at()
-    RETURNS trigger
-    LANGUAGE plpgsql
-    AS $$
-    BEGIN
-      NEW.updated_at = now();
-      RETURN NEW;
-    END;
-    $$;
+    UPDATE admins
+    SET is_main_admin = 1,
+        role = 'main_admin'
+    WHERE id = (
+      SELECT first_admin.id
+      FROM (
+        SELECT id
+        FROM admins
+        ORDER BY id ASC
+        LIMIT 1
+      ) AS first_admin
+    )
   `);
-
-  for (const { tableName, triggerName } of UPDATED_AT_TRIGGER_TABLES) {
-    await db.query(`DROP TRIGGER IF EXISTS ${triggerName} ON public.${tableName}`);
-    await db.query(`
-      CREATE TRIGGER ${triggerName}
-      BEFORE UPDATE ON public.${tableName}
-      FOR EACH ROW
-      EXECUTE FUNCTION public.set_row_updated_at()
-    `);
-  }
 };
 
 module.exports = {
   REQUIRED_TABLES,
-  UPDATED_AT_TRIGGER_TABLES,
-  MIGRATIONS_DIR,
-  getSupabaseMigrationFiles,
-  loadSupabaseBootstrapSql,
+  MYSQL_SCHEMA_FILE,
+  loadMysqlBootstrapSql,
   getSchemaPresence,
   ensureRuntimeCompatibility,
 };

@@ -1,0 +1,41 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - main
+      - master
+  pull_request:
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Use Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install frontend dependencies
+        run: npm ci
+
+      - name: Lint frontend
+        run: npm run lint
+
+      - name: Build frontend
+        run: npm run build
+
+      - name: Install backend dependencies
+        run: npm ci --prefix backend
+
+      - name: Run backend tests
+        run: npm test --prefix backend
+
+      - name: Backend syntax check
+        run: |
+          find backend -name '*.js' -not -path 'backend/node_modules/*' -print0 | xargs -0 -n1 node --check
