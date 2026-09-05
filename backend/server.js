@@ -25,10 +25,16 @@ const shouldServeFrontend = String(process.env.SERVE_FRONTEND || '').toLowerCase
 const frontendDistPath = process.env.FRONTEND_DIST_PATH
   ? path.resolve(__dirname, process.env.FRONTEND_DIST_PATH)
   : path.resolve(__dirname, '..', 'dist');
-const allowedOrigins = (process.env.CORS_ORIGIN || 'http://localhost:5173,http://localhost:5174,http://localhost:5175')
+const configuredOrigins = (process.env.CORS_ORIGIN || '')
   .split(',')
   .map((origin) => origin.trim())
   .filter(Boolean);
+const allowedOrigins = [...new Set([
+  ...configuredOrigins,
+  'http://localhost:5173',
+  'http://localhost:5174',
+  'http://localhost:5175',
+])];
 
 function getDatabaseTroubleshootingHint(error) {
   const message = String(error?.message || '');

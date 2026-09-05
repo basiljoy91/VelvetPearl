@@ -3,4 +3,4 @@ Allow: /
 Disallow: /admin
 Disallow: /admin/dashboard
 
-Sitemap: https://velvetpearl.in/sitemap.xml
+Sitemap: http://localhost:4173/sitemap.xml
