@@ -9,7 +9,10 @@ const parseDatabaseUrl = (value) => {
   const url = new URL(value);
 
   if (!SUPPORTED_PROTOCOLS.has(url.protocol)) {
-    throw new Error(`Unsupported database protocol: ${url.protocol}. Use mysql:// or mariadb:// for Hostinger.`);
+    throw new Error(
+      `Invalid DATABASE_URL protocol "${url.protocol}". The backend is MySQL/MariaDB-only. `
+      + 'Replace DATABASE_URL with mysql://... or clear it and set DB_HOST, DB_PORT, DB_USER, DB_PASSWORD, and DB_NAME in backend/.env.'
+    );
   }
 
   return {

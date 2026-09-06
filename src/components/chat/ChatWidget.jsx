@@ -414,10 +414,10 @@ export default function ChatWidget() {
           [{ label: 'Start Another Enquiry', value: 'action:restart' }]
         )
       );
-    } catch (error) {
+    } catch {
       appendMessages(
         createBotMessage(
-          `${error.message || 'Sorry, I could not submit your enquiry right now.'}\nYou can retry here or continue on WhatsApp.`,
+          'Sorry, I could not submit your enquiry right now.\nYou can retry here or continue on WhatsApp.',
           [
             { label: 'Retry Submission', value: 'action:retry-submit' },
             { label: 'Start Over', value: 'action:restart' },
@@ -456,10 +456,10 @@ export default function ChatWidget() {
           [{ label: 'Start Another Enquiry', value: 'action:restart' }]
         )
       );
-    } catch (error) {
+    } catch {
       appendMessages(
         createBotMessage(
-          `${error.message || 'Sorry, I could not send the handoff request right now.'}\nYou can retry here or continue on WhatsApp now.`,
+          'Sorry, I could not send the handoff request right now.\nYou can retry here or continue on WhatsApp now.',
           [
             { label: 'Retry Submission', value: 'action:retry-submit' },
             { label: 'Start Over', value: 'action:restart' },

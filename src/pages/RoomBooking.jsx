@@ -183,8 +183,8 @@ export default function RoomBooking() {
       });
 
       setSubmittedEnquiry(createdEnquiry);
-    } catch (error) {
-      setApiError(error.message || 'Sorry, we could not submit your enquiry. Please try again or contact us on WhatsApp.');
+    } catch {
+      setApiError('Sorry, we could not submit your enquiry right now. Please try again or contact us on WhatsApp.');
     } finally {
       setIsLoading(false);
     }

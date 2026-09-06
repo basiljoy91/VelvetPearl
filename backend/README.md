@@ -13,6 +13,7 @@ Express API for Velvet Pearl enquiries, admin operations, route estimates, and g
 ## Environment
 
 Create `backend/.env` from [`backend/.env.example`](./.env.example).
+Remove any old `postgresql://` `DATABASE_URL`; this backend expects MySQL/MariaDB. Use either a `mysql://` URL or the `DB_*` variables below.
 
 Minimum local example:
 

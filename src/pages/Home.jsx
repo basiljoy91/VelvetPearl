@@ -296,7 +296,7 @@ export default function Home() {
               <p className="text-[10px] font-bold uppercase tracking-[0.28em] text-secondary">Quick Start</p>
               <h2 className="font-headline text-2xl font-bold text-white sm:text-3xl">Choose Your Enquiry Type</h2>
               <p className="text-sm leading-relaxed text-on-surface-variant">
-                Start here and continue to the full service-specific form. Final confirmation happens only after manual review.
+                Start here and continue to the right service form. Our team checks the details before final confirmation.
               </p>
             </div>
 
@@ -460,7 +460,7 @@ export default function Home() {
           {sectionIntro(
             'Packages',
             'Featured Tour Package Ideas',
-            'These are sample planning directions to help customers describe what they want. Final pricing and availability are shared only after enquiry review.'
+            'Use these travel ideas to describe the route style, pace, and experience you want. Final pricing and availability are shared after enquiry review.'
           )}
           <div className="grid gap-6 lg:grid-cols-2 xl:grid-cols-3">
             {packageCards.map((pkg) => (

@@ -174,8 +174,8 @@ export default function LocationRoutePicker({
       try {
         const results = await searchLocations(query);
         if (!ignore) setPickupSuggestions(results);
-      } catch (error) {
-        if (!ignore) setFieldErrors((current) => ({ ...current, pickup: error.message || 'Pickup search failed.' }));
+      } catch {
+        if (!ignore) setFieldErrors((current) => ({ ...current, pickup: 'Location suggestions are unavailable right now. Please try again or continue on WhatsApp.' }));
       } finally {
         if (!ignore) setLoadingField('');
       }
@@ -201,8 +201,8 @@ export default function LocationRoutePicker({
       try {
         const results = await searchLocations(query);
         if (!ignore) setDropSuggestions(results);
-      } catch (error) {
-        if (!ignore) setFieldErrors((current) => ({ ...current, drop: error.message || 'Drop search failed.' }));
+      } catch {
+        if (!ignore) setFieldErrors((current) => ({ ...current, drop: 'Location suggestions are unavailable right now. Please try again or continue on WhatsApp.' }));
       } finally {
         if (!ignore) setLoadingField('');
       }
@@ -234,8 +234,8 @@ export default function LocationRoutePicker({
     try {
       const result = await estimateRoute({ pickup, drop });
       setEstimate(result);
-    } catch (error) {
-      setEstimateError(error.message || 'Unable to estimate this route.');
+    } catch {
+      setEstimateError('We could not calculate this route right now. You can still submit the enquiry with your selected pickup and drop.');
     } finally {
       setIsEstimating(false);
     }
@@ -380,11 +380,9 @@ export default function LocationRoutePicker({
           <p className="text-[10px] font-bold uppercase tracking-[0.22em] text-gray-500">Route check</p>
           <p className="mt-3 text-xl font-bold text-white">{estimateLabel}</p>
           <p className="mt-2 text-xs leading-5 text-gray-400">
-            {estimate?.provider === 'fallback'
-              ? 'Approximate local estimate. Configure a map provider for road-network routing.'
-              : estimate
-                ? `Estimated by ${estimate.provider}.`
-                : 'Choose pickup and drop, then estimate the route.'}
+            {estimate
+              ? 'Approximate travel distance for planning. Final timing is confirmed after review.'
+              : 'Choose pickup and drop, then estimate the route.'}
           </p>
 
           {geoStatus && <p className="mt-3 rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-xs text-gray-300">{geoStatus}</p>}

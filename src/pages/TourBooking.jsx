@@ -219,8 +219,8 @@ export default function TourBooking() {
       });
 
       setSubmittedEnquiry(createdEnquiry);
-    } catch (error) {
-      setApiError(error.message || 'Sorry, we could not submit your enquiry. Please try again or contact us on WhatsApp.');
+    } catch {
+      setApiError('Sorry, we could not submit your enquiry right now. Please try again or contact us on WhatsApp.');
     } finally {
       setIsLoading(false);
     }
@@ -502,9 +502,9 @@ export default function TourBooking() {
       <section className="bg-surface-container-low px-6 py-24 md:px-8">
         <div className="mx-auto max-w-7xl">
           {renderSectionIntro(
-            'Sample Itinerary',
+            'Flexible Itinerary',
             'How a Manual Plan Can Be Shaped',
-            'These are example itinerary blocks, not fixed promises. The final plan changes based on dates, interests, route, and availability.'
+            'These planning blocks show how a tour can be shaped around your dates, interests, route, and availability.'
           )}
           <div className="grid gap-6 md:grid-cols-3">
             {itineraryBlocks.map((item) => (
@@ -531,12 +531,12 @@ export default function TourBooking() {
           </article>
           <article className="rounded-[28px] border border-white/10 bg-surface-container p-8">
             <p className="text-[10px] font-bold uppercase tracking-[0.3em] text-secondary">Exclusions</p>
-            <h3 className="mt-4 font-headline text-3xl font-bold text-white">What Is Not Auto-Included</h3>
+            <h3 className="mt-4 font-headline text-3xl font-bold text-white">What Needs Confirmation</h3>
             <ul className="mt-5 space-y-3 text-sm leading-relaxed text-on-surface-variant">
-              <li>Final confirmed pricing before review</li>
+              <li>Final pricing before team review</li>
               <li>Entry tickets or paid activities unless discussed</li>
-              <li>Hotel or vehicle confirmation without manual follow-up</li>
-              <li>Online payment or instant confirmation in this phase</li>
+              <li>Hotel or vehicle confirmation before follow-up</li>
+              <li>Online payment or instant confirmation</li>
             </ul>
           </article>
         </div>

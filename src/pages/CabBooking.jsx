@@ -230,8 +230,8 @@ export default function CabBooking() {
       });
 
       setSubmittedEnquiry(createdEnquiry);
-    } catch (error) {
-      setApiError(error.message || 'Sorry, we could not submit your enquiry. Please try again or contact us on WhatsApp.');
+    } catch {
+      setApiError('Sorry, we could not submit your enquiry right now. Please try again or contact us on WhatsApp.');
     } finally {
       setIsLoading(false);
     }
@@ -405,7 +405,7 @@ export default function CabBooking() {
           {renderSectionIntro(
             'Trip Types',
             'Cab Trip Types We Review',
-            'These are common request types you can submit through the cab enquiry form. Final vehicle and schedule details are shared only after manual review.'
+            'These common request types help us understand your route, timing, passenger count, and preferred vehicle before confirmation.'
           )}
           <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
             {tripTypes.map((item) => (

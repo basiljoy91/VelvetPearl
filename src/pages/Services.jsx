@@ -82,7 +82,7 @@ export default function Services() {
             <span className="material-symbols-outlined text-secondary text-3xl mb-4">bed</span>
             <h3 className="font-headline text-2xl font-bold text-white mb-3">Room Bookings</h3>
             <p className="text-on-surface-variant text-sm leading-relaxed mb-6 font-body">
-              Room or stay enquiry with manual review. Hotel partner details will be added soon.
+              Share your destination, dates, guest count, and room preference so we can review suitable stay options.
             </p>
           </div>
           <Link to="/book/room" className="w-full bg-surface-container-high text-white px-6 py-3 font-label text-xs uppercase tracking-widest rounded-md border border-white/5 hover:border-secondary/50 transition-all text-center font-bold">

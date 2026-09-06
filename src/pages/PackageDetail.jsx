@@ -84,7 +84,7 @@ export default function PackageDetail() {
 
           <div className="glass-panel rounded-[28px] border border-white/10 p-6 shadow-[0_24px_48px_rgba(0,0,0,0.45)] md:p-8">
             <p className="text-[10px] font-bold uppercase tracking-[0.28em] text-secondary">Overview</p>
-            <h2 className="mt-4 font-headline text-3xl font-bold text-white">What This Package Direction Covers</h2>
+            <h2 className="mt-4 font-headline text-3xl font-bold text-white">What This Package Covers</h2>
             <div className="mt-6 grid gap-4 text-sm text-on-surface-variant">
               <div className="rounded-2xl border border-white/10 bg-black/20 p-4">
                 <p className="font-bold text-white">Suitable For</p>
@@ -108,7 +108,7 @@ export default function PackageDetail() {
           {sectionIntro(
             'Gallery',
             'Images for This Package Style',
-            'These images help explain the atmosphere and direction of the route. Final stop order and actual travel flow are confirmed only after review.'
+            'These images show the atmosphere of the route. Stop order and travel flow are confirmed after reviewing your dates, pickup point, and group needs.'
           )}
           <div className="grid gap-6 md:grid-cols-3">
             {pkg.imageGallery.map((image, index) => (
@@ -125,7 +125,7 @@ export default function PackageDetail() {
           {sectionIntro(
             'Itinerary',
             'How This Package Can Be Planned',
-            'This is a sample structure, not a fixed promise. Timing and stop order depend on your dates, pickup point, group size, and availability.'
+            'This flexible outline helps you understand the usual flow. Timing and stop order depend on your dates, pickup point, group size, and availability.'
           )}
           <div className="grid gap-6 md:grid-cols-3">
             {pkg.itinerary.map((item, index) => (
@@ -200,7 +200,7 @@ export default function PackageDetail() {
           {sectionIntro(
             'FAQ',
             'Package Questions',
-            'A few quick answers about how this package page works in the current enquiry-first setup.'
+            'A few quick answers about package planning, pricing, and confirmation.'
           )}
           <div className="space-y-4">
             {pkg.faqs.map((faq) => (

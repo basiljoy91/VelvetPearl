@@ -69,19 +69,19 @@ function getSeoForPath(pathname) {
     },
     '/about': {
       title: `About | ${SITE_NAME} Travel Service Information`,
-      description: 'Learn about the current enquiry-first travel workflow, service area notes, placeholder business verification details, and support direction for Velvet Pearl.',
+      description: 'Learn how Velvet Pearl supports cab, stay, tour, and custom trip enquiries with direct follow-up and manual confirmation before travel.',
     },
     '/services': {
       title: 'Services | Cab, Room, Tour and Custom Trip Enquiries',
-      description: 'Explore enquiry-first travel support for cab services, room assistance, tour packages, custom trip planning, and WhatsApp follow-up.',
+      description: 'Explore Velvet Pearl travel support for cab services, room assistance, tour packages, custom trip planning, and WhatsApp follow-up.',
     },
     '/routes': {
       title: 'Routes | Popular Travel Route Enquiries and Planning',
-      description: 'Browse editable route ideas, transfer directions, pricing notes, and travel planning support for cab and custom route enquiries.',
+      description: 'Browse frequently requested routes, estimate pickup and drop locations, and send cab or custom route enquiries for review.',
     },
     '/contact': {
       title: 'Contact | Travel Enquiry and WhatsApp Support',
-      description: 'Contact Velvet Pearl for general travel enquiries, service clarification, WhatsApp support, and manual follow-up on cab, room, or tour requirements.',
+      description: 'Contact Velvet Pearl for general travel enquiries, service clarification, WhatsApp support, and direct follow-up on cab, room, or tour requirements.',
     },
     '/book/cab': {
       title: 'Cab Enquiry | Airport Pickup, Local Sightseeing and Outstation Trips',
@@ -97,7 +97,7 @@ function getSeoForPath(pathname) {
     },
     '/book/event': {
       title: 'Custom Enquiry | Family, Group and Special Travel Plans',
-      description: 'Send a custom trip enquiry for family travel, group trips, corporate travel, event travel, or mixed service planning with manual follow-up.',
+      description: 'Send a custom trip enquiry for family travel, group trips, corporate travel, event travel, or mixed service planning with direct follow-up.',
     },
     '/admin': {
       title: `Admin Login | ${SITE_NAME}`,

@@ -26,7 +26,7 @@ export default function Footer() {
               The Art of Travel
             </p>
             <p className="mt-3 max-w-2xl text-sm font-body leading-relaxed text-gray-500">
-              Enquiry-first travel assistance for cabs, stays, tours, and custom trip planning. Business details are being updated gradually.
+              Enquiry-first travel assistance for cabs, stays, tours, and custom trip planning across Chennai and South India.
             </p>
           </div>
           <div>
@@ -47,7 +47,7 @@ export default function Footer() {
           <div>
             <h4 className="font-label text-[10px] uppercase tracking-widest text-[#EFBF04] mb-6">Connect</h4>
             <p className="text-sm text-gray-500 mb-4">Contact: +91-7845039353</p>
-            <p className="text-xs text-gray-600 mb-4">Business address will be updated soon. GST or license details will be added if applicable.</p>
+            <p className="text-xs text-gray-600 mb-4">Call or message Velvet Pearl directly for travel support, booking questions, and service verification.</p>
             <div className="flex gap-4">
               <a className="w-10 h-10 rounded-full border border-outline-variant/30 flex items-center justify-center hover:bg-primary-container transition-all group cursor-pointer" href={buildWhatsAppLink({ phone: DEFAULT_WHATSAPP_PHONE, message: 'Hi, I would like to know more about your travel services.' })} rel="noreferrer" target="_blank">
                 <span className="material-symbols-outlined text-sm text-gray-400 group-hover:text-white">forum</span>
@@ -61,7 +61,7 @@ export default function Footer() {
         <div className="max-w-7xl mx-auto pt-12 mt-12 border-t border-white/5 flex flex-col md:flex-row justify-between items-center gap-4">
           <p className="text-xs text-gray-500">© {currentYear} Velvet Pearl Tours and Travels. All rights reserved.</p>
           <div className="flex gap-6">
-            <span className="text-[10px] font-label uppercase tracking-widest text-gray-600">Service areas will be updated soon</span>
+            <span className="text-[10px] font-label uppercase tracking-widest text-gray-600">Chennai and South India travel support</span>
           </div>
         </div>
       </footer>

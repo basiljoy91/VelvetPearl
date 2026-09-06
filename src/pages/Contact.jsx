@@ -18,8 +18,8 @@ import { buildWhatsAppLink, DEFAULT_WHATSAPP_PHONE } from '../utils/whatsapp';
 
 const faqs = [
   {
-    question: 'Will this contact form save to your dashboard?',
-    answer: 'Yes. Contact enquiries are submitted to the dashboard so the team can review and follow up manually.',
+    question: 'What happens after I send this form?',
+    answer: 'Your enquiry goes to the Velvet Pearl team for review, then we follow up with the next practical details.',
   },
   {
     question: 'Can I message directly on WhatsApp instead?',
@@ -119,8 +119,8 @@ export default function Contact() {
       });
 
       setSubmittedEnquiry(createdEnquiry);
-    } catch (error) {
-      setApiError(error.message || 'Sorry, we could not submit your enquiry. Please try again or contact us on WhatsApp.');
+    } catch {
+      setApiError('Sorry, we could not submit your enquiry right now. Please try again or contact us on WhatsApp.');
     } finally {
       setIsLoading(false);
     }
@@ -156,7 +156,7 @@ export default function Contact() {
             </a>
           </div>
         )}
-        description="Use this page for general travel questions, service clarification, or requirements that do not fit a single booking form. Every message is saved as an enquiry for manual follow-up."
+        description="Use this page for general travel questions, service clarification, or requirements that do not fit a single booking form. Every message reaches the Velvet Pearl team for follow-up."
         eyebrow="Contact Page"
         title="Reach Out for Travel Support"
       >
@@ -226,24 +226,24 @@ export default function Contact() {
       <section className="bg-surface-container-low px-6 py-24 md:px-8">
         <div className="mx-auto grid max-w-7xl gap-6 lg:grid-cols-3">
           <article className="rounded-[28px] border border-white/10 bg-black/20 p-8">
-            <p className="text-[10px] font-bold uppercase tracking-[0.3em] text-secondary">Business Location</p>
-            <h3 className="mt-4 font-headline text-3xl font-bold text-white">Map Placeholder</h3>
+            <p className="text-[10px] font-bold uppercase tracking-[0.3em] text-secondary">Direct Contact</p>
+            <h3 className="mt-4 font-headline text-3xl font-bold text-white">Phone and WhatsApp Support</h3>
             <p className="mt-4 text-sm leading-relaxed text-on-surface-variant">
-              Business location and map embed will be updated soon. For verification or travel discussion, contact us directly on WhatsApp.
+              For route planning, service questions, or booking verification, speak with Velvet Pearl directly by phone or WhatsApp.
             </p>
           </article>
           <article className="rounded-[28px] border border-white/10 bg-black/20 p-8">
             <p className="text-[10px] font-bold uppercase tracking-[0.3em] text-secondary">Support Hours</p>
-            <h3 className="mt-4 font-headline text-3xl font-bold text-white">Hours Placeholder</h3>
+            <h3 className="mt-4 font-headline text-3xl font-bold text-white">Response Window</h3>
             <p className="mt-4 text-sm leading-relaxed text-on-surface-variant">
-              Support hours will be updated soon. Response timing may vary depending on the enquiry type and operating schedule.
+              Response timing can vary depending on the enquiry type, travel date, and route complexity.
             </p>
           </article>
           <article className="rounded-[28px] border border-white/10 bg-black/20 p-8">
             <p className="text-[10px] font-bold uppercase tracking-[0.3em] text-secondary">Contact Note</p>
             <h3 className="mt-4 font-headline text-3xl font-bold text-white">Manual Follow-Up</h3>
             <p className="mt-4 text-sm leading-relaxed text-on-surface-variant">
-              We do not auto-confirm services from this page. Every message is reviewed manually and then added to the follow-up workflow.
+              We review each enquiry before sharing availability, pricing, or confirmation details.
             </p>
           </article>
         </div>
