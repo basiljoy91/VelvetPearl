@@ -46,7 +46,7 @@ export default function Footer() {
           </div>
           <div>
             <h4 className="font-label text-[10px] uppercase tracking-widest text-[#EFBF04] mb-6">Connect</h4>
-            <p className="text-sm text-gray-500 mb-4">Contact: +91-7845039353</p>
+            <p className="text-sm text-gray-500 mb-4">Contact: +91-7904539353</p>
             <p className="text-xs text-gray-600 mb-4">Call or message Velvet Pearl directly for travel support, booking questions, and service verification.</p>
             <div className="flex gap-4">
               <a className="w-10 h-10 rounded-full border border-outline-variant/30 flex items-center justify-center hover:bg-primary-container transition-all group cursor-pointer" href={buildWhatsAppLink({ phone: DEFAULT_WHATSAPP_PHONE, message: 'Hi, I would like to know more about your travel services.' })} rel="noreferrer" target="_blank">

@@ -142,7 +142,7 @@ export default function Contact() {
           <div className="space-y-4 rounded-3xl border border-white/10 bg-black/20 p-6">
             <h3 className="font-headline text-2xl text-white">Contact Details</h3>
             <div className="space-y-3 text-sm text-on-surface-variant">
-              <p><span className="font-bold text-white">Phone:</span> <a href="tel:+917845039353">+91 78450 39353</a></p>
+              <p><span className="font-bold text-white">Phone:</span> <a href="tel:+917904539353">+91 79045 39353</a></p>
               <p><span className="font-bold text-white">WhatsApp:</span> <a href={contactWhatsAppHref} rel="noreferrer" target="_blank">Start chat</a></p>
               <p><span className="font-bold text-white">Support note:</span> We review travel requirements manually before sharing availability and pricing.</p>
             </div>

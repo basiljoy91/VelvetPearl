@@ -9,7 +9,7 @@ const DOCUMENT_DIR = process.env.GENERATED_DOCUMENTS_DIR
 
 const BRAND = {
   name: process.env.BUSINESS_NAME || 'Velvet Pearl',
-  phone: process.env.BUSINESS_PHONE || '+91 78450 39353',
+  phone: process.env.BUSINESS_PHONE || '+91 79045 39353',
   email: process.env.BUSINESS_EMAIL || 'velvetpearl2026@gmail.com',
   address: process.env.BUSINESS_ADDRESS || 'Chennai, Tamil Nadu, India',
   website: process.env.BUSINESS_WEBSITE || 'velvetpearl.in',
