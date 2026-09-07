@@ -4,7 +4,7 @@ const cors = require('cors');
 const fs = require('fs');
 const path = require('path');
 const db = require('./config/db');
-const { getSchemaPresence, ensureRuntimeCompatibility } = require('./utils/schemaSupport');
+const { getSchemaPresence, ensureRuntimeCompatibility, loadMysqlBootstrapSql } = require('./utils/schemaSupport');
 
 // Import Routes
 const authRoutes = require('./routes/authRoutes');
@@ -28,6 +28,7 @@ const PORT = process.env.PORT || 3000;
 app.disable('x-powered-by');
 app.set('trust proxy', 1);
 const shouldServeFrontend = String(process.env.SERVE_FRONTEND || '').toLowerCase() === 'true';
+const shouldAutoBootstrapDb = ['1', 'true', 'yes', 'on'].includes(String(process.env.DB_AUTO_BOOTSTRAP || '').toLowerCase());
 const frontendDistPath = process.env.FRONTEND_DIST_PATH
   ? path.resolve(__dirname, process.env.FRONTEND_DIST_PATH)
   : path.resolve(__dirname, '..', 'dist');
@@ -187,12 +188,28 @@ async function ensureDatabaseReady() {
   console.log('Preparing database connection using config:', db.connectionSummary);
   await db.query('SELECT 1');
 
-  const schemaPresence = await getSchemaPresence(db);
+  let schemaPresence = await getSchemaPresence(db);
+
+  if (!schemaPresence.isReady) {
+    if (shouldAutoBootstrapDb) {
+      const { files, sql } = loadMysqlBootstrapSql();
+      console.warn(
+        `MySQL schema is missing required tables: ${schemaPresence.missingTables.join(', ')}. `
+        + 'DB_AUTO_BOOTSTRAP=true, so the application will apply the schema now.'
+      );
+      files.forEach((filePath) => {
+        console.log(`Applying MySQL schema: ${filePath}`);
+      });
+      await db.query(sql);
+      schemaPresence = await getSchemaPresence(db);
+    }
+  }
 
   if (!schemaPresence.isReady) {
     throw new Error(
       `MySQL schema is missing required tables: ${schemaPresence.missingTables.join(', ')}. `
-      + 'Run `npm run init-db` against a fresh Hostinger MySQL/MariaDB database before starting the server.'
+      + 'Run `npm run init-db` against a fresh Hostinger MySQL/MariaDB database before starting the server, '
+      + 'or temporarily set DB_AUTO_BOOTSTRAP=true for first deployment.'
     );
   }
 
@@ -215,6 +232,7 @@ async function startServer() {
     console.error('Startup config summary:', {
       port: PORT,
       shouldServeFrontend,
+      shouldAutoBootstrapDb,
       frontendDistPath,
       database: db.connectionSummary,
     });

@@ -58,3 +58,5 @@ backend/.env.*
 !backend/.env.example
 backend/storage/generated-documents/
 hostinger-upload.zip
+backend/.env.example
+.env.production.example
