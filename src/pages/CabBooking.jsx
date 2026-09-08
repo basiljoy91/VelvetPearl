@@ -44,7 +44,7 @@ const howItWorks = [
   'We check route, timing, and availability',
   'We contact you with pricing on WhatsApp or phone',
   'You confirm after discussion',
-  'Driver and vehicle are assigned manually',
+  'Driver and vehicle details are confirmed',
 ];
 
 const faqs = [
@@ -62,7 +62,7 @@ const faqs = [
   },
   {
     question: 'Do you support family or group travel?',
-    answer: 'Yes. Share passenger count and luggage details so we can review the right option manually.',
+    answer: 'Yes. Share the passenger count and luggage details so we can recommend the right vehicle.',
   },
 ];
 
@@ -250,7 +250,7 @@ export default function CabBooking() {
     <>
       <FormShell
         aside={(
-          <div className="space-y-4 rounded-3xl border border-white/10 bg-black/20 p-6">
+          <div className="space-y-4">
             <h3 className="font-headline text-2xl text-white">Cab Support</h3>
             <p className="text-sm leading-relaxed text-on-surface-variant">
               Submit your cab requirement. We&apos;ll check availability and contact you with pricing.
@@ -266,17 +266,19 @@ export default function CabBooking() {
             <ul className="space-y-3 text-sm text-on-surface-variant">
               <li>Airport transfers, sightseeing, and outstation travel can all be reviewed from one form.</li>
               <li>Vehicle availability depends on route, timing, passenger count, and luggage details.</li>
-              <li>Final confirmation happens only after manual review.</li>
+              <li>Final confirmation follows an availability and route review.</li>
             </ul>
           </div>
         )}
-        description="Share your trip type, route, timing, and passenger details so we can review the requirement manually and contact you with availability and pricing."
+        description="Share your route, timing, passenger count, and vehicle preference. We will respond with availability and clear pricing."
         eyebrow="Cab Booking Enquiry"
+        media="/travel/sedan-cab.webp"
+        mediaAlt="Velvet Pearl cab service"
         title="Travel with the Right Cab Support"
       >
         {submittedEnquiry ? (
           <EnquirySuccess
-            message="Our team will review your request and contact you shortly with availability and pricing. Final confirmation will happen after manual review."
+            message="Our team will review your request and contact you shortly with availability, pricing, and confirmation details."
             onReset={resetForm}
             referenceId={submittedEnquiry.reference_id}
             whatsappHref={successWhatsAppHref}
@@ -426,7 +428,7 @@ export default function CabBooking() {
           {renderSectionIntro(
             'Vehicle Categories',
             'Vehicle Options Based on Availability',
-            'Share your group size and luggage details so we can check the most suitable option manually.'
+            'Share your group size and luggage details so we can recommend the most suitable option.'
           )}
           <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-4">
             {vehicleCategories.map((item) => (
@@ -447,7 +449,7 @@ export default function CabBooking() {
           {renderSectionIntro(
             'How It Works',
             'How Cab Enquiry Works',
-            'This page collects your requirement first. Pricing and confirmation are discussed only after we review the trip manually.'
+            'Pricing and confirmation are shared after we review the route, timing, passenger count, and vehicle availability.'
           )}
           <div className="grid gap-6 md:grid-cols-5">
             {howItWorks.map((item, index) => (
@@ -473,7 +475,7 @@ export default function CabBooking() {
             <p className="text-[10px] font-bold uppercase tracking-[0.3em] text-secondary">Local Sightseeing Information</p>
             <h3 className="mt-4 font-headline text-3xl font-bold text-white">Sightseeing Around Chennai and South India</h3>
             <p className="mt-4 text-sm leading-relaxed text-on-surface-variant">
-              For local sightseeing, tell us your starting point, preferred stops, trip date, and how many people are travelling. We&apos;ll review availability and suggest the next step manually.
+              For local sightseeing, tell us your starting point, preferred stops, trip date, and how many people are travelling. We&apos;ll check availability and help shape the itinerary.
             </p>
           </article>
         </div>

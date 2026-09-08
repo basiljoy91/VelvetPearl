@@ -46,20 +46,26 @@ export function SectionHeading({ step, title, description }) {
   );
 }
 
-export function FormShell({ eyebrow, title, description, children, aside }) {
+export function FormShell({ eyebrow, title, description, children, aside, media = '/travel/south-india-hero.webp', mediaAlt = 'Velvet Pearl South India travel' }) {
   return (
-    <main className="min-h-screen bg-background pb-28 pt-24 md:pb-20">
-      <section className="px-4 sm:px-6">
-        <div className="mx-auto grid max-w-7xl gap-8 lg:grid-cols-[0.8fr_1.2fr]">
-          <div className="min-w-0 space-y-5 lg:sticky lg:top-28 lg:h-fit">
-            <div className="space-y-3">
-              <p className="text-[10px] font-bold uppercase tracking-[0.28em] text-secondary">{eyebrow}</p>
-              <h1 className="font-headline text-3xl font-black leading-tight text-white sm:text-4xl md:text-5xl">{title}</h1>
-              <p className="max-w-xl text-sm leading-7 text-on-surface-variant md:text-base">{description}</p>
+    <main className="min-h-screen bg-background pb-28 pt-20 md:pb-20">
+      <section>
+        <div className="mx-auto grid max-w-[1440px] lg:grid-cols-[0.82fr_1.18fr]">
+          <div className="relative min-h-[360px] overflow-hidden border-b border-white/10 lg:sticky lg:top-20 lg:h-[calc(100vh-5rem)] lg:min-h-[680px] lg:border-b-0 lg:border-r">
+            <img alt={mediaAlt} className="absolute inset-0 h-full w-full object-cover" src={media} />
+            <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(10,10,12,0.28),rgba(10,10,12,0.94))]" />
+            <div className="relative flex h-full flex-col justify-end px-5 py-8 sm:px-8 lg:px-10 lg:py-12">
+              <div className="max-w-xl space-y-3">
+                <p className="text-[10px] font-bold uppercase tracking-[0.28em] text-secondary">{eyebrow}</p>
+                <h1 className="font-headline text-3xl font-black leading-tight text-white sm:text-4xl md:text-5xl">{title}</h1>
+                <p className="text-sm leading-7 text-gray-200 md:text-base">{description}</p>
+              </div>
+              <div className="mt-6 max-w-xl border-t border-white/15 pt-5">
+                {aside}
+              </div>
             </div>
-            {aside}
           </div>
-          <div className="glass-panel min-w-0 overflow-x-hidden rounded-2xl border border-white/10 p-4 shadow-[0_18px_44px_rgba(0,0,0,0.35)] sm:p-5 md:p-6">
+          <div className="min-w-0 overflow-x-hidden bg-surface-container-low px-4 py-8 sm:px-6 md:px-8 md:py-10 lg:px-10">
             {children}
           </div>
         </div>

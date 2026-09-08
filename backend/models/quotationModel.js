@@ -5,6 +5,18 @@ const { nextDocumentNumber } = require('../services/documentNumberService');
 const { calculateDocumentTotals, numberToIndianWords } = require('../utils/documentMath');
 
 const QUOTATION_STATUSES = ['draft', 'sent', 'accepted', 'rejected', 'expired'];
+const SERVICE_TYPES = ['cab', 'room', 'tour', 'custom', 'general'];
+
+const parseJson = (value, fallback = null) => {
+  if (!value) return fallback;
+  if (typeof value === 'object') return value;
+
+  try {
+    return JSON.parse(value);
+  } catch {
+    return fallback;
+  }
+};
 
 const emptyToNull = (value) => (value === undefined || value === '' ? null : value);
 const todayIso = () => new Date().toISOString().slice(0, 10);
@@ -27,6 +39,7 @@ const serializeQuotation = (row = {}, items = [], deliveryLogs = [], generatedDo
   id: row.id,
   quote_number: row.quote_number,
   enquiry_id: row.enquiry_id,
+  service_type: row.service_type || 'cab',
   status: row.status,
   quote_date: row.quote_date,
   valid_until: row.valid_until,
@@ -39,6 +52,7 @@ const serializeQuotation = (row = {}, items = [], deliveryLogs = [], generatedDo
   dropoff: row.dropoff,
   service_summary: row.service_summary,
   vehicle_type: row.vehicle_type,
+  service_details_json: parseJson(row.service_details_json, {}),
   subtotal_amount: Number(row.subtotal_amount || 0),
   tax_amount: Number(row.tax_amount || 0),
   discount_amount: Number(row.discount_amount || 0),
@@ -92,6 +106,7 @@ const buildQuotationPayload = (payload = {}) => {
 
   return {
     ...payload,
+    service_type: SERVICE_TYPES.includes(payload.service_type) ? payload.service_type : 'cab',
     status: validStatus(payload.status, 'draft'),
     quote_date: payload.quote_date || todayIso(),
     valid_until: emptyToNull(payload.valid_until),
@@ -104,6 +119,7 @@ const buildQuotationPayload = (payload = {}) => {
     dropoff: emptyToNull(payload.dropoff),
     service_summary: emptyToNull(payload.service_summary),
     vehicle_type: emptyToNull(payload.vehicle_type),
+    service_details_json: payload.service_details_json || {},
     subtotal_amount: totals.subtotal_amount,
     tax_amount: totals.tax_amount,
     discount_amount: totals.discount_amount,
@@ -172,6 +188,7 @@ const Quotation = {
           INSERT INTO quotations (
             quote_number,
             enquiry_id,
+            service_type,
             status,
             quote_date,
             valid_until,
@@ -184,6 +201,7 @@ const Quotation = {
             dropoff,
             service_summary,
             vehicle_type,
+            service_details_json,
             subtotal_amount,
             tax_amount,
             discount_amount,
@@ -193,11 +211,12 @@ const Quotation = {
             notes,
             created_by
           )
-          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         `,
         [
           quoteNumber,
           emptyToNull(quotation.enquiry_id),
+          quotation.service_type,
           quotation.status,
           quotation.quote_date,
           quotation.valid_until,
@@ -210,6 +229,7 @@ const Quotation = {
           quotation.dropoff,
           quotation.service_summary,
           quotation.vehicle_type,
+          quotation.service_details_json,
           quotation.subtotal_amount,
           quotation.tax_amount,
           quotation.discount_amount,
@@ -248,6 +268,7 @@ const Quotation = {
           SET
             quote_number = ?,
             enquiry_id = ?,
+            service_type = ?,
             status = ?,
             quote_date = ?,
             valid_until = ?,
@@ -260,6 +281,7 @@ const Quotation = {
             dropoff = ?,
             service_summary = ?,
             vehicle_type = ?,
+            service_details_json = ?,
             subtotal_amount = ?,
             tax_amount = ?,
             discount_amount = ?,
@@ -272,6 +294,7 @@ const Quotation = {
         [
           quotation.quote_number || current.quote_number,
           emptyToNull(quotation.enquiry_id),
+          quotation.service_type,
           quotation.status,
           quotation.quote_date,
           quotation.valid_until,
@@ -284,6 +307,7 @@ const Quotation = {
           quotation.dropoff,
           quotation.service_summary,
           quotation.vehicle_type,
+          quotation.service_details_json,
           quotation.subtotal_amount,
           quotation.tax_amount,
           quotation.discount_amount,

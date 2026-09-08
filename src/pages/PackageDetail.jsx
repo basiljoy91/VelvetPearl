@@ -167,7 +167,7 @@ export default function PackageDetail() {
           {sectionIntro(
             'Suitable For',
             'Who Usually Chooses This Kind of Plan',
-            'This helps customers judge whether the package is close to what they need before sending a manual enquiry.'
+            'Use these highlights to see whether the package suits your group, pace, and interests.'
           )}
           <div className="rounded-[28px] border border-white/10 bg-surface-container p-8">
             <p className="text-lg leading-relaxed text-on-surface-variant">{pkg.suitableFor}</p>
@@ -187,7 +187,7 @@ export default function PackageDetail() {
           {sectionIntro(
             'Enquiry Form',
             'Request This Package',
-            'Share your dates, group size, pickup point, and preferences. We will review the request manually and contact you with availability and pricing.'
+            'Share your dates, group size, pickup point, and preferences. We will respond with availability and pricing.'
           )}
           <div className="rounded-[32px] border border-white/10 bg-black/20 p-6 md:p-10">
             <TourPackageEnquiryForm packageData={pkg} />
@@ -223,7 +223,7 @@ export default function PackageDetail() {
               <p className="text-[10px] font-bold uppercase tracking-[0.3em] text-secondary">Need a Different Route Mix?</p>
               <h2 className="mt-4 font-headline text-4xl font-bold text-white">Use WhatsApp or the full tour form for a custom version of this package.</h2>
               <p className="mt-4 max-w-3xl text-lg leading-relaxed text-on-surface-variant">
-                If you want a different stay style, more days, another pickup point, or a custom mix of destinations, we can review that manually too.
+                Choose a different stay style, add more days, change the pickup point, or request your own mix of destinations.
               </p>
             </div>
             <div className="flex flex-col gap-4">

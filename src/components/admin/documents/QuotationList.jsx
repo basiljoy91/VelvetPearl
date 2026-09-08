@@ -12,6 +12,7 @@ import {
 } from '../../../services/dataService';
 import DocumentPreview from './DocumentPreview';
 import QuotationEditor from './QuotationEditor';
+import { getServiceLabel } from './DocumentServiceFields';
 
 const inputClassName = 'w-full rounded-lg border border-white/10 bg-black/30 px-3 py-2 text-sm text-white outline-none transition placeholder:text-gray-600 focus:border-[#EFBF04]/50';
 const labelClassName = 'text-[10px] font-bold uppercase tracking-[0.18em] text-gray-500';
@@ -224,6 +225,7 @@ export default function QuotationList({ enquiries = [], isCompact = false }) {
                   </td>
                   <td className="px-4 py-5">
                     <p className="text-gray-200">{quotation.subject || 'Travel quotation'}</p>
+                    <p className="mt-1 text-xs text-gray-500">{getServiceLabel(quotation.service_type)}</p>
                     <span className={`mt-2 inline-flex rounded-full px-3 py-1 text-[10px] font-bold capitalize ${getStatusClass(quotation.status)}`}>{quotation.status}</span>
                   </td>
                   <td className="px-4 py-5 text-gray-300">{formatDate(quotation.valid_until)}</td>

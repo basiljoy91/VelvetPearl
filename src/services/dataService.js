@@ -190,6 +190,12 @@ export const searchLocations = async (query) => {
   return data.data || [];
 };
 
+export const reverseGeocodeLocation = async ({ latitude, longitude }) => {
+  const res = await fetch(`${API}/locations/reverse${buildQueryString({ lat: latitude, lng: longitude })}`, { headers: authHeaders() });
+  const data = await handleResponse(res);
+  return data.data;
+};
+
 export const estimateRoute = async ({ pickup, drop }) => {
   const res = await fetch(`${API}/routes/estimate`, {
     method: 'POST',

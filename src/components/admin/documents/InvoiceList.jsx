@@ -11,6 +11,7 @@ import {
 } from '../../../services/dataService';
 import DocumentPreview from './DocumentPreview';
 import InvoiceEditor from './InvoiceEditor';
+import { getServiceLabel } from './DocumentServiceFields';
 
 const inputClassName = 'w-full rounded-lg border border-white/10 bg-black/30 px-3 py-2 text-sm text-white outline-none transition placeholder:text-gray-600 focus:border-[#EFBF04]/50';
 const labelClassName = 'text-[10px] font-bold uppercase tracking-[0.18em] text-gray-500';
@@ -212,7 +213,7 @@ export default function InvoiceList({ enquiries = [], isCompact = false }) {
                     <button type="button" onClick={() => openInvoice(invoice.id)} className="font-mono text-xs font-semibold text-[#EFBF04]">
                       {invoice.invoice_number}
                     </button>
-                    <p className="mt-1 text-xs text-gray-500">{invoice.booking_reference || 'No booking reference'}</p>
+                    <p className="mt-1 text-xs text-gray-500">{getServiceLabel(invoice.service_type)}{invoice.booking_reference ? ` · ${invoice.booking_reference}` : ''}</p>
                   </td>
                   <td className="px-4 py-5">
                     <p className="font-semibold text-white">{invoice.customer_name}</p>

@@ -94,6 +94,9 @@ const ensureRuntimeCompatibility = async (db) => {
   await addColumnIfMissing(db, 'cab_enquiry_details', 'pickup_location_json', 'JSON NULL');
   await addColumnIfMissing(db, 'cab_enquiry_details', 'drop_location_json', 'JSON NULL');
   await addColumnIfMissing(db, 'cab_enquiry_details', 'route_estimate_json', 'JSON NULL');
+  await addColumnIfMissing(db, 'invoices', 'service_type', "VARCHAR(40) NOT NULL DEFAULT 'cab'");
+  await addColumnIfMissing(db, 'quotations', 'service_type', "VARCHAR(40) NOT NULL DEFAULT 'cab'");
+  await addColumnIfMissing(db, 'quotations', 'service_details_json', 'JSON NULL');
 
   await db.query("UPDATE drivers SET status = 'Unavailable' WHERE status = 'Inactive'");
   await db.query("UPDATE admins SET role = 'admin' WHERE role IS NULL OR role = ''");

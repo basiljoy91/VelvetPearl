@@ -22,7 +22,7 @@ const stayTypes = [
   { title: 'Family rooms', description: 'Helpful when room count, guest mix, and meal preference are important.' },
   { title: 'Resorts', description: 'For travellers who want a different stay style and location preference review.' },
   { title: 'Group stays', description: 'Useful for larger trips that need room planning and coordination.' },
-  { title: 'Honeymoon stays', description: 'Share your stay style and travel dates so options can be reviewed manually.' },
+  { title: 'Honeymoon stays', description: 'Share your preferred stay style and travel dates so we can shortlist suitable options.' },
   { title: 'Homestays', description: 'A good fit for travellers looking for local stay preferences and flexible planning.' },
 ];
 
@@ -37,7 +37,7 @@ const howItWorks = [
   'Submit your stay requirement',
   'We check dates, guest mix, and available options',
   'We contact you with suitable suggestions',
-  'You review pricing and options manually',
+  'You review the shortlisted options and pricing',
   'Final stay confirmation happens after discussion',
 ];
 
@@ -56,7 +56,7 @@ const faqs = [
   },
   {
     question: 'Do you support family or group stays?',
-    answer: 'Yes. Share guest count and room count so we can review suitable options manually.',
+    answer: 'Yes. Share the guest and room count so we can shortlist suitable options.',
   },
 ];
 
@@ -203,7 +203,7 @@ export default function RoomBooking() {
     <>
       <FormShell
         aside={(
-          <div className="space-y-4 rounded-3xl border border-white/10 bg-black/20 p-6">
+          <div className="space-y-4">
             <h3 className="font-headline text-2xl text-white">Stay Assistance</h3>
             <p className="text-sm leading-relaxed text-on-surface-variant">
               Room options are shared after checking availability based on your dates and requirements.
@@ -219,17 +219,19 @@ export default function RoomBooking() {
             <ul className="space-y-3 text-sm text-on-surface-variant">
               <li>Stay dates, guest count, and room preference help narrow options quickly.</li>
               <li>Pickup support and special timing requests can be added in the same enquiry.</li>
-              <li>Final stay confirmation happens only after manual review.</li>
+              <li>Final stay confirmation follows an availability check.</li>
             </ul>
           </div>
         )}
-        description="Share your stay dates, guest details, room preference, and budget so we can review suitable room or stay options manually."
+        description="Share your stay dates, guest details, room preference, and budget so we can shortlist suitable options."
         eyebrow="Room Booking Page"
+        media="/travel/resort-stay.webp"
+        mediaAlt="Velvet Pearl room and stay service"
         title="Find the Right Stay Across Chennai and South India"
       >
         {submittedEnquiry ? (
           <EnquirySuccess
-            message="Our team will review your request and contact you shortly with availability and pricing. Final confirmation will happen after manual review."
+            message="Our team will review your request and contact you shortly with availability, pricing, and confirmation details."
             onReset={resetForm}
             referenceId={submittedEnquiry.reference_id}
             whatsappHref={successWhatsAppHref}
@@ -373,7 +375,7 @@ export default function RoomBooking() {
           {renderSectionIntro(
             'What To Share',
             'What Details Help Most',
-            'The more specific the stay requirement, the easier it is to review useful room or stay options manually.'
+            'The more specific your stay requirement, the better we can match the room type, location, and budget.'
           )}
           <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-4">
             {detailsToShare.map((item, index) => (

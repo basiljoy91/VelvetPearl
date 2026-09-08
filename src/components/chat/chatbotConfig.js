@@ -18,7 +18,7 @@ export const FAQ_CONTENT = {
   airport_pickup: 'Yes, airport pickup and drop can be arranged based on route and availability. Share your travel details and our team will contact you.',
   city_coverage: 'We handle travel enquiries across India, with especially strong coverage around Chennai and Coimbatore. Share your route and our team will confirm the best available option.',
   family_trips: 'Yes, we support family and group trips. We can help with suitable vehicles, room arrangements, and tour planning based on your group size and destination.',
-  pricing: 'Pricing depends on route distance, vehicle type, trip duration, pickup and drop locations, tolls, parking, timing, season demand, and any special travel requirements. Final pricing is shared after manual review.',
+  pricing: 'Pricing depends on route distance, vehicle type, trip duration, pickup and drop locations, tolls, parking, timing, seasonal demand, and any special travel requirements. Our team shares the final price before confirmation.',
 };
 
 export const HANDOFF_CONTENT = {
@@ -26,7 +26,7 @@ export const HANDOFF_CONTENT = {
   availability: 'I cannot confirm live availability inside the chatbot. Please continue on WhatsApp or submit your enquiry, and our team will review and contact you shortly.',
   urgent: 'For urgent or same-day requests, the fastest option is to continue on WhatsApp so our team can review the request directly.',
   human: 'A team member should take over from here. Please continue on WhatsApp, or I can still help you submit the enquiry details on this website.',
-  custom: 'This sounds like a custom request that needs manual review. Please continue on WhatsApp, or I can capture the key details here and our team will contact you shortly.',
+  custom: 'This sounds like a custom request. Continue on WhatsApp, or share the key details here and our team will contact you shortly.',
 };
 
 const contactFields = [
@@ -93,7 +93,7 @@ export const HANDOFF_FIELDS = [
 export const SERVICE_FLOWS = {
   cab: {
     label: 'Cab Booking',
-    intro: 'I can help with a cab enquiry. I will collect the route, travel timing, and contact details, then submit it to our team for manual review.',
+    intro: 'I can help with a cab enquiry. I will collect the route, travel timing, and contact details for our team.',
     sourcePage: 'chatbot:cab',
     fields: [
       {
@@ -192,7 +192,7 @@ export const SERVICE_FLOWS = {
   },
   room: {
     label: 'Room Booking',
-    intro: 'I can help with a room enquiry. I will collect the stay details and contact information, then send it to our team for manual review.',
+    intro: 'I can help with a room enquiry. I will collect the stay details and contact information for our team.',
     sourcePage: 'chatbot:room',
     fields: [
       {
@@ -301,7 +301,7 @@ export const SERVICE_FLOWS = {
   },
   tour: {
     label: 'Tour Enquiry',
-    intro: 'I can help with a tour enquiry. I will collect the destination, dates, group details, and contact information, then submit it for manual review.',
+    intro: 'I can help with a tour enquiry. I will collect the destination, dates, group details, and contact information for our team.',
     sourcePage: 'chatbot:tour',
     fields: [
       {
@@ -389,7 +389,7 @@ export const SERVICE_FLOWS = {
   },
   general: {
     label: 'General Enquiry',
-    intro: 'I can help with a general enquiry. Share your topic and message, then I will send it to our team for manual follow-up.',
+    intro: 'I can help with a general enquiry. Share your topic and message, and a team member will follow up.',
     sourcePage: 'chatbot:general',
     fields: [
       {
@@ -613,7 +613,7 @@ export function buildEnquiryPayload(serviceKey, data = {}) {
 
 export function buildFollowUpWhatsAppMessage(serviceKey, referenceId) {
   const flowLabel = SERVICE_FLOWS[serviceKey]?.label || 'travel enquiry';
-  return `Hi, I submitted a ${flowLabel.toLowerCase()} through the website chatbot. My reference ID is ${referenceId || 'PENDING'}. Please help me with the next steps.`;
+  return `Hi, I submitted a ${flowLabel.toLowerCase()} through the Velvet Pearl travel assistant. My reference ID is ${referenceId || 'PENDING'}. Please help me with the next steps.`;
 }
 
 export function summarizeCollectedDetails(serviceKey, data = {}) {

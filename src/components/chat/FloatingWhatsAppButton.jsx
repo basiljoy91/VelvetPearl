@@ -14,7 +14,7 @@ export default function FloatingWhatsAppButton() {
         isAdminPage
           ? 'hidden'
           : needsFormSafePlacement
-            ? 'bottom-28 left-4 h-11 w-11 translate-y-0 opacity-100 md:left-auto md:right-12 md:h-14 md:w-14'
+            ? 'bottom-28 right-4 h-11 w-11 translate-y-0 opacity-100 md:right-12 md:h-14 md:w-14'
             : 'bottom-24 right-4 h-12 w-12 translate-y-0 opacity-100 sm:bottom-28 sm:right-6 sm:h-14 sm:w-14'
       }`}
       href={buildWhatsAppLink({

@@ -35,23 +35,23 @@ const destinationHighlights = featuredDestinations;
 
 const itineraryBlocks = [
   {
-    title: 'Sample Day 1',
+    title: 'Arrival Day',
     description: 'Arrival, pickup coordination, local sightseeing, and stay check-in planning based on your dates and route.',
   },
   {
-    title: 'Sample Day 2',
+    title: 'Experience Day',
     description: 'Destination visits shaped around your interests such as waterfalls, wildlife, viewpoints, or family stops.',
   },
   {
     title: 'Custom Add-Ons',
-    description: 'Airport transfer, additional sightseeing, stay changes, or flexible timing can be reviewed manually.',
+    description: 'Add airport transfers, extra sightseeing, stay changes, or flexible timing to your plan.',
   },
 ];
 
 const faqs = [
   {
     question: 'Is my tour enquiry a confirmed package booking?',
-    answer: 'No. We review the requirement manually and share itinerary ideas, availability, and pricing before any confirmation.',
+    answer: 'No. We first share itinerary options, availability, and pricing before asking you to confirm.',
   },
   {
     question: 'Can I ask for a custom package?',
@@ -63,7 +63,7 @@ const faqs = [
   },
   {
     question: 'Do you show final prices on the website?',
-    answer: 'No. Final pricing is shared after manual review based on date, route, cab need, hotel preference, and availability.',
+    answer: 'Final pricing depends on your dates, route, transport, stay preference, group size, and availability.',
   },
 ];
 
@@ -239,10 +239,10 @@ export default function TourBooking() {
     <>
       <FormShell
         aside={(
-          <div className="space-y-4 rounded-3xl border border-white/10 bg-black/20 p-6">
+          <div className="space-y-4">
             <h3 className="font-headline text-2xl text-white">Tour Package Support</h3>
             <p className="text-sm leading-relaxed text-on-surface-variant">
-              Share your destination, dates, and package preferences. We&apos;ll review the requirement manually before sharing pricing and availability.
+              Share your destination, dates, and package preferences. We&apos;ll prepare suitable options with pricing and availability.
             </p>
             <a
               className="inline-flex rounded-xl bg-[#25D366] px-5 py-3 text-sm font-bold text-white transition-all hover:brightness-110"
@@ -255,17 +255,19 @@ export default function TourBooking() {
             <ul className="space-y-3 text-sm text-on-surface-variant">
               <li>Use this page for both named package ideas and custom itinerary planning.</li>
               <li>Cab requirement, hotel level, and budget can be reviewed together.</li>
-              <li>Final confirmation happens only after manual review and discussion.</li>
+              <li>Final confirmation follows your itinerary and price approval.</li>
             </ul>
           </div>
         )}
-        description="Share your travel window, group details, destination interests, and budget so we can prepare a manual itinerary and quote."
+        description="Share your travel window, group details, destination interests, and budget so we can prepare a tailored itinerary and quote."
         eyebrow="Tour Package Page"
+        media="/travel/waterfall-destination.webp"
+        mediaAlt="Velvet Pearl tour package destination"
         title="Plan a Tour That Fits Your Requirement"
       >
         {submittedEnquiry ? (
           <EnquirySuccess
-            message="Our team will review your request and contact you shortly with availability and pricing. Final confirmation will happen after manual review."
+            message="Our team will review your request and contact you shortly with itinerary options, availability, and pricing."
             onReset={resetForm}
             referenceId={submittedEnquiry.reference_id}
             whatsappHref={successWhatsAppHref}
@@ -403,7 +405,7 @@ export default function TourBooking() {
           {renderSectionIntro(
             'Featured Packages',
             'Tour Package Ideas',
-            'These package cards are starting points for planning. Final availability, route, and pricing are reviewed manually after your enquiry.'
+            'These packages are starting points that can be tailored to your dates, route, group, and preferences.'
           )}
           <div className="grid gap-6 xl:grid-cols-3">
             {featuredPackageCards.map((pkg) => (
@@ -503,7 +505,7 @@ export default function TourBooking() {
         <div className="mx-auto max-w-7xl">
           {renderSectionIntro(
             'Flexible Itinerary',
-            'How a Manual Plan Can Be Shaped',
+            'How Your Itinerary Can Take Shape',
             'These planning blocks show how a tour can be shaped around your dates, interests, route, and availability.'
           )}
           <div className="grid gap-6 md:grid-cols-3">

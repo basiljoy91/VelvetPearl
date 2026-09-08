@@ -410,7 +410,7 @@ export default function ChatWidget() {
       });
       appendMessages(
         createBotMessage(
-          `Thank you. Your enquiry has been received.\nReference ID: ${referenceId}\nOur team will contact you.\nAvailability and final pricing are shared after manual review.`,
+          `Thank you. Your enquiry has been received.\nReference ID: ${referenceId}\nOur team will contact you with availability and final pricing.`,
           [{ label: 'Start Another Enquiry', value: 'action:restart' }]
         )
       );
@@ -806,7 +806,7 @@ export default function ChatWidget() {
                 </div>
                 <div>
                   <h4 className="font-headline text-sm font-bold">{CHATBOT_NAME}</h4>
-                  <p className="text-[10px] uppercase tracking-[0.22em] text-white/70">Structured website enquiries</p>
+                  <p className="text-[10px] uppercase tracking-[0.22em] text-white/70">Guided travel enquiries</p>
                 </div>
               </div>
               <button className="text-white/70 transition-colors hover:text-white" onClick={() => closeWidget('header_close')} type="button">
@@ -891,7 +891,7 @@ export default function ChatWidget() {
                     </button>
                   </div>
                   <p className="text-[11px] leading-relaxed text-on-surface-variant">
-                    Type <span className="font-bold text-white">restart</span> any time to begin again. Final pricing and availability are always shared after manual review.
+                    Type <span className="font-bold text-white">restart</span> any time to begin again. Our team confirms final pricing and availability before booking.
                   </p>
                   <div className="grid grid-cols-2 gap-2">
                     <a
@@ -946,7 +946,7 @@ export default function ChatWidget() {
       <div className="fixed bottom-8 right-8 z-[100] hidden flex-col items-end gap-3 md:flex md:bottom-12 md:right-12">
         <button
           aria-expanded={isOpen}
-          aria-label={isOpen ? 'Close website chatbot' : 'Open website chatbot'}
+          aria-label={isOpen ? 'Close travel assistant' : 'Open travel assistant'}
           className={`group relative flex h-16 w-16 items-center justify-center rounded-full border-none text-white shadow-2xl transition-all duration-300 hover:scale-110 active:scale-95 ${isOpen ? 'bg-secondary rotate-90' : 'bg-primary-container'}`}
           onClick={() => {
             if (isOpen) {
@@ -963,7 +963,7 @@ export default function ChatWidget() {
           </span>
           {!isOpen ? (
             <div className="pointer-events-none absolute right-full mr-4 whitespace-nowrap rounded border border-white/10 bg-[#201f20] px-3 py-1.5 text-xs uppercase tracking-widest text-[#EFBF04] opacity-0 transition-opacity group-hover:opacity-100">
-              Website Chatbot
+              Travel Assistant
             </div>
           ) : null}
         </button>

@@ -23,7 +23,7 @@ export default function Services() {
               <h2 className="font-headline text-3xl font-bold tracking-tight text-white">Cab Services</h2>
             </div>
             <p className="text-on-surface-variant mb-8 max-w-xl text-lg">
-              Cab enquiries for airport pickups, outstation travel, temple routes, and local transfers. Vehicle options and pricing are shared after manual review.
+              Airport pickups, outstation travel, temple routes, and local transfers with vehicle options matched to your journey.
             </p>
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 mb-10">
               <div className="bg-surface-container-high p-6 rounded-lg border-l-2 border-secondary/30">
@@ -96,7 +96,7 @@ export default function Services() {
             <span className="material-symbols-outlined text-secondary text-3xl mb-4">celebration</span>
             <h3 className="font-headline text-2xl font-bold text-white mb-3">Event Planning</h3>
             <p className="text-on-surface-variant text-sm leading-relaxed mb-6 font-body">
-              Event requirements are reviewed manually before venue support, pricing, or vendor coordination is discussed.
+              Event transport, venue support, pricing, and vendor coordination shaped around your requirements.
             </p>
           </div>
           <Link to="/book/event" className="w-full bg-surface-container-high text-white px-6 py-3 font-label text-xs uppercase tracking-widest rounded-md border border-white/5 hover:border-secondary/50 transition-all text-center font-bold">

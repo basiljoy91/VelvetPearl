@@ -29,6 +29,7 @@ const buildQuotationFromEnquiry = (enquiry = {}) => {
 
   return {
     enquiry_id: enquiry.id,
+    service_type: enquiry.enquiry_type || 'general',
     client_name: enquiry.customer_name,
     client_phone: enquiry.phone_number,
     client_email: enquiry.email,
@@ -37,6 +38,7 @@ const buildQuotationFromEnquiry = (enquiry = {}) => {
     dropoff,
     service_summary: enquiry.requirement_notes || [pickup, dropoff].filter(Boolean).join(' to '),
     vehicle_type: details.vehicle_preference || '',
+    service_details_json: details,
     items: [
       {
         description: enquiry.requirement_notes || 'Travel service quotation',
@@ -60,6 +62,7 @@ const enrichCreatePayload = async (payload = {}) => {
   return {
     ...defaults,
     ...payload,
+    service_details_json: payload.service_details_json || defaults.service_details_json,
     items: payload.items?.length ? payload.items : defaults.items,
   };
 };
@@ -227,6 +230,7 @@ const convertQuotationToInvoice = async (req, res, next) => {
 
     const invoice = await Invoice.create({
       enquiry_id: quotation.enquiry_id,
+      service_type: quotation.service_type,
       customer_name: quotation.client_name,
       customer_phone: quotation.client_phone,
       customer_email: quotation.client_email,
@@ -236,6 +240,7 @@ const convertQuotationToInvoice = async (req, res, next) => {
       dropoff: quotation.dropoff,
       trip_details: quotation.service_summary,
       vehicle_details: quotation.vehicle_type,
+      service_details_json: quotation.service_details_json,
       items: quotation.items,
       discount_amount: quotation.discount_amount,
       notes: `Created from quotation ${quotation.quote_number}.`,

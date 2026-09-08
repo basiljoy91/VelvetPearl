@@ -1,9 +1,9 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { MapContainer, Marker, Polyline, TileLayer, useMap } from 'react-leaflet';
+import { MapContainer, Marker, Polyline, TileLayer, useMap, useMapEvents } from 'react-leaflet';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
-import { ArrowUpDown, Loader2, LocateFixed, MapPin, Search, X } from 'lucide-react';
-import { estimateRoute, searchLocations } from '../../services/dataService';
+import { ArrowUpDown, Crosshair, Loader2, LocateFixed, MapPin, Search, X } from 'lucide-react';
+import { estimateRoute, reverseGeocodeLocation, searchLocations } from '../../services/dataService';
 
 const defaultCenter = [11.8, 78.2];
 
@@ -48,6 +48,24 @@ function FitRouteBounds({ points }) {
   return null;
 }
 
+function MapClickSelector({ mode, onSelect }) {
+  const map = useMapEvents({
+    click: (event) => {
+      if (mode) onSelect(event.latlng);
+    },
+  });
+
+  useEffect(() => {
+    const container = map.getContainer();
+    container.style.cursor = mode ? 'crosshair' : '';
+    return () => {
+      container.style.cursor = '';
+    };
+  }, [map, mode]);
+
+  return null;
+}
+
 function LocationSearchField({
   label,
   value,
@@ -61,12 +79,6 @@ function LocationSearchField({
 }) {
   const [isOpen, setIsOpen] = useState(false);
   const inputRef = useRef(null);
-
-  useEffect(() => {
-    if (value?.label) {
-      onQueryChange(value.label);
-    }
-  }, [onQueryChange, value]);
 
   return (
     <div className="relative min-w-0">
@@ -103,7 +115,7 @@ function LocationSearchField({
       </div>
       {error && <p className="mt-2 text-xs text-rose-300">{error}</p>}
       {isOpen && query.trim().length >= 2 && !value?.label && (
-        <div className="absolute z-[80] mt-2 max-h-72 w-full overflow-y-auto rounded-xl border border-white/10 bg-[#111111] p-2 shadow-2xl">
+        <div className="absolute z-[1400] mt-2 max-h-72 w-full overflow-y-auto rounded-xl border border-white/10 bg-[#111111] p-2 shadow-2xl">
           {isLoading ? (
             <p className="px-3 py-3 text-sm text-gray-400">Searching locations...</p>
           ) : suggestions.length > 0 ? (
@@ -155,6 +167,8 @@ export default function LocationRoutePicker({
   const [isEstimating, setIsEstimating] = useState(false);
   const [estimateError, setEstimateError] = useState('');
   const [geoStatus, setGeoStatus] = useState('');
+  const [mapSelectionMode, setMapSelectionMode] = useState('');
+  const [isResolvingMapPoint, setIsResolvingMapPoint] = useState(false);
 
   useEffect(() => {
     onRouteChange?.({ pickup, drop, estimate });
@@ -241,6 +255,53 @@ export default function LocationRoutePicker({
     }
   };
 
+  const resolvePoint = async (latitude, longitude, fallbackLabel) => {
+    try {
+      return await reverseGeocodeLocation({ latitude, longitude });
+    } catch {
+      return {
+        label: fallbackLabel,
+        address: `${latitude.toFixed(6)}, ${longitude.toFixed(6)}`,
+        provider: 'map',
+        provider_place_id: `map-${latitude.toFixed(6)}-${longitude.toFixed(6)}`,
+        latitude,
+        longitude,
+        city: '',
+        state: '',
+        country: 'India',
+        postal_code: '',
+      };
+    }
+  };
+
+  const applyResolvedPoint = (mode, location) => {
+    if (mode === 'pickup') {
+      setPickup(location);
+      setPickupQuery(location.label);
+      setFieldErrors((current) => ({ ...current, pickup: '' }));
+    } else {
+      setDrop(location);
+      setDropQuery(location.label);
+      setFieldErrors((current) => ({ ...current, drop: '' }));
+    }
+    setEstimate(null);
+  };
+
+  const handleMapPoint = async ({ lat, lng }) => {
+    if (!mapSelectionMode) return;
+    const mode = mapSelectionMode;
+    setIsResolvingMapPoint(true);
+    setGeoStatus(`Finding the ${mode} address...`);
+    try {
+      const location = await resolvePoint(lat, lng, mode === 'pickup' ? 'Pickup pin' : 'Drop pin');
+      applyResolvedPoint(mode, location);
+      setGeoStatus(`${mode === 'pickup' ? 'Pickup' : 'Drop'} selected from the map.`);
+      setMapSelectionMode('');
+    } finally {
+      setIsResolvingMapPoint(false);
+    }
+  };
+
   const handleCurrentLocation = () => {
     setGeoStatus('');
 
@@ -251,22 +312,11 @@ export default function LocationRoutePicker({
 
     setGeoStatus('Detecting current location...');
     navigator.geolocation.getCurrentPosition(
-      (position) => {
-        const detectedLocation = {
-          label: 'Current location',
-          address: 'Detected from this browser',
-          provider: 'browser',
-          provider_place_id: `browser-${position.coords.latitude.toFixed(6)}-${position.coords.longitude.toFixed(6)}`,
-          latitude: position.coords.latitude,
-          longitude: position.coords.longitude,
-          city: '',
-          state: '',
-          country: '',
-          postal_code: '',
-        };
-        setPickup(detectedLocation);
-        setPickupQuery(detectedLocation.label);
-        setEstimate(null);
+      async (position) => {
+        setIsResolvingMapPoint(true);
+        const detectedLocation = await resolvePoint(position.coords.latitude, position.coords.longitude, 'Current location');
+        applyResolvedPoint('pickup', detectedLocation);
+        setIsResolvingMapPoint(false);
         setGeoStatus('Current location added as pickup.');
       },
       () => setGeoStatus('Location permission was not granted. You can still search manually.'),
@@ -289,7 +339,7 @@ export default function LocationRoutePicker({
 
   return (
     <div className={`rounded-2xl border border-white/10 bg-white/[0.04] p-4 shadow-[0_18px_50px_rgba(0,0,0,0.25)] md:p-5 ${className}`}>
-      <div className="grid gap-4 lg:grid-cols-[1fr_auto_1fr] lg:items-start">
+      <div className="relative z-[1000] grid gap-4 lg:grid-cols-[1fr_auto_1fr] lg:items-start">
         <LocationSearchField
           label="Pickup"
           value={pickup}
@@ -362,14 +412,30 @@ export default function LocationRoutePicker({
         />
       </div>
 
-      <div className="mt-4 grid gap-4 lg:grid-cols-[minmax(0,1fr)_18rem]">
+      <div className="relative z-0 mt-4 grid gap-4 lg:grid-cols-[minmax(0,1fr)_18rem]">
         <div className="min-h-[280px] overflow-hidden rounded-xl border border-white/10 bg-[#111111]">
-          <MapContainer center={pickupPoint || dropPoint || defaultCenter} zoom={pickupPoint || dropPoint ? 10 : 6} className="h-[280px] w-full md:h-[340px]" scrollWheelZoom={false}>
+          <div className="flex flex-wrap items-center gap-2 border-b border-white/10 bg-black/40 px-3 py-2.5">
+            <span className="mr-auto text-xs text-gray-400">Select an exact point directly on the map</span>
+            {['pickup', 'drop'].map((mode) => (
+              <button
+                key={mode}
+                type="button"
+                onClick={() => setMapSelectionMode((current) => (current === mode ? '' : mode))}
+                disabled={isResolvingMapPoint}
+                className={`inline-flex items-center gap-2 rounded-lg border px-3 py-2 text-xs font-semibold transition ${mapSelectionMode === mode ? 'border-[#EFBF04] bg-[#EFBF04] text-black' : 'border-white/10 bg-white/5 text-white hover:border-[#EFBF04]/50'}`}
+              >
+                {isResolvingMapPoint && mapSelectionMode === mode ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Crosshair className="h-3.5 w-3.5" />}
+                Set {mode}
+              </button>
+            ))}
+          </div>
+          <MapContainer center={pickupPoint || dropPoint || defaultCenter} zoom={pickupPoint || dropPoint ? 10 : 6} className="h-[280px] w-full md:h-[310px]" scrollWheelZoom>
             <TileLayer
               attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
               url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
             />
             <FitRouteBounds points={points.length ? points : [pickupPoint, dropPoint].filter(Boolean)} />
+            <MapClickSelector mode={mapSelectionMode} onSelect={handleMapPoint} />
             {pickupPoint && <Marker position={pickupPoint} icon={pickupIcon} />}
             {dropPoint && <Marker position={dropPoint} icon={dropIcon} />}
             {points.length > 1 && <Polyline positions={points} pathOptions={{ color: '#EFBF04', weight: 5, opacity: 0.85 }} />}

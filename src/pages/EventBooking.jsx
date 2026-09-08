@@ -142,22 +142,24 @@ export default function EventBooking() {
   return (
     <FormShell
       aside={(
-        <div className="space-y-4 rounded-3xl border border-white/10 bg-black/20 p-6">
+        <div className="space-y-4">
           <h3 className="font-headline text-2xl text-white">Custom Enquiry Notes</h3>
           <ul className="space-y-3 text-sm text-on-surface-variant">
             <li>Use this form for trip plans that do not fit a standard cab, room, or package request.</li>
             <li>You can mention multiple services in one enquiry.</li>
-            <li>Our team will review the requirement manually before sharing options and pricing.</li>
+            <li>Our team will review the full requirement before sharing options and pricing.</li>
           </ul>
         </div>
       )}
-      description="Share your destination, travel window, group size, required services, and full trip brief so we can review the request manually."
+      description="Share your destination, travel window, group size, required services, and trip brief so we can coordinate the right plan."
       eyebrow="Custom Trip Enquiry"
+      media="/travel/group-travel.webp"
+      mediaAlt="Velvet Pearl custom group travel"
       title="Build a Custom Travel Request"
     >
       {submittedEnquiry ? (
         <EnquirySuccess
-          message="Our team will review your request and contact you shortly with availability and pricing. Final confirmation will happen after manual review."
+          message="Our team will review your request and contact you shortly with suitable options, availability, and pricing."
           onReset={resetForm}
           referenceId={submittedEnquiry.reference_id}
           whatsappHref={whatsappHref}
@@ -179,7 +181,7 @@ export default function EventBooking() {
           <CustomerDetailsFields errors={errors} formData={formData} onChange={handleChange} />
 
           <SectionHeading
-            description="These details help us understand the trip scope and decide what needs to be arranged manually."
+            description="These details help us understand the trip scope and coordinate every required service."
             step="02"
             title="Requirement Details"
           />

@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { buildWhatsAppLink, DEFAULT_WHATSAPP_PHONE } from '../utils/whatsapp';
 import { slideshowArchiveMedia, travelMedia, vehicleMedia } from '../content/travelMedia';
@@ -101,7 +101,7 @@ const stayOptions = [
   },
   {
     title: 'Resorts',
-    description: 'Share your location and stay preference so suitable options can be checked manually.',
+    description: 'Share your location and stay preferences so we can shortlist suitable options.',
   },
   {
     title: 'Group Stays',
@@ -114,14 +114,14 @@ const howItWorks = [
   'We review availability and options',
   'We contact you on WhatsApp or phone',
   'You confirm after price discussion',
-  'We assign driver, vehicle, room, or package manually',
+  'We confirm the driver, vehicle, stay, or package',
 ];
 
 const whyChooseUs = [
   'Local travel support',
   'Easy WhatsApp communication',
   'Custom trip planning',
-  'Manual review before confirmation',
+  'Careful review before confirmation',
   'Cab, room, and package assistance in one place',
   'Flexible plans based on customer requirement',
 ];
@@ -129,7 +129,7 @@ const whyChooseUs = [
 const faqs = [
   {
     question: 'Is my enquiry a confirmed booking?',
-    answer: 'No. Your enquiry is reviewed manually. Final confirmation happens after availability and pricing are discussed.',
+    answer: 'No. We first confirm availability and pricing with you, then share the final booking confirmation.',
   },
   {
     question: 'Can I contact directly on WhatsApp?',
@@ -149,7 +149,7 @@ const faqs = [
   },
   {
     question: 'Do I need to pay online?',
-    answer: 'No online payment is required in this phase. Payment is handled manually after discussion.',
+    answer: 'No online payment is required when submitting an enquiry. Payment details are shared only after the service and price are agreed.',
   },
 ];
 
@@ -180,25 +180,6 @@ export default function Home() {
     email: '',
     service: 'cab',
   });
-
-  const quickServiceCopy = useMemo(() => ({
-    cab: {
-      label: 'Cab Booking Enquiry',
-      note: 'We will ask for trip details like pickup, drop, date, and passenger count on the next screen.',
-    },
-    tour: {
-      label: 'Tour Package Enquiry',
-      note: 'We will ask for destination, dates, group size, and interests on the next screen.',
-    },
-    room: {
-      label: 'Room / Stay Enquiry',
-      note: 'We will ask for stay dates, guest count, room type, and budget on the next screen.',
-    },
-    event: {
-      label: 'Custom Trip Enquiry',
-      note: 'We will ask for your travel area, service mix, and full requirement details on the next screen.',
-    },
-  }), []);
 
   const handleQuickEnquiry = (e) => {
     e.preventDefault();
@@ -242,8 +223,6 @@ export default function Home() {
             />
           ))}
           <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(12,11,16,0.95)_0%,rgba(12,11,16,0.75)_45%,rgba(12,11,16,0.55)_100%)]"></div>
-          <div className="absolute left-[-10%] top-12 h-96 w-96 rounded-full bg-primary-container/15 blur-[140px]"></div>
-          <div className="absolute bottom-0 right-[-10%] h-80 w-80 rounded-full bg-secondary/15 blur-[140px]"></div>
         </div>
 
         <div className="relative z-10 mx-auto grid max-w-7xl gap-8 lg:grid-cols-[1.1fr_0.9fr] lg:items-center lg:gap-12">
@@ -254,7 +233,7 @@ export default function Home() {
                 Plan Your Chennai and South India Trip with Local Travel Support
               </h1>
               <p className="max-w-2xl text-lg leading-relaxed text-on-surface-variant md:text-xl">
-                Send your cab, room, or tour requirement for Chennai, nearby getaways, and South India travel. We&apos;ll review it manually and contact you with availability and pricing.
+                Send your cab, room, or tour requirement for Chennai, nearby getaways, and South India travel. We&apos;ll respond with suitable options, availability, and pricing.
               </p>
             </div>
 
@@ -345,10 +324,6 @@ export default function Home() {
                   <option value="event">Custom trip enquiry</option>
                 </select>
               </div>
-              <div className="rounded-2xl border border-secondary/20 bg-secondary/10 px-4 py-4 text-sm text-on-surface-variant">
-                <p className="font-bold text-white">{quickServiceCopy[quickEnquiry.service].label}</p>
-                <p className="mt-2">{quickServiceCopy[quickEnquiry.service].note}</p>
-              </div>
               <button
                 className="w-full rounded-xl bg-primary-container px-6 py-4 text-sm font-bold uppercase tracking-[0.2em] text-white transition-all hover:brightness-110"
                 type="submit"
@@ -414,7 +389,7 @@ export default function Home() {
           {sectionIntro(
             'Destinations',
             'Featured Chennai and South India Destination Ideas',
-            'Use these destination ideas as a starting point for your tour or custom trip enquiry. Final plans are shaped manually around your dates, route, and preferences.'
+            'Use these destination ideas as a starting point. We shape the final plan around your dates, route, group, and preferences.'
           )}
           <div className="grid gap-6 sm:grid-cols-2 xl:grid-cols-4">
             {destinations.map((destination) => (
@@ -565,8 +540,8 @@ export default function Home() {
         <div className="mx-auto max-w-7xl">
           {sectionIntro(
             'How It Works',
-            'This Is a Manual Travel Service',
-            'These steps help set the right expectation: the website collects requirements first, then the team reviews and follows up manually.'
+            'From Enquiry to Confirmation',
+            'A clear, personal process from sharing your requirement to confirming the right travel arrangement.'
           )}
           <div className="grid gap-6 md:grid-cols-5">
             {howItWorks.map((step, index) => (
@@ -583,8 +558,8 @@ export default function Home() {
         <div className="mx-auto max-w-7xl">
           {sectionIntro(
             'Why Choose Us',
-            'Support That Matches Real Travel Planning',
-            'The focus here is on responsive communication and manual coordination, not auto-confirmed booking promises.'
+            'Personal Support for Real Travel Plans',
+            'Responsive communication, thoughtful coordination, and clear confirmation for every service.'
           )}
           <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-3">
             {whyChooseUs.map((item) => (
@@ -601,33 +576,12 @@ export default function Home() {
         </div>
       </section>
 
-      <section className="bg-background px-6 py-24 md:px-8">
-        <div className="mx-auto max-w-5xl rounded-[32px] border border-white/10 bg-[linear-gradient(135deg,rgba(34,73,219,0.12),rgba(239,191,4,0.08))] p-8 md:p-12">
-          <p className="text-[10px] font-bold uppercase tracking-[0.3em] text-secondary">Reviews</p>
-          <h2 className="mt-4 font-headline text-4xl font-bold text-white md:text-5xl">Customer Reviews Coming Soon</h2>
-          <p className="mt-5 max-w-3xl text-lg leading-relaxed text-on-surface-variant">
-            We are collecting verified feedback from our customers. Until then, you can contact us directly on WhatsApp for more details about our travel support process.
-          </p>
-          <a
-            className="mt-8 inline-flex rounded-xl border border-secondary px-6 py-4 text-sm font-bold uppercase tracking-[0.18em] text-secondary transition-all hover:bg-secondary/10"
-            href={buildWhatsAppLink({
-              phone: DEFAULT_WHATSAPP_PHONE,
-              message: 'Hi, I would like to know more about your travel services.',
-            })}
-            rel="noreferrer"
-            target="_blank"
-          >
-            Contact on WhatsApp
-          </a>
-        </div>
-      </section>
-
       <section className="bg-surface-container-low px-6 py-24 md:px-8">
         <div className="mx-auto max-w-5xl">
           {sectionIntro(
             'FAQ',
             'Common Questions',
-            'A few quick answers to help customers understand how enquiry, pricing, and confirmation work on this website.'
+            'Quick answers about enquiries, pricing, availability, and confirmation.'
           )}
           <div className="space-y-4">
             {faqs.map((faq) => (
@@ -650,7 +604,7 @@ export default function Home() {
               <p className="text-[10px] font-bold uppercase tracking-[0.3em] text-secondary">Ready to Plan Your Trip?</p>
               <h2 className="mt-4 font-headline text-4xl font-bold text-white md:text-5xl">Send your travel requirement and we&apos;ll help you with the next steps.</h2>
               <p className="mt-5 max-w-3xl text-lg leading-relaxed text-on-surface-variant">
-                Availability, pricing, and confirmation are shared after our team reviews your enquiry manually.
+                Availability, pricing, and confirmation are shared after our team reviews your travel requirement.
               </p>
             </div>
             <div className="flex flex-col gap-4 sm:flex-row lg:flex-col">

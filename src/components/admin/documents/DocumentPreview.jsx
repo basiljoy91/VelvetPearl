@@ -1,5 +1,6 @@
 import React from 'react';
 import { Copy, Download, Mail, MessageCircle, Pencil, ReceiptText, X } from 'lucide-react';
+import { getServiceLabel } from './DocumentServiceFields';
 
 const money = (value) => `₹${Number(value || 0).toLocaleString('en-IN', {
   minimumFractionDigits: 2,
@@ -71,7 +72,7 @@ export default function DocumentPreview({
 
         <div className="grid gap-5 p-5 lg:grid-cols-[1fr_18rem]">
           <section className="rounded-xl border border-white/10 bg-white/[0.035] p-5">
-            <div className="grid gap-4 md:grid-cols-3">
+            <div className="grid gap-4 md:grid-cols-4">
               <div>
                 <p className={labelClassName}>{dateLabel}</p>
                 <p className="mt-1 text-sm text-white">{dateValue || '-'}</p>
@@ -84,6 +85,10 @@ export default function DocumentPreview({
                 <p className={labelClassName}>{isInvoice ? 'Payment' : 'Valid until'}</p>
                 <p className="mt-1 text-sm capitalize text-white">{isInvoice ? document.payment_status : (document.valid_until || '-')}</p>
               </div>
+              <div>
+                <p className={labelClassName}>Service</p>
+                <p className="mt-1 text-sm text-white">{getServiceLabel(document.service_type)}</p>
+              </div>
             </div>
 
             <div className="mt-5 grid gap-4 md:grid-cols-2">
@@ -93,7 +98,7 @@ export default function DocumentPreview({
                 <p className="mt-1 text-xs text-gray-400">{[partyPhone, partyEmail].filter(Boolean).join(' | ') || '-'}</p>
               </div>
               <div>
-                <p className={labelClassName}>Route / Service</p>
+                <p className={labelClassName}>{document.service_type === 'cab' ? 'Route' : 'Service details'}</p>
                 <p className="mt-1 text-sm text-white">{[document.pickup, document.dropoff].filter(Boolean).join(' to ') || document.subject || '-'}</p>
                 <p className="mt-1 text-xs leading-5 text-gray-400">{serviceSummary || '-'}</p>
               </div>

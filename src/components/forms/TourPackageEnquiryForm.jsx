@@ -137,7 +137,7 @@ export default function TourPackageEnquiryForm({ packageData }) {
   if (submittedEnquiry) {
     return (
       <EnquirySuccess
-        message="Our team will review your request and contact you shortly with availability and pricing. Final confirmation will happen after manual review."
+        message="Our team will review your request and contact you shortly with availability, pricing, and confirmation details."
         onReset={resetForm}
         referenceId={submittedEnquiry.reference_id}
         whatsappHref={successWhatsAppHref}
@@ -155,14 +155,14 @@ export default function TourPackageEnquiryForm({ packageData }) {
       <FormErrorSummary errors={errors} />
 
       <SectionHeading
-        description="Use this form to request this package or a close variation of it. Final route, timing, and pricing are always reviewed manually."
+        description="Request this package or a tailored variation based on your route, timing, and preferences."
         step="01"
         title="Customer Details"
       />
       <CustomerDetailsFields errors={errors} formData={formData} onChange={handleChange} />
 
       <SectionHeading
-        description="These details help us turn the package idea into a usable manual enquiry for date, group size, and travel support."
+        description="These details help us tailor the package to your dates, group size, and travel needs."
         step="02"
         title="Package Enquiry"
       />
@@ -174,7 +174,7 @@ export default function TourPackageEnquiryForm({ packageData }) {
         <div>
           <label className={labelClassName}>Trip Duration</label>
           <input className={inputClassName({}, 'trip_duration')} disabled type="text" value={formData.trip_duration} />
-          <p className="mt-2 text-xs text-on-surface-variant">Package duration is shown for reference. Final timing can still be reviewed manually.</p>
+          <p className="mt-2 text-xs text-on-surface-variant">Package duration is a starting point and can be adjusted to your plan.</p>
         </div>
         <div>
           <label className={labelClassName}>Travel Start Date <span className="text-secondary">*</span></label>

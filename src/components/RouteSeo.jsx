@@ -65,11 +65,11 @@ function getSeoForPath(pathname) {
   const seoMap = {
     '/': {
       title: 'Home | Chennai and South India Travel Enquiries',
-      description: 'Submit your travel enquiry for Chennai, Tamil Nadu, and nearby South India cab support, room assistance, tour packages, airport transfers, and custom trip planning. Manual confirmation after review.',
+      description: 'Submit a travel enquiry for Chennai and South India cab services, room assistance, tour packages, airport transfers, and custom trip planning.',
     },
     '/about': {
       title: `About | ${SITE_NAME} Travel Service Information`,
-      description: 'Learn how Velvet Pearl supports cab, stay, tour, and custom trip enquiries with direct follow-up and manual confirmation before travel.',
+      description: 'Learn how Velvet Pearl supports cab, stay, tour, and custom trip enquiries with direct assistance and clear confirmation before travel.',
     },
     '/services': {
       title: 'Services | Cab, Room, Tour and Custom Trip Enquiries',
@@ -85,7 +85,7 @@ function getSeoForPath(pathname) {
     },
     '/book/cab': {
       title: 'Cab Enquiry | Airport Pickup, Local Sightseeing and Outstation Trips',
-      description: 'Submit your cab enquiry for airport pickup, airport drop, local sightseeing, outstation routes, one-way transfers, and round trips. Manual confirmation after review.',
+      description: 'Submit your cab enquiry for airport pickup, airport drop, local sightseeing, outstation routes, one-way transfers, and round trips.',
     },
     '/book/room': {
       title: 'Room Enquiry | Stay Assistance for Chennai and South India Trips',
@@ -93,7 +93,7 @@ function getSeoForPath(pathname) {
     },
     '/book/tour': {
       title: 'Tour Packages | Chennai, Tamil Nadu and South India Travel Planning',
-      description: 'Submit a tour package enquiry for Chennai, Tamil Nadu, and nearby South India travel planning, custom itineraries, group trips, sightseeing ideas, and manual quote review.',
+      description: 'Submit a tour package enquiry for Chennai and South India travel, custom itineraries, group trips, and sightseeing plans.',
     },
     '/book/event': {
       title: 'Custom Enquiry | Family, Group and Special Travel Plans',

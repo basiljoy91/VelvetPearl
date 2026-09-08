@@ -8,6 +8,18 @@ const hasCoordinates = (location) => {
   return Number.isFinite(coordinate.latitude) && Number.isFinite(coordinate.longitude);
 };
 
+const getRouteProvider = () => {
+  const configured = String(process.env.MAP_ROUTE_PROVIDER || '').trim().toLowerCase();
+  if (configured && !['auto', 'fallback', 'seed'].includes(configured)) return configured;
+  if (process.env.GOOGLE_MAPS_API_KEY || process.env.GOOGLE_ROUTES_API_KEY) return 'google';
+  if (process.env.MAPBOX_ACCESS_TOKEN) return 'mapbox';
+  if (process.env.OPENROUTESERVICE_API_KEY) return 'openrouteservice';
+
+  const locationProvider = String(process.env.MAP_PROVIDER || '').trim().toLowerCase();
+  if (['google', 'mapbox', 'openrouteservice'].includes(locationProvider)) return locationProvider;
+  return 'fallback';
+};
+
 const haversineKm = (from, to) => {
   const radiusKm = 6371;
   const dLat = ((to.latitude - from.latitude) * Math.PI) / 180;
@@ -154,7 +166,7 @@ const estimateRoute = async (pickup, drop) => {
     throw error;
   }
 
-  const provider = String(process.env.MAP_ROUTE_PROVIDER || process.env.MAP_PROVIDER || '').trim().toLowerCase();
+  const provider = getRouteProvider();
 
   try {
     if (provider === 'mapbox') {

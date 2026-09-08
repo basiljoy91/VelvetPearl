@@ -137,7 +137,7 @@ export default function BookingModal({ isOpen, onClose }) {
         {/* Footer info */}
         <div className="sticky bottom-0 border-t border-[#EFBF04]/10 bg-black/85 px-5 py-4 text-center backdrop-blur md:px-10 md:py-6">
           <p className="text-gray-500 text-xs uppercase tracking-[0.2em] font-label">
-            Manual Review Before Final Confirmation • Velvet Pearl
+            Personal Support Before Final Confirmation • Velvet Pearl
           </p>
         </div>
       </div>

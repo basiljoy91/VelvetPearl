@@ -27,7 +27,7 @@ const faqs = [
   },
   {
     question: 'When will I get a reply?',
-    answer: 'We reply manually after review. Response timing can vary based on request complexity and current operating hours.',
+    answer: 'A Velvet Pearl team member replies after reviewing your request. Timing can vary with request complexity and operating hours.',
   },
 ];
 
@@ -139,20 +139,21 @@ export default function Contact() {
     <>
       <FormShell
         aside={(
-          <div className="space-y-4 rounded-3xl border border-white/10 bg-black/20 p-6">
-            <h3 className="font-headline text-2xl text-white">Contact Details</h3>
-            <div className="space-y-3 text-sm text-on-surface-variant">
-              <p><span className="font-bold text-white">Phone:</span> <a href="tel:+917904539353">+91 79045 39353</a></p>
-              <p><span className="font-bold text-white">WhatsApp:</span> <a href={contactWhatsAppHref} rel="noreferrer" target="_blank">Start chat</a></p>
-              <p><span className="font-bold text-white">Support note:</span> We review travel requirements manually before sharing availability and pricing.</p>
+          <div className="grid gap-4 sm:grid-cols-[1fr_auto] sm:items-end lg:grid-cols-1 lg:items-start">
+            <div>
+              <h3 className="font-headline text-xl font-semibold text-white">Talk to our travel desk</h3>
+              <div className="mt-3 space-y-2 text-sm text-gray-200">
+                <p><span className="font-bold text-white">Call:</span> <a href="tel:+917904539353">+91 79045 39353</a></p>
+                <p><span className="font-bold text-white">WhatsApp:</span> <a href={contactWhatsAppHref} rel="noreferrer" target="_blank">Start a conversation</a></p>
+              </div>
             </div>
             <a
-              className="inline-flex rounded-xl bg-[#25D366] px-5 py-3 text-sm font-bold text-white transition-all hover:brightness-110"
+              className="inline-flex w-fit rounded-lg bg-[#25D366] px-5 py-3 text-sm font-bold text-white transition-all hover:brightness-110"
               href={contactWhatsAppHref}
               rel="noreferrer"
               target="_blank"
             >
-              Chat on WhatsApp
+              Message on WhatsApp
             </a>
           </div>
         )}
@@ -162,13 +163,13 @@ export default function Contact() {
       >
         {submittedEnquiry ? (
           <EnquirySuccess
-            message="Our team will review your request and contact you shortly with the next steps. Availability and pricing, if needed, will be shared after manual review."
+            message="Our team will review your request and contact you shortly with the next steps, availability, and pricing where needed."
             onReset={resetForm}
             referenceId={submittedEnquiry.reference_id}
             whatsappHref={successWhatsAppHref}
           />
         ) : (
-          <form ref={formRef} aria-busy={isLoading} className="space-y-10" noValidate onSubmit={handleSubmit}>
+          <form ref={formRef} aria-busy={isLoading} className="mx-auto max-w-3xl space-y-8" noValidate onSubmit={handleSubmit}>
             {apiError && (
               <div aria-live="assertive" className="rounded-xl border border-rose-500/30 bg-rose-500/10 px-4 py-3 text-sm text-rose-200" role="alert">
                 {apiError}
@@ -223,25 +224,25 @@ export default function Contact() {
         )}
       </FormShell>
 
-      <section className="bg-surface-container-low px-6 py-24 md:px-8">
-        <div className="mx-auto grid max-w-7xl gap-6 lg:grid-cols-3">
-          <article className="rounded-[28px] border border-white/10 bg-black/20 p-8">
+      <section className="border-y border-white/10 bg-surface-container-low px-6 py-16 md:px-8">
+        <div className="mx-auto grid max-w-7xl divide-y divide-white/10 lg:grid-cols-3 lg:divide-x lg:divide-y-0">
+          <article className="py-8 lg:px-8 lg:first:pl-0">
             <p className="text-[10px] font-bold uppercase tracking-[0.3em] text-secondary">Direct Contact</p>
             <h3 className="mt-4 font-headline text-3xl font-bold text-white">Phone and WhatsApp Support</h3>
             <p className="mt-4 text-sm leading-relaxed text-on-surface-variant">
               For route planning, service questions, or booking verification, speak with Velvet Pearl directly by phone or WhatsApp.
             </p>
           </article>
-          <article className="rounded-[28px] border border-white/10 bg-black/20 p-8">
+          <article className="py-8 lg:px-8">
             <p className="text-[10px] font-bold uppercase tracking-[0.3em] text-secondary">Support Hours</p>
             <h3 className="mt-4 font-headline text-3xl font-bold text-white">Response Window</h3>
             <p className="mt-4 text-sm leading-relaxed text-on-surface-variant">
               Response timing can vary depending on the enquiry type, travel date, and route complexity.
             </p>
           </article>
-          <article className="rounded-[28px] border border-white/10 bg-black/20 p-8">
+          <article className="py-8 lg:px-8 lg:last:pr-0">
             <p className="text-[10px] font-bold uppercase tracking-[0.3em] text-secondary">Contact Note</p>
-            <h3 className="mt-4 font-headline text-3xl font-bold text-white">Manual Follow-Up</h3>
+            <h3 className="mt-4 font-headline text-3xl font-bold text-white">Personal Follow-Up</h3>
             <p className="mt-4 text-sm leading-relaxed text-on-surface-variant">
               We review each enquiry before sharing availability, pricing, or confirmation details.
             </p>

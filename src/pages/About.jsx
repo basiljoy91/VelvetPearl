@@ -94,7 +94,7 @@ export default function About() {
           <div className="glass-card p-8 rounded-xl relative">
             <span className="material-symbols-outlined absolute top-6 right-8 text-secondary/20 scale-150" style={{fontVariationSettings: "'FILL' 0"}}>verified</span>
             <p className="text-on-surface-variant mb-8 relative z-10 leading-relaxed">Trips and services are confirmed only after the details are checked and both sides are clear on the arrangement.</p>
-            <h4 className="text-sm font-bold text-white">Manual Confirmation</h4>
+            <h4 className="text-sm font-bold text-white">Clear Confirmation</h4>
           </div>
         </div>
       </section>
@@ -103,7 +103,7 @@ export default function About() {
       <section className="bg-surface-container-low rounded-xl p-12 md:p-20 relative overflow-hidden text-center">
         <div className="absolute inset-0 opacity-10 pointer-events-none" style={{backgroundImage: "radial-gradient(circle at center, #2249DB 0%, transparent 70%)"}}></div>
         <h2 className="font-headline text-4xl md:text-5xl font-bold text-white mb-6 relative z-10 tracking-tight">Need travel help?</h2>
-        <p className="text-on-surface-variant text-lg max-w-2xl mx-auto mb-12 relative z-10">Submit your requirement to get the best available quote. Final pricing and availability are shared after manual review.</p>
+        <p className="text-on-surface-variant text-lg max-w-2xl mx-auto mb-12 relative z-10">Submit your requirement to receive suitable options, current availability, and clear pricing from our team.</p>
         <div className="flex flex-col md:flex-row items-center justify-center gap-6 relative z-10">
           <Link to="/book/cab" className="w-full md:w-auto bg-primary-container text-white px-10 py-5 font-label text-sm uppercase tracking-widest rounded-md hover:shadow-2xl hover:shadow-primary-container/30 transition-all flex items-center justify-center gap-3">
             <span className="material-symbols-outlined" style={{fontVariationSettings: "'FILL' 0"}}>local_taxi</span>

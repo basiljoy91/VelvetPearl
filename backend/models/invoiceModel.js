@@ -6,6 +6,7 @@ const { calculateDocumentTotals } = require('../utils/documentMath');
 
 const INVOICE_STATUSES = ['draft', 'sent', 'paid', 'cancelled'];
 const PAYMENT_STATUSES = ['unpaid', 'partial', 'paid', 'refunded'];
+const SERVICE_TYPES = ['cab', 'room', 'tour', 'custom', 'general'];
 
 const parseJson = (value, fallback = null) => {
   if (!value) return fallback;
@@ -26,6 +27,7 @@ const serializeInvoice = (row = {}, items = [], deliveryLogs = [], generatedDocu
   id: row.id,
   invoice_number: row.invoice_number,
   enquiry_id: row.enquiry_id,
+  service_type: row.service_type || 'cab',
   status: row.status,
   invoice_date: row.invoice_date,
   due_date: row.due_date,
@@ -110,6 +112,7 @@ const buildInvoicePayload = (payload = {}) => {
 
   return {
     ...payload,
+    service_type: validStatus(payload.service_type, 'cab', SERVICE_TYPES),
     status: validStatus(payload.status, 'draft', INVOICE_STATUSES),
     payment_status: validStatus(payload.payment_status, 'unpaid', PAYMENT_STATUSES),
     invoice_date: payload.invoice_date || todayIso(),
@@ -194,6 +197,7 @@ const Invoice = {
           INSERT INTO invoices (
             invoice_number,
             enquiry_id,
+            service_type,
             status,
             invoice_date,
             due_date,
@@ -219,11 +223,12 @@ const Invoice = {
             terms,
             created_by
           )
-          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         `,
         [
           invoiceNumber,
           emptyToNull(invoice.enquiry_id),
+          invoice.service_type,
           invoice.status,
           invoice.invoice_date,
           invoice.due_date,
@@ -284,6 +289,7 @@ const Invoice = {
           SET
             invoice_number = ?,
             enquiry_id = ?,
+            service_type = ?,
             status = ?,
             invoice_date = ?,
             due_date = ?,
@@ -312,6 +318,7 @@ const Invoice = {
         [
           invoice.invoice_number || current.invoice_number,
           emptyToNull(invoice.enquiry_id),
+          invoice.service_type,
           invoice.status,
           invoice.invoice_date,
           invoice.due_date,

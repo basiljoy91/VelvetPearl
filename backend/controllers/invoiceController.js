@@ -42,6 +42,7 @@ const buildInvoiceFromEnquiry = (enquiry = {}) => {
 
   return {
     enquiry_id: enquiry.id,
+    service_type: enquiry.enquiry_type || 'general',
     customer_name: enquiry.customer_name,
     customer_phone: enquiry.phone_number,
     customer_email: enquiry.email,
